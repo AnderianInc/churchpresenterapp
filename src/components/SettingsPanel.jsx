@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useApp } from '../store/AppContext';
+import ExternalLink from './ExternalLink';
 
 const PLATFORM_PRESETS = {
   facebook:  { name: 'Facebook Live',   color: '#1877F2', icon: '📘', rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -262,7 +263,7 @@ export default function SettingsPanel() {
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get a free key at{' '}
-                <span style={{ color: 'var(--accent)' }}>developer.youversion.com</span>
+                <ExternalLink href="https://developer.youversion.com">developer.youversion.com</ExternalLink>
                 {' '}→ Create App → copy the App Key. Key is only needed for online Bible search; offline search (KJV, NIV) works without it.
               </div>
             </div>
@@ -326,7 +327,7 @@ export default function SettingsPanel() {
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get credentials at{' '}
-                <span style={{ color: 'var(--accent)' }}>api.planningcenteronline.com/oauth/applications</span>
+                <ExternalLink href="https://api.planningcenteronline.com/oauth/applications">api.planningcenteronline.com/oauth/applications</ExternalLink>
                 {' '}→ Create App → select "Personal Access Token". Requires a free Planning Center account.
               </div>
             </div>
@@ -467,7 +468,7 @@ export default function SettingsPanel() {
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get a key at{' '}
-                <span style={{ color: 'var(--accent)' }}>console.anthropic.com</span>
+                <ExternalLink href="https://console.anthropic.com">console.anthropic.com</ExternalLink>
                 {' '}→ API Keys. Used only when you click "Suggest Verses" in the Sermon Assistant — transcript is sent to Anthropic at that moment only.
               </div>
             </div>
@@ -523,7 +524,7 @@ export default function SettingsPanel() {
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,165,0,0.06)', border: '1px solid rgba(255,165,0,0.2)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get a free token at{' '}
-                <span style={{ color: 'var(--accent)' }}>genius.com/api-clients</span>
+                <ExternalLink href="https://genius.com/api-clients">genius.com/api-clients</ExternalLink>
                 {' '}→ New API Client → copy the Client Access Token.{' '}
                 <strong style={{ color: 'rgba(255,165,0,0.9)' }}>CCLI notice:</strong>{' '}
                 Genius lyrics are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.

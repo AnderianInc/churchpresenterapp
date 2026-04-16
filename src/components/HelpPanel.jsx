@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import ExternalLink from './ExternalLink';
 
 const sections = [
   {
@@ -166,25 +167,26 @@ function ShortcutRow({ kb, desc }) {
   );
 }
 
-function HelpSection({ section }) {
+function HelpSection({ section, forceOpen }) {
   const [open, setOpen] = useState(true);
+  const isOpen = forceOpen || open;
   return (
     <div style={{ borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 8 }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          background: open ? 'rgba(79,142,247,0.06)' : 'rgba(255,255,255,0.02)',
+          background: isOpen ? 'rgba(79,142,247,0.06)' : 'rgba(255,255,255,0.02)',
           border: 'none', padding: '9px 12px', cursor: 'pointer',
-          borderBottom: open ? '1px solid var(--border)' : 'none',
+          borderBottom: isOpen ? '1px solid var(--border)' : 'none',
         }}
       >
         <span style={{ fontSize: 14 }}>{section.icon}</span>
         <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: 'var(--text)', textAlign: 'left' }}>{section.title}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{isOpen ? '▲' : '▼'}</span>
       </button>
 
-      {open && (
+      {isOpen && (
         <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.01)' }}>
           {section.items ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -206,6 +208,19 @@ function HelpSection({ section }) {
 }
 
 export default function HelpPanel() {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return sections;
+    return sections.filter(s => {
+      if (s.title.toLowerCase().includes(q)) return true;
+      if (s.items) return s.items.some(it => it.key.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q));
+      if (s.body) return s.body.some(line => line.toLowerCase().includes(q));
+      return false;
+    });
+  }, [search]);
+
   return (
     <div style={{
       width: 280, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)',
@@ -213,17 +228,45 @@ export default function HelpPanel() {
     }}>
       <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Help & Quick Reference</div>
-        <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>Click a section to expand or collapse</div>
+        <div style={{ position: 'relative', marginTop: 8 }}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search help topics…"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--bg-input)', border: '1px solid var(--border)',
+              borderRadius: 6, color: 'var(--text)', padding: '5px 28px 5px 9px',
+              fontSize: 11, fontFamily: 'var(--font)', outline: 'none',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          {search ? (
+            <button onClick={() => setSearch('')} style={{
+              position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: 'var(--text-dim)',
+              cursor: 'pointer', fontSize: 13, lineHeight: 1, padding: 0,
+            }}>✕</button>
+          ) : (
+            <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--text-dim)', pointerEvents: 'none' }}>🔍</span>
+          )}
+        </div>
       </div>
 
       <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
-        {sections.map(s => <HelpSection key={s.title} section={s} />)}
+        {filtered.length === 0 ? (
+          <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 11, color: 'var(--text-dim)' }}>
+            No results for "{search}"
+          </div>
+        ) : (
+          filtered.map(s => <HelpSection key={s.title} section={s} forceOpen={!!search} />)
+        )}
 
         <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
           <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
             Found a bug or need help?<br />
-            Report issues at{' '}
-            <span style={{ color: 'var(--accent)' }}>github.com/anderianinc/churchpresenterapp</span>
+            <ExternalLink href="https://github.com/anderianinc/churchpresenterapp">github.com/anderianinc/churchpresenterapp</ExternalLink>
           </div>
         </div>
       </div>

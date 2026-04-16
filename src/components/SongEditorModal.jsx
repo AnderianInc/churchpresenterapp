@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
+import ExternalLink from './ExternalLink';
 
 const SLIDE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'ending', 'tag', 'blank'];
 const FONTS = ['Georgia', 'Playfair Display', 'Times New Roman', 'Arial', 'Helvetica', 'Inter'];
@@ -549,7 +550,7 @@ export default function SongEditorModal({ song, onClose }) {
                   onBlur={e => e.target.style.borderColor = 'var(--border)'}
                 />
                 <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4 }}>
-                  Find song numbers at <span style={{ color: 'var(--accent)' }}>songselect.ccli.com</span>
+                  Find song numbers at <ExternalLink href="https://songselect.ccli.com">songselect.ccli.com</ExternalLink>
                 </div>
               </div>
 

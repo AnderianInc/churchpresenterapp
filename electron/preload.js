@@ -71,5 +71,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Sermon Assistant — AI verse suggestions
   suggestVerses: (opts) => ipcRenderer.invoke('suggest-verses', opts),
 
+  openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
+
   isElectron: true,
 });
