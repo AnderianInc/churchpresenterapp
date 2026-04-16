@@ -713,18 +713,55 @@ ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
   if (!pageUrl) throw new Error('No page URL provided');
   const { net } = require('electron');
   const res = await net.fetch(pageUrl, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ChurchPresenter/1.0)' },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+    },
   });
   if (!res.ok) throw new Error(`Failed to fetch lyrics page: ${res.status}`);
   const html = await res.text();
 
-  // Extract all data-lyrics-container div contents, strip HTML tags
-  const containers = [];
-  const containerRe = /data-lyrics-container="true"[^>]*>([\s\S]*?)<\/div>/gi;
-  let match;
-  while ((match = containerRe.exec(html)) !== null) {
-    containers.push(match[1]);
+  // Extract all data-lyrics-container div contents using a depth-tracking
+  // parser. The naive regex [\s\S]*?<\/div> stops at the first nested </div>
+  // and misses the rest of the lyrics.
+  function extractLyricContainers(src) {
+    const found = [];
+    let pos = 0;
+    while (pos < src.length) {
+      const markerIdx = src.indexOf('data-lyrics-container="true"', pos);
+      if (markerIdx === -1) break;
+      // Walk back to the opening < of this tag
+      const tagOpen = src.lastIndexOf('<', markerIdx);
+      // Find the end of the opening tag
+      const tagClose = src.indexOf('>', markerIdx);
+      if (tagClose === -1) break;
+      // Self-closing div edge case
+      if (src[tagClose - 1] === '/') { pos = tagClose + 1; continue; }
+      // Now walk forward tracking div depth to find the matching </div>
+      let depth = 1;
+      let cur = tagClose + 1;
+      const innerStart = cur;
+      while (cur < src.length && depth > 0) {
+        const nextOpen = src.indexOf('<div', cur);
+        const nextClose = src.indexOf('</div>', cur);
+        if (nextClose === -1) break;
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          depth++;
+          cur = nextOpen + 4;
+        } else {
+          depth--;
+          if (depth === 0) found.push(src.slice(innerStart, nextClose));
+          cur = nextClose + 6;
+        }
+      }
+      pos = cur;
+    }
+    return found;
   }
+
+  const containers = extractLyricContainers(html);
+
   if (containers.length === 0) {
     throw new Error('Could not find lyrics on this page. The song page format may have changed.');
   }
