@@ -167,7 +167,11 @@ function GeniusTab({ onImport }) {
   const [noticeDismissed, setNoticeDismissed] = useState(false);
 
   const search = useCallback(async () => {
-    if (!query.trim() || !window.electronAPI) return;
+    if (!query.trim()) return;
+    if (!window.electronAPI) {
+      setError('Genius search requires the desktop app — not available in browser mode.');
+      return;
+    }
     setSearching(true); setError(''); setResults(null);
     setSelectedHit(null); setParsedSlides([]); setDraftTitle(''); setDraftAuthor('');
     try {
@@ -181,6 +185,7 @@ function GeniusTab({ onImport }) {
   }, [query, apiKey]);
 
   const selectHit = useCallback(async (hit) => {
+    if (!window.electronAPI) return;
     setSelectedHit(hit);
     setParsedSlides([]);
     setDraftTitle(hit.title);

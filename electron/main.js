@@ -692,21 +692,21 @@ ipcMain.handle('fetch-pco-arrangements', async (_, { songId, appId, secret }) =>
 // IPC - Genius.com lyrics search and scrape
 ipcMain.handle('search-genius-songs', async (_, { query, apiKey }) => {
   if (!apiKey) throw new Error('No Genius API key configured');
+  const { net } = require('electron');
   const url = `https://api.genius.com/search?q=${encodeURIComponent(query)}`;
-  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+  const res = await net.fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Genius API ${res.status}: ${text.slice(0, 120)}`);
   }
   const data = await res.json();
-  const hits = (data.response?.hits || []).map(h => ({
+  return (data.response?.hits || []).map(h => ({
     id: h.result.id,
     title: h.result.title,
     artist: h.result.primary_artist?.name || '',
     thumbnail: h.result.song_art_image_thumbnail_url || '',
     url: h.result.url,
   }));
-  return hits;
 });
 
 ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
