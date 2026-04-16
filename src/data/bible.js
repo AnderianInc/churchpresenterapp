@@ -256,7 +256,7 @@ export function searchByReference(query, version = 'KJV', extraTexts = {}) {
 
 export function searchByKeyword(query, version = 'KJV', extraTexts = {}) {
   const q = String(query).toLowerCase().trim();
-  if (!q || q.length < 2) return [];
+  if (!q || q.length < 3) return [];
   const source = bibleSource(version, extraTexts);
   return Object.entries(source)
     .filter(([ref, text]) => ref.toLowerCase().includes(q) || text.toLowerCase().includes(q))
