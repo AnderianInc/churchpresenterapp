@@ -766,18 +766,28 @@ ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
     throw new Error('Could not find lyrics on this page. The song page format may have changed.');
   }
 
-  const rawLyrics = containers
+  let rawLyrics = containers
     .join('\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
+    // Decode numeric HTML entities before named ones
+    .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&nbsp;/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+
+  // Strip Genius metadata preamble concatenated before the first section marker.
+  // e.g. "28 ContributorsTranslationsEspañolPraise Lyrics[Intro: Chandler Moore]"
+  const firstBracket = rawLyrics.indexOf('[');
+  if (firstBracket > 0 && !rawLyrics.slice(0, firstBracket).includes('\n')) {
+    rawLyrics = rawLyrics.slice(firstBracket);
+  }
 
   return rawLyrics;
 });
