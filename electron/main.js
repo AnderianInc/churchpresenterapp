@@ -24,7 +24,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '' }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '' }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -687,6 +687,62 @@ ipcMain.handle('fetch-pco-arrangements', async (_, { songId, appId, secret }) =>
   );
   if (!res.ok) throw new Error(`PCO API ${res.status}`);
   return res.json();
+});
+
+// IPC - Genius.com lyrics search and scrape
+ipcMain.handle('search-genius-songs', async (_, { query, apiKey }) => {
+  if (!apiKey) throw new Error('No Genius API key configured');
+  const url = `https://api.genius.com/search?q=${encodeURIComponent(query)}`;
+  const res = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Genius API ${res.status}: ${text.slice(0, 120)}`);
+  }
+  const data = await res.json();
+  const hits = (data.response?.hits || []).map(h => ({
+    id: h.result.id,
+    title: h.result.title,
+    artist: h.result.primary_artist?.name || '',
+    thumbnail: h.result.song_art_image_thumbnail_url || '',
+    url: h.result.url,
+  }));
+  return hits;
+});
+
+ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
+  if (!pageUrl) throw new Error('No page URL provided');
+  const { net } = require('electron');
+  const res = await net.fetch(pageUrl, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ChurchPresenter/1.0)' },
+  });
+  if (!res.ok) throw new Error(`Failed to fetch lyrics page: ${res.status}`);
+  const html = await res.text();
+
+  // Extract all data-lyrics-container div contents, strip HTML tags
+  const containers = [];
+  const containerRe = /data-lyrics-container="true"[^>]*>([\s\S]*?)<\/div>/gi;
+  let match;
+  while ((match = containerRe.exec(html)) !== null) {
+    containers.push(match[1]);
+  }
+  if (containers.length === 0) {
+    throw new Error('Could not find lyrics on this page. The song page format may have changed.');
+  }
+
+  const rawLyrics = containers
+    .join('\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return rawLyrics;
 });
 
 // IPC - Claude AI verse suggestions for sermon assistant

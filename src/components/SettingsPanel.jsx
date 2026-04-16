@@ -134,6 +134,9 @@ export default function SettingsPanel() {
   const [anthropicKey, setAnthropicKey] = useState(settings?.anthropicApiKey || '');
   const [anthropicSaved, setAnthropicSaved] = useState(false);
   const [showAnthropicKey, setShowAnthropicKey] = useState(false);
+  const [geniusKey, setGeniusKey] = useState(settings?.geniusApiKey || '');
+  const [geniusSaved, setGeniusSaved] = useState(false);
+  const [showGeniusKey, setShowGeniusKey] = useState(false);
 
   const destinations = settings?.rtmpDestinations || [];
 
@@ -157,6 +160,13 @@ export default function SettingsPanel() {
     setAnthropicSaved(true);
     setTimeout(() => setAnthropicSaved(false), 2000);
   }, [anthropicKey, saveSettings]);
+
+  // ── Genius API key ──────────────────────────────────────────────────────
+  const saveGeniusKey = useCallback(() => {
+    saveSettings({ geniusApiKey: geniusKey.trim() });
+    setGeniusSaved(true);
+    setTimeout(() => setGeniusSaved(false), 2000);
+  }, [geniusKey, saveSettings]);
 
   // ── Presentation defaults ───────────────────────────────────────────────
   const saveFont = useCallback((font) => {
@@ -459,6 +469,64 @@ export default function SettingsPanel() {
                 Get a key at{' '}
                 <span style={{ color: 'var(--accent)' }}>console.anthropic.com</span>
                 {' '}→ API Keys. Used only when you click "Suggest Verses" in the Sermon Assistant — transcript is sent to Anthropic at that moment only.
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <div style={{ borderTop: '1px solid var(--border)', marginBottom: 20 }} />
+
+        {/* ── Lyrics Search (Genius) ────────────────────────────────────── */}
+        <Section title="Lyrics Search">
+          <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 16 }}>🎵</span>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Genius Client Access Token</div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Enables Genius lyrics search in Song Import</div>
+              </div>
+              {settings?.geniusApiKey && (
+                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
+                  SAVED
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input
+                type={showGeniusKey ? 'text' : 'password'}
+                value={geniusKey}
+                onChange={e => { setGeniusKey(e.target.value); setGeniusSaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveGeniusKey()}
+                placeholder="Paste your Genius Client Access Token"
+                style={{ ...inputStyle, flex: 1 }}
+              />
+              <button onClick={() => setShowGeniusKey(v => !v)} style={{
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11,
+              }}>{showGeniusKey ? 'Hide' : 'Show'}</button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <button
+                onClick={saveGeniusKey}
+                disabled={!geniusKey.trim()}
+                style={{
+                  background: geniusSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
+                  borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer',
+                  fontFamily: 'var(--font)', fontWeight: 600,
+                  opacity: !geniusKey.trim() ? 0.45 : 1,
+                }}
+              >{geniusSaved ? '✓ Saved' : 'Save Key'}</button>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.4 }}>
+                Stored locally only.
+              </div>
+            </div>
+            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,165,0,0.06)', border: '1px solid rgba(255,165,0,0.2)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                Get a free token at{' '}
+                <span style={{ color: 'var(--accent)' }}>genius.com/api-clients</span>
+                {' '}→ New API Client → copy the Client Access Token.{' '}
+                <strong style={{ color: 'rgba(255,165,0,0.9)' }}>CCLI notice:</strong>{' '}
+                Genius lyrics are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.
               </div>
             </div>
           </div>

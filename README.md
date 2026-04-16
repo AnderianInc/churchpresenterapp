@@ -7,8 +7,8 @@ A free, offline-first church presentation app built with Electron + React. Runs 
 ## Features
 
 - **Song Library** — store and manage your full song collection with lyrics, author, key, and tempo
-- **Song Import** — import songs from Planning Center Online, OpenLyrics XML files, or paste lyrics with automatic slide parsing
-- **Lyrics Editor** — multi-slide editor with verse, chorus, bridge, tag, intro, ending, and blank slide types
+- **Song Import** — import songs from Genius Lyrics, Planning Center Online, OpenLyrics XML files, or paste lyrics with automatic slide parsing
+- **Lyrics Editor** — multi-slide editor with verse/chorus/bridge slide types, per-slide text alignment, chord chart tab for worship team, style presets, and metadata fields (BPM, CCLI number, copyright year)
 - **Bible Search** — search by reference (John 3:16) or keyword; offline KJV and NIV included; searches all translations simultaneously; online search via YouVersion API
 - **Live Presentation Output** — fullscreen slide output for projectors and second screens
 - **Stage Display** — dedicated monitor for the worship team with lyrics, key, tempo, and live clock
@@ -150,7 +150,24 @@ The app will detect it automatically.
 
 ## Song Import
 
-Click **↓ Import** in the Songs panel header to open the Song Import modal. Three import paths are available:
+Click **↓ Import** in the Songs panel header to open the Song Import modal. Four import paths are available:
+
+### Genius Lyrics
+
+Search Genius.com for worship song lyrics and import them directly with automatic slide parsing.
+
+**Setup:**
+1. Go to `genius.com/api-clients` and create a new API client
+2. Copy the **Client Access Token** (not the secret — the public read token)
+3. In Church Presenter, open **⚙ Settings → Lyrics Search** and save the token
+
+**Importing:**
+1. Open **Songs → ↓ Import → 🎵 Genius Lyrics**
+2. Search by song title or artist and press **Search**
+3. Select a result — lyrics are fetched and parsed automatically
+4. Review slides in the preview pane, edit title/artist if needed, and click **Import**
+
+> **CCLI notice:** Lyrics sourced from Genius are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.
 
 ### Planning Center Online
 
@@ -199,6 +216,31 @@ Supported section types: `[Verse N]`, `[Chorus]`, `[Bridge]`, `[Pre-Chorus]`, `[
 2. Fill in the song title, author, key, and tempo
 3. Paste lyrics with `[Section]` markers — slides update in real time on the right
 4. Click **Import Song**
+
+---
+
+## Song Editor
+
+Click the pencil icon on any song in the library to open the full Song Editor modal.
+
+### Lyrics & Slides tab
+- Add, remove, duplicate, and reorder slides using the sidebar
+- Set slide **type** (verse, chorus, bridge, intro, ending, tag, blank) and **label**
+- Set per-slide **text alignment** — Left (L), Center (C), or Right (R) — affects both the editor preview and the live output
+- **🎸 Chords sub-tab** — enter a chord chart for a slide. Chords are displayed on the **Stage Display** for the worship team and are never shown to the audience
+
+### Appearance tab
+- Set background color, text color, font family, and font size
+- **Style presets** — Large Title (72px Georgia), Subtitle (52px), Body (36px), Compact (28px Inter) — quickly configure the most common slide styles
+
+### Metadata tab
+- **BPM** — beats per minute (shown on Stage Display next to tempo)
+- **CCLI Song Number** — for CCLI license reporting; find song numbers at `songselect.ccli.com`
+- **Copyright Year** — stored alongside song data
+
+### Tags
+- Click preset tags (hymn, contemporary, worship, etc.) to toggle them
+- Type any custom tag in the input and press **Enter** or **+** to add it
 
 ---
 
@@ -429,6 +471,12 @@ ChurchPresenterApp/
 **Detected references are missing** — the parser requires at least a book name and chapter number. Short abbreviations (e.g. "Gen 1") are supported; check that the book name is followed by a digit.
 
 **"Anthropic API 401" in AI suggestions** — the API key is invalid or has been revoked. Generate a new key at `console.anthropic.com`.
+
+**Genius search returns "No Genius API key configured"** — open ⚙ Settings → Lyrics Search and save your Client Access Token from `genius.com/api-clients`.
+
+**Genius search returns 401 / authorization error** — the token has expired or is incorrect. Generate a new Client Access Token at `genius.com/api-clients`.
+
+**Genius lyrics are blank after selecting a song** — Genius occasionally changes their HTML structure. The scraper looks for `data-lyrics-container` divs; if lyrics are empty, the song may use a layout that is not yet supported.
 
 **Planning Center search returns "PCO API 401"** — your App ID or Secret is incorrect, or the Personal Access Token does not have Services (Songs) read access. Regenerate the token in the PCO developer portal.
 

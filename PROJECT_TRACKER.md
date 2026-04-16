@@ -257,25 +257,29 @@ Surface relevant scripture references in real time as the pastor preaches, so th
 
 ---
 
-### P6 — Song Editor Depth & Web Lyrics Import
+### P6 — Song Editor Depth & Web Lyrics Import ✅ Complete
 
 #### Genius.com Lyrics Integration
 
 Pull professional lyrics directly from Genius into the import modal, giving operators a fast path to any contemporary song without manual typing.
 
-- [ ] **Genius API credential management** — add Genius Client Access Token field to `SettingsPanel` under a new "Lyrics Search" section; token stored in `settings.geniusApiKey`; link to `genius.com/api-clients`
-- [ ] **`search-genius-songs` IPC handler** (`electron/main.js`) — `GET https://api.genius.com/search?q=...` with `Authorization: Bearer <token>`; returns hit list (title, artist, Genius song ID, thumbnail URL)
-- [ ] **`fetch-genius-lyrics` IPC handler** — fetches the song's web page URL from the hits, then scrapes the lyrics container (`data-lyrics-container` divs) via Electron's `net.fetch`; strips HTML tags; returns plain text
-- [ ] **Genius tab in `SongImportModal`** — search input + results list (title, artist, album art thumbnail); on selection, fetch and parse lyrics → auto-detect `[Verse]` / `[Chorus]` / `[Bridge]` / `[Pre-Chorus]` section markers that Genius embeds in its lyrics → populate slide preview; import button calls `addSong()` with full metadata (title, artist, key left blank, tags: `['contemporary']`)
-- [ ] **Fallback scraping notice** — Genius does not expose lyrics via their public API; scraping is a grey area. Display a one-time notice: "Lyrics sourced from Genius are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly."
-- [ ] **preload exposure**: `searchGeniusSongs`, `fetchGeniusLyrics`
+- [x] **Genius API credential management** — Genius Client Access Token field added to `SettingsPanel` under "Lyrics Search" section; token stored in `settings.geniusApiKey`; link to `genius.com/api-clients`; CCLI notice in orange
+- [x] **`search-genius-songs` IPC handler** (`electron/main.js`) — `GET https://api.genius.com/search?q=...` with `Authorization: Bearer <token>`; returns hit list (title, artist, Genius song ID, thumbnail URL)
+- [x] **`fetch-genius-lyrics` IPC handler** — fetches the song's web page via Electron `net.fetch`; scrapes `data-lyrics-container` divs; strips HTML tags and decodes entities; returns plain text
+- [x] **Genius tab in `SongImportModal`** — search input + results list (title, artist, album art thumbnail); on selection, fetches lyrics and parses with `parseSectionedText()`; slide preview pane; editable title/artist; import button calls `addSong()` with `tags: ['contemporary']`
+- [x] **CCLI scraping notice** — dismissable orange banner on the Genius tab; also shown in Settings next to the token field
+- [x] **preload exposure**: `searchGeniusSongs`, `fetchGeniusLyrics`
+- [x] **No-key fallback** — Genius tab shows "configure in Settings → Lyrics Search" when no token is set
 
 #### Editor Improvements
 
-- [ ] Richer formatting controls — text alignment (left / center / right) per slide; style presets (large title, subtitle, body)
-- [ ] Duplicate / reorder slides within a song in the editor (drag-to-reorder within `SongEditorModal`)
-- [ ] Chord chart tab — display chord chart alongside lyrics in the editor; stored as `slide.chords` string; visible in Stage Display
-- [ ] Metadata fields — BPM number input, CCLI number field, copyright year, tags autocomplete
+- [x] **Text alignment per slide** — L / C / R toggle buttons in slide header; `slide.textAlign` field stored on each slide; `SlideRenderer` respects alignment for both preview and live output
+- [x] **Style presets** — Large Title (72px Georgia), Subtitle (52px), Body (36px), Compact (28px Inter) in the Appearance tab
+- [x] **Chord chart tab** — 🎸 Chords sub-tab in slide editor; `slide.chords` string stored per slide; chord chart rendered in `StageView` in monospace below lyrics (not visible to audience)
+- [x] **Metadata tab** — dedicated "📋 Metadata" tab in `SongEditorModal`: BPM (number input), CCLI song number, copyright year; BPM displayed on Stage Display next to Tempo
+- [x] **Tags autocomplete** — preset tags + free-text custom tag input (Enter or + to add); custom tags shown as dismissable chips
+- [x] **HelpPanel** updated with "Genius Lyrics Import" and "Song Editor" sections
+- [x] **README.md** updated with Genius Lyrics Integration section, Song Editor section, and troubleshooting entries
 
 ---
 
@@ -338,6 +342,6 @@ Pull professional lyrics directly from Genius into the import modal, giving oper
 ## Tracking
 
 - **Last updated:** 2026-04-16
-- **Current focus:** P6 song editor depth
-- **Next up:** P7 session reliability
-- **Status:** Active development — P0 + P1 + P2 + P3 + P4 + P5 complete
+- **Current focus:** P7 session reliability
+- **Next up:** P8 media pipeline
+- **Status:** Active development — P0 + P1 + P2 + P3 + P4 + P5 + P6 complete

@@ -7,18 +7,20 @@ export default function SlideRenderer({ slide, item, scale = 1, fullscreen = fal
   const fontSize = (item?.fontSize || 44) * scale;
   const fontFamily = item?.fontFamily || 'Georgia';
   const lines = slide?.lines || '';
+  const textAlign = slide?.textAlign || 'center';
+  const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
 
   const containerStyle = fullscreen ? {
     width: '100vw', height: '100vh',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    background: bg, padding: '5%', textAlign: 'center',
+    alignItems: hAlign, justifyContent: 'center',
+    background: bg, padding: '5%', textAlign,
     position: 'relative',
   } : {
     width: '100%', height: '100%',
     display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    background: bg, padding: '8%', textAlign: 'center',
+    alignItems: hAlign, justifyContent: 'center',
+    background: bg, padding: '8%', textAlign,
     position: 'relative',
   };
 
@@ -47,7 +49,7 @@ export default function SlideRenderer({ slide, item, scale = 1, fullscreen = fal
           }}
         />
       )}
-      <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', textAlign }}>
         <div style={{
           fontSize, fontFamily, color: textColor,
           lineHeight: 1.4, fontWeight: 400,

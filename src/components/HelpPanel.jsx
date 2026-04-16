@@ -47,10 +47,35 @@ const sections = [
     icon: '📥',
     body: [
       'Click "↓ Import" in the Songs panel header to open the Song Import modal.',
+      'Genius Lyrics: search Genius.com for worship song lyrics — configure your Client Access Token in ⚙ Settings → Lyrics Search first.',
       'Planning Center: search your PCO song library by title or artist — configure your App ID and Secret in ⚙ Settings → Planning Center first.',
       'OpenLyrics XML: import .xml files exported from SongSelect, OpenLP, or downloaded from openlyrics.info.',
       'Paste Lyrics: paste lyrics with [Verse 1], [Chorus], [Bridge] section markers — slides are created automatically as you type.',
       'After import the song is added to your library and ready to add to the schedule.',
+    ],
+  },
+  {
+    title: 'Genius Lyrics Import',
+    icon: '🎵',
+    body: [
+      'Search Genius.com for any worship song and import parsed lyrics directly into your library.',
+      'Setup: go to genius.com/api-clients, create a new API client, and copy the Client Access Token. Paste it in ⚙ Settings → Lyrics Search.',
+      'Search: type a song title or artist and press Search. Select a result to fetch lyrics automatically.',
+      'Lyrics are split into slides using [Section] markers when present — otherwise the whole song becomes one slide.',
+      'Edit the title and artist in the preview pane before importing.',
+      'CCLI notice: lyrics from Genius are for internal, non-commercial church use. Ensure you hold a valid CCLI license for songs displayed publicly.',
+    ],
+  },
+  {
+    title: 'Song Editor',
+    icon: '✏️',
+    body: [
+      'Open the editor by clicking Edit (pencil icon) on any song in the library.',
+      'Lyrics tab: edit slides, set slide type (verse/chorus/bridge/etc.), label, and text alignment (L / C / R).',
+      'Chord Chart: click the 🎸 Chords sub-tab to enter a chord chart for a slide — chords are shown on the Stage Display for the worship team and not visible to the audience.',
+      'Appearance tab: choose background color, text color, font family, font size, and style presets (Large Title, Subtitle, Body, Compact).',
+      'Metadata tab: record BPM, CCLI song number, and copyright year for license reporting.',
+      'Tags: click preset tags or type a custom tag and press Enter to add it.',
     ],
   },
   {

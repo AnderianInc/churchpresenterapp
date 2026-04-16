@@ -146,6 +146,170 @@ function SlidePreviewList({ slides }) {
   );
 }
 
+// ── Genius Lyrics tab ─────────────────────────────────────────────────────────
+
+const CCLI_NOTICE = 'Lyrics sourced from Genius are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.';
+
+function GeniusTab({ onImport }) {
+  const { settings } = useApp();
+  const apiKey = settings?.geniusApiKey || '';
+  const hasKey = !!apiKey;
+
+  const [query, setQuery] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState(null);
+  const [error, setError] = useState('');
+  const [selectedHit, setSelectedHit] = useState(null);
+  const [fetchingLyrics, setFetchingLyrics] = useState(false);
+  const [parsedSlides, setParsedSlides] = useState([]);
+  const [draftTitle, setDraftTitle] = useState('');
+  const [draftAuthor, setDraftAuthor] = useState('');
+  const [noticeDismissed, setNoticeDismissed] = useState(false);
+
+  const search = useCallback(async () => {
+    if (!query.trim() || !window.electronAPI) return;
+    setSearching(true); setError(''); setResults(null);
+    setSelectedHit(null); setParsedSlides([]); setDraftTitle(''); setDraftAuthor('');
+    try {
+      const hits = await window.electronAPI.searchGeniusSongs({ query: query.trim(), apiKey });
+      setResults(hits);
+    } catch (e) {
+      setError(e.message || 'Search failed');
+    } finally {
+      setSearching(false);
+    }
+  }, [query, apiKey]);
+
+  const selectHit = useCallback(async (hit) => {
+    setSelectedHit(hit);
+    setParsedSlides([]);
+    setDraftTitle(hit.title);
+    setDraftAuthor(hit.artist);
+    setFetchingLyrics(true);
+    setError('');
+    try {
+      const raw = await window.electronAPI.fetchGeniusLyrics({ pageUrl: hit.url });
+      setParsedSlides(parseSectionedText(raw));
+    } catch (e) {
+      setError('Could not fetch lyrics: ' + e.message);
+    } finally {
+      setFetchingLyrics(false);
+    }
+  }, []);
+
+  if (!hasKey) {
+    return (
+      <div style={{ padding: 24, textAlign: 'center' }}>
+        <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 8 }}>Genius API key not configured</div>
+        <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          Go to <strong style={{ color: 'var(--text-muted)' }}>⚙ Settings → Lyrics Search</strong> and enter your Genius Client Access Token to enable lyrics search.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flex: 1, overflow: 'hidden', flexDirection: 'column' }}>
+      {/* CCLI notice banner */}
+      {!noticeDismissed && (
+        <div style={{
+          padding: '8px 14px', background: 'rgba(255,165,0,0.08)', borderBottom: '1px solid rgba(255,165,0,0.25)',
+          display: 'flex', alignItems: 'flex-start', gap: 10, flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1 }}>⚠️</span>
+          <div style={{ flex: 1, fontSize: 11, color: 'rgba(255,165,0,0.9)', lineHeight: 1.5 }}>{CCLI_NOTICE}</div>
+          <button onClick={() => setNoticeDismissed(true)} style={{
+            background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
+            cursor: 'pointer', fontSize: 14, padding: 0, flexShrink: 0,
+          }}>✕</button>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* Left: search + results */}
+        <div style={{ width: 280, borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 6 }}>
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && search()}
+              placeholder="Song title or artist…"
+              style={{ ...inputStyle, flex: 1 }}
+            />
+            <button onClick={search} disabled={!query.trim() || searching} style={{
+              background: 'var(--accent)', border: 'none', color: '#fff',
+              borderRadius: 6, padding: '0 12px', cursor: 'pointer', fontSize: 12,
+              fontFamily: 'var(--font)', fontWeight: 600,
+              opacity: (!query.trim() || searching) ? 0.5 : 1,
+            }}>{searching ? '…' : 'Search'}</button>
+          </div>
+
+          {error && <div style={{ padding: '8px 12px', fontSize: 11, color: 'var(--red)' }}>{error}</div>}
+
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {results === null && !searching && (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 11, color: 'var(--text-dim)' }}>
+                Search Genius for worship song lyrics
+              </div>
+            )}
+            {results?.length === 0 && (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 11, color: 'var(--text-dim)' }}>No results found</div>
+            )}
+            {results?.map(hit => (
+              <button key={hit.id} onClick={() => selectHit(hit)} style={{
+                width: '100%', background: selectedHit?.id === hit.id ? 'rgba(79,142,247,0.12)' : 'transparent',
+                border: 'none', borderBottom: '1px solid var(--border)',
+                borderLeft: selectedHit?.id === hit.id ? '3px solid var(--accent)' : '3px solid transparent',
+                padding: '9px 12px', cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font)',
+                display: 'flex', gap: 10, alignItems: 'center',
+              }}
+                onMouseEnter={e => { if (selectedHit?.id !== hit.id) e.currentTarget.style.background = 'var(--bg-hover)'; }}
+                onMouseLeave={e => { if (selectedHit?.id !== hit.id) e.currentTarget.style.background = 'transparent'; }}
+              >
+                {hit.thumbnail && (
+                  <img src={hit.thumbnail} alt="" style={{ width: 36, height: 36, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }} />
+                )}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{hit.title}</div>
+                  <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>{hit.artist}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: preview + import */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          {selectedHit && (
+            <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 8, flexShrink: 0 }}>
+              <input value={draftTitle} onChange={e => setDraftTitle(e.target.value)} placeholder="Song title" style={{ ...inputStyle, flex: 1 }} />
+              <input value={draftAuthor} onChange={e => setDraftAuthor(e.target.value)} placeholder="Artist" style={{ ...inputStyle, flex: 1 }} />
+              <button
+                disabled={!parsedSlides.length || !draftTitle.trim()}
+                onClick={() => onImport({ title: draftTitle.trim(), author: draftAuthor.trim(), tags: ['contemporary'], slides: parsedSlides })}
+                style={{
+                  background: 'var(--accent)', border: 'none', color: '#fff',
+                  borderRadius: 6, padding: '0 16px', cursor: 'pointer', fontFamily: 'var(--font)',
+                  fontSize: 12, fontWeight: 600, flexShrink: 0,
+                  opacity: (!parsedSlides.length || !draftTitle.trim()) ? 0.45 : 1,
+                }}
+              >Import</button>
+            </div>
+          )}
+          <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+            {fetchingLyrics && (
+              <div style={{ textAlign: 'center', padding: 24, fontSize: 12, color: 'var(--text-dim)' }}>
+                Fetching lyrics…
+              </div>
+            )}
+            {!fetchingLyrics && <SlidePreviewList slides={parsedSlides} />}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── PCO Search tab ────────────────────────────────────────────────────────────
 
 function PcoTab({ onImport }) {
@@ -484,6 +648,7 @@ function PasteTab({ onImport }) {
 // ── Main modal ────────────────────────────────────────────────────────────────
 
 const TABS = [
+  { id: 'genius', label: '🎵 Genius Lyrics' },
   { id: 'pco', label: '📋 Planning Center' },
   { id: 'openlyrics', label: '📄 OpenLyrics XML' },
   { id: 'paste', label: '📝 Paste Lyrics' },
@@ -494,14 +659,14 @@ export default function SongImportModal({ onClose }) {
   const [activeTab, setActiveTab] = useState('paste');
   const [imported, setImported] = useState(null);
 
-  const handleImport = useCallback(({ title, author, key, tempo, slides }) => {
+  const handleImport = useCallback(({ title, author, key, tempo, tags, slides }) => {
     if (!title || !slides?.length) return;
     const song = addSong({
       title,
       author: author || '',
       key: key || '',
       tempo: tempo || '',
-      tags: [],
+      tags: Array.isArray(tags) ? tags : [],
       slides,
       background: { type: 'color', value: '#0a0f1e' },
       textColor: '#ffffff',
@@ -533,7 +698,7 @@ export default function SongImportModal({ onClose }) {
           <span style={{ fontSize: 18 }}>📥</span>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>Import Song</div>
-            <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>Search Planning Center, import OpenLyrics XML, or paste lyrics</div>
+            <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>Search Genius Lyrics, Planning Center, import OpenLyrics XML, or paste lyrics</div>
           </div>
           {imported && (
             <div style={{
@@ -565,6 +730,7 @@ export default function SongImportModal({ onClose }) {
 
         {/* Tab content */}
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {activeTab === 'genius' && <GeniusTab onImport={handleImport} />}
           {activeTab === 'pco' && <PcoTab onImport={handleImport} />}
           {activeTab === 'openlyrics' && <OpenLyricsTab onImport={handleImport} />}
           {activeTab === 'paste' && <PasteTab onImport={handleImport} />}
