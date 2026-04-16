@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useApp } from '../store/AppContext';
 import ExternalLink from './ExternalLink';
@@ -139,7 +139,7 @@ export default function SettingsPanel() {
   const [geniusSaved, setGeniusSaved] = useState(false);
   const [showGeniusKey, setShowGeniusKey] = useState(false);
 
-  const destinations = settings?.rtmpDestinations || [];
+  const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
   // ── YouVersion key ──────────────────────────────────────────────────────
   const saveYvKey = useCallback(() => {

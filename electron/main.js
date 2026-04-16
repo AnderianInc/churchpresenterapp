@@ -754,6 +754,7 @@ ipcMain.handle('open-external-link', async (_, url) => {
 });
 
 // IPC - Claude AI verse suggestions for sermon assistant
+ipcMain.handle('suggest-verses', async (_, { transcript, apiKey }) => {
   if (!apiKey) throw new Error('No Anthropic API key configured');
   const prompt = `You are a Bible verse assistant for a live church service presenter. Given the sermon transcript excerpt below, suggest 3-5 relevant Bible verses the presenter might want to display on screen for the congregation.
 

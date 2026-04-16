@@ -211,6 +211,9 @@ export function AppProvider({ children }) {
       };
     }
     return () => { broadcastRef.current?.close(); broadcastRef.current = null; };
+  // liveOutputs/liveRoleSlides intentionally omitted — adding them would
+  // tear down and recreate the BroadcastChannel on every live state change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear]);
 
   const broadcast = useCallback((type, payload) => {

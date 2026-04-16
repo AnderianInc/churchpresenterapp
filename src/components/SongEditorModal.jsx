@@ -30,7 +30,6 @@ const inputStyle = {
 const labelStyle = { fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' };
 
 const AlignBtn = ({ align, current, onClick }) => {
-  const icons = { left: '≡', center: '☰', right: '≡' };
   const labels = { left: 'L', center: 'C', right: 'R' };
   return (
     <button onClick={() => onClick(align)} title={`Align ${align}`} style={{

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 
 const PLATFORM_COLORS = { facebook: '#1877F2', youtube: '#FF0000', instagram: '#E1306C', custom: '#888' };
@@ -43,7 +43,7 @@ export default function StreamPanel() {
   const captureStreamRef = useRef(null);
   const rtmpDurationRef = useRef(null);
   const [rtmpElapsed, setRtmpElapsed] = useState(0);
-  const destinations = settings?.rtmpDestinations || [];
+  const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
   // ── Request camera permission & enumerate devices ───────────────────────────
   const requestPermissionAndEnumerate = useCallback(async () => {

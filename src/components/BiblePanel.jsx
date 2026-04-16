@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  BIBLE_VERSION_LABELS, QUICK_REFERENCES,
+  QUICK_REFERENCES,
   OFFLINE_BIBLE_FOLDERS,
   BIBLE_TEXTS,
   fetchBibleTranslationFromAsset,

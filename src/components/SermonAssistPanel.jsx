@@ -185,6 +185,7 @@ export default function SermonAssistPanel() {
     recognitionRef.current = recognition;
     setIsListening(true);
     recognition.start();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stopListeningFn = useCallback(() => {
