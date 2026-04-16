@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 // Canonical schema validators — all return { valid, data, errors }
 
 export function validateSong(raw) {
@@ -10,7 +12,7 @@ export function validateSong(raw) {
     valid: errors.length === 0,
     errors,
     data: {
-      id: raw.id || crypto.randomUUID(),
+      id: raw.id || uuidv4(),
       title: raw.title || 'Untitled',
       author: raw.author || '',
       key: raw.key || '',
@@ -26,9 +28,9 @@ export function validateSong(raw) {
 }
 
 function validateSlide(raw) {
-  if (!raw || typeof raw !== 'object') return { id: crypto.randomUUID(), type: 'verse', label: 'Slide', lines: '' };
+  if (!raw || typeof raw !== 'object') return { id: uuidv4(), type: 'verse', label: 'Slide', lines: '' };
   return {
-    id: raw.id || crypto.randomUUID(),
+    id: raw.id || uuidv4(),
     type: raw.type || 'verse',
     label: raw.label || '',
     lines: raw.lines || '',
