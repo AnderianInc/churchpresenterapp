@@ -218,6 +218,8 @@ export default function SettingsPanel() {
 
         {/* ── API Keys ───────────────────────────────────────────────────── */}
         <Section title="API Keys">
+
+          {/* YouVersion */}
           <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 16 }}>📖</span>
@@ -226,54 +228,64 @@ export default function SettingsPanel() {
                 <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Required for online Bible search</div>
               </div>
               {settings?.youversionApiKey && (
-                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
-                  SAVED
-                </span>
+                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SAVED</span>
               )}
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type={showYvKey ? 'text' : 'password'}
-                value={yvKey}
+              <input type={showYvKey ? 'text' : 'password'} value={yvKey}
                 onChange={e => { setYvKey(e.target.value); setYvSaved(false); }}
                 onKeyDown={e => e.key === 'Enter' && saveYvKey()}
-                placeholder="Paste your YouVersion App Key"
-                style={{ ...inputStyle, flex: 1 }}
-              />
-              <button onClick={() => setShowYvKey(v => !v)} style={{
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11,
-              }}>{showYvKey ? 'Hide' : 'Show'}</button>
+                placeholder="Paste your YouVersion App Key" style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={() => setShowYvKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showYvKey ? 'Hide' : 'Show'}</button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <button
-                onClick={saveYvKey}
-                disabled={!yvKey.trim()}
-                style={{
-                  background: yvSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
-                  borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer',
-                  fontFamily: 'var(--font)', fontWeight: 600,
-                  opacity: !yvKey.trim() ? 0.45 : 1,
-                }}
-              >{yvSaved ? '✓ Saved' : 'Save Key'}</button>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.4 }}>
-                Key stored locally in settings.json only.
-              </div>
+              <button onClick={saveYvKey} disabled={!yvKey.trim()} style={{ background: yvSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff', borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, opacity: !yvKey.trim() ? 0.45 : 1 }}>{yvSaved ? '✓ Saved' : 'Save Key'}</button>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Stored locally only.</div>
             </div>
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get a free key at{' '}
                 <ExternalLink href="https://developer.youversion.com">developer.youversion.com</ExternalLink>
-                {' '}→ Create App → copy the App Key. Key is only needed for online Bible search; offline search (KJV, NIV) works without it.
+                {' '}→ Create App → copy the App Key. Offline search (KJV, NIV) works without it.
               </div>
             </div>
           </div>
-        </Section>
 
-        <div style={{ borderTop: '1px solid var(--border)', marginBottom: 20 }} />
+          {/* Genius */}
+          <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 16 }}>🎵</span>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Genius Client Access Token</div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Enables Genius lyrics search in Song Import</div>
+              </div>
+              {settings?.geniusApiKey && (
+                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SAVED</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input type={showGeniusKey ? 'text' : 'password'} value={geniusKey}
+                onChange={e => { setGeniusKey(e.target.value); setGeniusSaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveGeniusKey()}
+                placeholder="Paste your Genius Client Access Token" style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={() => setShowGeniusKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showGeniusKey ? 'Hide' : 'Show'}</button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <button onClick={saveGeniusKey} disabled={!geniusKey.trim()} style={{ background: geniusSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff', borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, opacity: !geniusKey.trim() ? 0.45 : 1 }}>{geniusSaved ? '✓ Saved' : 'Save Key'}</button>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Stored locally only.</div>
+            </div>
+            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,165,0,0.06)', border: '1px solid rgba(255,165,0,0.2)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                Get a free token at{' '}
+                <ExternalLink href="https://genius.com/api-clients">genius.com/api-clients</ExternalLink>
+                {' '}→ New API Client → copy the Client Access Token.{' '}
+                <strong style={{ color: 'rgba(255,165,0,0.9)' }}>CCLI:</strong>{' '}
+                For internal, non-commercial church use only.
+              </div>
+            </div>
+          </div>
 
-        {/* ── Planning Center Online ────────────────────────────────────── */}
-        <Section title="Planning Center">
+          {/* Planning Center */}
           <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
               <span style={{ fontSize: 16 }}>📋</span>
@@ -282,56 +294,64 @@ export default function SettingsPanel() {
                 <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Search & import songs from your PCO library</div>
               </div>
               {settings?.pcoAppId && settings?.pcoSecret && (
-                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
-                  SAVED
-                </span>
+                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SAVED</span>
               )}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <input
-                value={pcoAppId}
-                onChange={e => { setPcoAppId(e.target.value); setPcoSaved(false); }}
-                placeholder="App ID"
-                style={inputStyle}
-              />
+              <input value={pcoAppId} onChange={e => { setPcoAppId(e.target.value); setPcoSaved(false); }} placeholder="App ID" style={inputStyle} />
               <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  type={showPcoSecret ? 'text' : 'password'}
-                  value={pcoSecret}
+                <input type={showPcoSecret ? 'text' : 'password'} value={pcoSecret}
                   onChange={e => { setPcoSecret(e.target.value); setPcoSaved(false); }}
                   onKeyDown={e => e.key === 'Enter' && savePco()}
-                  placeholder="Secret"
-                  style={{ ...inputStyle, flex: 1 }}
-                />
-                <button onClick={() => setShowPcoSecret(v => !v)} style={{
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11,
-                }}>{showPcoSecret ? 'Hide' : 'Show'}</button>
+                  placeholder="Secret" style={{ ...inputStyle, flex: 1 }} />
+                <button onClick={() => setShowPcoSecret(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showPcoSecret ? 'Hide' : 'Show'}</button>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <button
-                onClick={savePco}
-                disabled={!pcoAppId.trim() || !pcoSecret.trim()}
-                style={{
-                  background: pcoSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
-                  borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer',
-                  fontFamily: 'var(--font)', fontWeight: 600,
-                  opacity: (!pcoAppId.trim() || !pcoSecret.trim()) ? 0.45 : 1,
-                }}
-              >{pcoSaved ? '✓ Saved' : 'Save Credentials'}</button>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.4 }}>
-                Stored locally only.
-              </div>
+              <button onClick={savePco} disabled={!pcoAppId.trim() || !pcoSecret.trim()} style={{ background: pcoSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff', borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, opacity: (!pcoAppId.trim() || !pcoSecret.trim()) ? 0.45 : 1 }}>{pcoSaved ? '✓ Saved' : 'Save Credentials'}</button>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Stored locally only.</div>
             </div>
             <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
               <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                 Get credentials at{' '}
                 <ExternalLink href="https://api.planningcenteronline.com/oauth/applications">api.planningcenteronline.com/oauth/applications</ExternalLink>
-                {' '}→ Create App → select "Personal Access Token". Requires a free Planning Center account.
+                {' '}→ Create App → select "Personal Access Token".
               </div>
             </div>
           </div>
+
+          {/* Anthropic */}
+          <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 16 }}>✦</span>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Anthropic API Key</div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Powers AI verse suggestions during live preaching</div>
+              </div>
+              {settings?.anthropicApiKey && (
+                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SAVED</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input type={showAnthropicKey ? 'text' : 'password'} value={anthropicKey}
+                onChange={e => { setAnthropicKey(e.target.value); setAnthropicSaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveAnthropicKey()}
+                placeholder="sk-ant-…" style={{ ...inputStyle, flex: 1 }} />
+              <button onClick={() => setShowAnthropicKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showAnthropicKey ? 'Hide' : 'Show'}</button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <button onClick={saveAnthropicKey} disabled={!anthropicKey.trim()} style={{ background: anthropicSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff', borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font)', fontWeight: 600, opacity: !anthropicKey.trim() ? 0.45 : 1 }}>{anthropicSaved ? '✓ Saved' : 'Save Key'}</button>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Stored locally only.</div>
+            </div>
+            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                Get a key at{' '}
+                <ExternalLink href="https://console.anthropic.com">console.anthropic.com</ExternalLink>
+                {' '}→ API Keys. Sent to Anthropic only when you click "Suggest Verses" in the Sermon tab.
+              </div>
+            </div>
+          </div>
+
         </Section>
 
         <div style={{ borderTop: '1px solid var(--border)', marginBottom: 20 }} />
@@ -366,9 +386,7 @@ export default function SettingsPanel() {
 
           {/* Destination cards */}
           {destinations.map(dest => (
-            <DestinationCard
-              key={dest.id}
-              dest={dest}
+            <DestinationCard key={dest.id} dest={dest}
               onUpdate={(changes) => updateDestination(dest.id, changes)}
               onRemove={() => removeDestination(dest.id)}
             />
@@ -397,17 +415,12 @@ export default function SettingsPanel() {
                   </button>
                 ))}
               </div>
-              <button onClick={() => setShowAddPlatform(false)} style={{
-                width: '100%', marginTop: 8, background: 'transparent', border: '1px solid var(--border)',
-                borderRadius: 6, color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', fontSize: 11,
-                fontFamily: 'var(--font)',
-              }}>Cancel</button>
+              <button onClick={() => setShowAddPlatform(false)} style={{ width: '100%', marginTop: 8, background: 'transparent', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-muted)', padding: '6px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)' }}>Cancel</button>
             </div>
           ) : (
             <button onClick={() => setShowAddPlatform(true)} style={{
               width: '100%', background: 'transparent', border: '1px dashed rgba(255,255,255,0.15)',
-              borderRadius: 7, color: 'var(--text-muted)', padding: '8px', cursor: 'pointer', fontSize: 12,
-              fontFamily: 'var(--font)',
+              borderRadius: 7, color: 'var(--text-muted)', padding: '8px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)',
             }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
@@ -416,120 +429,6 @@ export default function SettingsPanel() {
 
           <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5, padding: '4px 0' }}>
             Start streaming from the <strong style={{ color: 'var(--text-muted)' }}>📡 Stream</strong> panel once configured. Stream keys are stored locally and never uploaded.
-          </div>
-        </Section>
-
-        <div style={{ borderTop: '1px solid var(--border)', marginBottom: 20 }} />
-
-        {/* ── AI — Anthropic API ────────────────────────────────────────── */}
-        <Section title="AI (Sermon Assistant)">
-          <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 16 }}>✦</span>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Anthropic API Key</div>
-                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Powers AI verse suggestions during live preaching</div>
-              </div>
-              {settings?.anthropicApiKey && (
-                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
-                  SAVED
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type={showAnthropicKey ? 'text' : 'password'}
-                value={anthropicKey}
-                onChange={e => { setAnthropicKey(e.target.value); setAnthropicSaved(false); }}
-                onKeyDown={e => e.key === 'Enter' && saveAnthropicKey()}
-                placeholder="sk-ant-…"
-                style={{ ...inputStyle, flex: 1 }}
-              />
-              <button onClick={() => setShowAnthropicKey(v => !v)} style={{
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11,
-              }}>{showAnthropicKey ? 'Hide' : 'Show'}</button>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <button
-                onClick={saveAnthropicKey}
-                disabled={!anthropicKey.trim()}
-                style={{
-                  background: anthropicSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
-                  borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer',
-                  fontFamily: 'var(--font)', fontWeight: 600,
-                  opacity: !anthropicKey.trim() ? 0.45 : 1,
-                }}
-              >{anthropicSaved ? '✓ Saved' : 'Save Key'}</button>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.4 }}>
-                Stored locally only.
-              </div>
-            </div>
-            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
-                Get a key at{' '}
-                <ExternalLink href="https://console.anthropic.com">console.anthropic.com</ExternalLink>
-                {' '}→ API Keys. Used only when you click "Suggest Verses" in the Sermon Assistant — transcript is sent to Anthropic at that moment only.
-              </div>
-            </div>
-          </div>
-        </Section>
-
-        <div style={{ borderTop: '1px solid var(--border)', marginBottom: 20 }} />
-
-        {/* ── Lyrics Search (Genius) ────────────────────────────────────── */}
-        <Section title="Lyrics Search">
-          <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 16 }}>🎵</span>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Genius Client Access Token</div>
-                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Enables Genius lyrics search in Song Import</div>
-              </div>
-              {settings?.geniusApiKey && (
-                <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
-                  SAVED
-                </span>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input
-                type={showGeniusKey ? 'text' : 'password'}
-                value={geniusKey}
-                onChange={e => { setGeniusKey(e.target.value); setGeniusSaved(false); }}
-                onKeyDown={e => e.key === 'Enter' && saveGeniusKey()}
-                placeholder="Paste your Genius Client Access Token"
-                style={{ ...inputStyle, flex: 1 }}
-              />
-              <button onClick={() => setShowGeniusKey(v => !v)} style={{
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11,
-              }}>{showGeniusKey ? 'Hide' : 'Show'}</button>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <button
-                onClick={saveGeniusKey}
-                disabled={!geniusKey.trim()}
-                style={{
-                  background: geniusSaved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
-                  borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: 'pointer',
-                  fontFamily: 'var(--font)', fontWeight: 600,
-                  opacity: !geniusKey.trim() ? 0.45 : 1,
-                }}
-              >{geniusSaved ? '✓ Saved' : 'Save Key'}</button>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.4 }}>
-                Stored locally only.
-              </div>
-            </div>
-            <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,165,0,0.06)', border: '1px solid rgba(255,165,0,0.2)' }}>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
-                Get a free token at{' '}
-                <ExternalLink href="https://genius.com/api-clients">genius.com/api-clients</ExternalLink>
-                {' '}→ New API Client → copy the Client Access Token.{' '}
-                <strong style={{ color: 'rgba(255,165,0,0.9)' }}>CCLI notice:</strong>{' '}
-                Genius lyrics are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.
-              </div>
-            </div>
           </div>
         </Section>
 

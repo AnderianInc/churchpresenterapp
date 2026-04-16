@@ -147,14 +147,6 @@ export default function Toolbar({ onNewSong }) {
         <button style={tabStyle('help')} onClick={() => setActiveView('help')}>❔ Help</button>
       </div>
 
-      <div style={{ width: 1, height: 22, background: 'var(--border)', margin: '0 8px' }} />
-
-      <button style={btn({ WebkitAppRegion: 'no-drag' })} onClick={onNewSong}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-        ＋ New Song
-      </button>
-
       <div style={{ flex: 1 }} />
 
       {/* Right controls */}
