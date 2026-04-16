@@ -249,11 +249,11 @@ Surface relevant scripture references in real time as the pastor preaches, so th
 
 ---
 
-### P5 — Test Coverage
+### P5 — Test Coverage ✅ Complete
 
-- [ ] AppContext domain tests: `goLive` transitions, `toggleBlackout/Clear`, `removeFromSchedule` edge cases, `nextSlide`/`prevSlide` at boundaries
-- [ ] Electron IPC smoke test: slide/blackout/clear relay to output windows (including stream window)
-- [ ] Multi-output routing tests: `goLiveOutput`, `goLiveAll`, `liveRoleSlides` resolution
+- [x] AppContext domain tests: `goLive` transitions, `toggleBlackout/Clear`, `removeFromSchedule` edge cases, `nextSlide`/`prevSlide` at boundaries
+- [x] Electron IPC smoke test: slide/blackout/clear relay to output windows (including stream window) — `src/__tests__/ipcRelay.test.js`
+- [x] Multi-output routing tests: `goLiveOutput`, `goLiveAll`, `liveRoleSlides` resolution, `sendOutputState` precedence — `src/__tests__/multiOutput.test.js`
 
 ---
 
@@ -337,7 +337,7 @@ Pull professional lyrics directly from Genius into the import modal, giving oper
 
 ## Tracking
 
-- **Last updated:** 2026-04-15
-- **Current focus:** P5 test coverage
-- **Next up:** P6 song editor depth
-- **Status:** Active development — P0 + P1 + P2 + P3 + P4 complete
+- **Last updated:** 2026-04-16
+- **Current focus:** P6 song editor depth
+- **Next up:** P7 session reliability
+- **Status:** Active development — P0 + P1 + P2 + P3 + P4 + P5 complete

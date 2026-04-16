@@ -160,7 +160,7 @@ const ALIASES = {
   gen: 'Genesis', exod: 'Exodus', lev: 'Leviticus', num: 'Numbers', deut: 'Deuteronomy',
   josh: 'Joshua', judg: 'Judges', rth: 'Ruth', '1 sam': '1 Samuel', '2 sam': '2 Samuel',
   '1 kings': '1 Kings', '2 kings': '2 Kings', '1 chr': '1 Chronicles', '2 chr': '2 Chronicles',
-  ezra: 'Ezra', neh: 'Nehemiah', esth: 'Esther', job: 'Job', psa: 'Psalms', psalm: 'Psalms', psalms: 'Psalms',
+  ezra: 'Ezra', neh: 'Nehemiah', esth: 'Esther', job: 'Job', ps: 'Psalms', psa: 'Psalms', psalm: 'Psalms', psalms: 'Psalms',
   prov: 'Proverbs', eccl: 'Ecclesiastes', song: 'Song of Solomon', sos: 'Song of Solomon',
   isa: 'Isaiah', jer: 'Jeremiah', lam: 'Lamentations', ezek: 'Ezekiel', dan: 'Daniel',
   hos: 'Hosea', joel: 'Joel', amos: 'Amos', obad: 'Obadiah', jon: 'Jonah', mic: 'Micah',
@@ -256,7 +256,7 @@ export function searchByReference(query, version = 'KJV', extraTexts = {}) {
 
 export function searchByKeyword(query, version = 'KJV', extraTexts = {}) {
   const q = String(query).toLowerCase().trim();
-  if (!q || q.length < 2) return [];
+  if (!q || q.length < 3) return [];
   const source = bibleSource(version, extraTexts);
   return Object.entries(source)
     .filter(([ref, text]) => ref.toLowerCase().includes(q) || text.toLowerCase().includes(q))

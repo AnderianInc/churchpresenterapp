@@ -233,6 +233,105 @@ describe('blackout and clear independence', () => {
   });
 });
 
+// ── removeFromSchedule edge cases ─────────────────────────────────────────────
+
+/**
+ * removeFromSchedule logic (mirrors AppContext.removeFromSchedule)
+ *
+ * Rules:
+ *   - Unknown scheduleId → no-op (same reference returned)
+ *   - Remove item BEFORE active → activeScheduleIdx decrements by 1 (min 0)
+ *   - Remove ACTIVE item → clamp: min(activeScheduleIdx, max(0, newLength-1))
+ *   - Remove item AFTER active → activeScheduleIdx unchanged
+ *   - activeSlideIdx always resets to 0 after a successful remove
+ */
+function removeFromSchedule(state, scheduleId) {
+  const { schedule, activeScheduleIdx } = state;
+  const idx = schedule.findIndex(s => s.scheduleId === scheduleId);
+  if (idx === -1) return state; // no-op — return same reference
+  const newSch = schedule.filter(s => s.scheduleId !== scheduleId);
+  let newIdx = activeScheduleIdx;
+  if (idx < activeScheduleIdx) {
+    newIdx = Math.max(0, activeScheduleIdx - 1);
+  } else if (idx === activeScheduleIdx) {
+    newIdx = Math.min(activeScheduleIdx, Math.max(0, newSch.length - 1));
+  }
+  return { ...state, schedule: newSch, activeScheduleIdx: newIdx, activeSlideIdx: 0 };
+}
+
+describe('removeFromSchedule', () => {
+  function makeSchedule(titles) {
+    return titles.map((title, i) => ({ scheduleId: `sch-${i}`, title, type: 'song', slides: makeSlides(2) }));
+  }
+
+  it('is a no-op for an unknown scheduleId (same reference)', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 1, activeSlideIdx: 1 };
+    expect(removeFromSchedule(state, 'does-not-exist')).toBe(state);
+  });
+
+  it('removes item before active → decrements activeScheduleIdx', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 2, activeSlideIdx: 1 };
+    const next = removeFromSchedule(state, 'sch-0'); // remove A (before active C)
+    expect(next.schedule).toHaveLength(2);
+    expect(next.activeScheduleIdx).toBe(1); // was 2, decremented to 1
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('removes item after active → activeScheduleIdx unchanged', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 0, activeSlideIdx: 1 };
+    const next = removeFromSchedule(state, 'sch-2'); // remove C (after active A)
+    expect(next.schedule).toHaveLength(2);
+    expect(next.activeScheduleIdx).toBe(0);
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('removes active item (not last) → index stays, now pointing at next item', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 1, activeSlideIdx: 1 };
+    const next = removeFromSchedule(state, 'sch-1'); // remove active B
+    expect(next.schedule).toHaveLength(2);
+    expect(next.activeScheduleIdx).toBe(1); // min(1, max(0, 1)) = 1; now points at C
+    expect(next.schedule[1].title).toBe('C');
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('removes active item that is last in schedule → clamps to new last index', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 2, activeSlideIdx: 1 };
+    const next = removeFromSchedule(state, 'sch-2'); // remove active C (last)
+    expect(next.schedule).toHaveLength(2);
+    expect(next.activeScheduleIdx).toBe(1); // min(2, max(0, 1)) = 1
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('removes the only item in the schedule → empty schedule, index stays 0', () => {
+    const schedule = makeSchedule(['A']);
+    const state = { schedule, activeScheduleIdx: 0, activeSlideIdx: 1 };
+    const next = removeFromSchedule(state, 'sch-0');
+    expect(next.schedule).toHaveLength(0);
+    expect(next.activeScheduleIdx).toBe(0); // min(0, max(0, -1)) = min(0, 0) = 0
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('always resets activeSlideIdx to 0 regardless of which item is removed', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const state = { schedule, activeScheduleIdx: 0, activeSlideIdx: 1 }; // mid-song
+    const next = removeFromSchedule(state, 'sch-2'); // remove C (after active)
+    expect(next.activeSlideIdx).toBe(0);
+  });
+
+  it('removing item just before active with activeScheduleIdx=1 clamps to 0 floor', () => {
+    const schedule = makeSchedule(['A', 'B']);
+    const state = { schedule, activeScheduleIdx: 1, activeSlideIdx: 0 };
+    const next = removeFromSchedule(state, 'sch-0'); // remove A, active was B at idx 1
+    expect(next.activeScheduleIdx).toBe(0); // Math.max(0, 1-1) = 0
+    expect(next.schedule[0].title).toBe('B');
+  });
+});
+
 // ── StageView clear parity ─────────────────────────────────────────────────────
 
 describe('stage view clear parity', () => {
