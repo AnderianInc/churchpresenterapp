@@ -1,15 +1,5 @@
-export const BIBLE_VERSIONS = ['KJV', 'NIV', 'ESV', 'NKJV', 'NLT', 'AMP', 'TPT', 'MSG'];
-
-export const BIBLE_VERSION_LABELS = {
-  KJV: 'King James Version',
-  NIV: 'New International Version',
-  ESV: 'English Standard Version',
-  NKJV: 'New King James Version',
-  NLT: 'New Living Translation',
-  AMP: 'Amplified Bible',
-  TPT: 'The Passion Translation',
-  MSG: 'The Message',
-};
+// Offline translations are discovered dynamically from /public/bibles/index.json
+// (falls back to OFFLINE_BIBLE_FOLDERS below). There is no hardcoded version list.
 
 export const QUICK_REFERENCES = [
   'John 3:16', 'Psalm 23:1-6', 'Romans 8:28',

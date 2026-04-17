@@ -9,6 +9,7 @@ const {
   getYouVersionVersions,
   getYouVersionVersion,
   getYouVersionPassage,
+  searchYouVersionVerses,
 } = require('./youversion');
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -516,6 +517,15 @@ ipcMain.handle('fetch-youversion-version', async (_, appKey, versionId) => {
   } catch (err) {
     console.error('[YouVersion] fetch-youversion-version failed', err.message);
     throw new Error(err.message || 'Unable to load YouVersion version metadata.');
+  }
+});
+
+ipcMain.handle('search-youversion-verses', async (_, { appKey, versionId, query }) => {
+  try {
+    return await searchYouVersionVerses(appKey, versionId, query);
+  } catch (err) {
+    console.error('[YouVersion] search-youversion-verses failed', err.message);
+    throw new Error(err.message || 'YouVersion verse search failed.');
   }
 });
 

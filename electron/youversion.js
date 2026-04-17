@@ -73,6 +73,39 @@ async function getYouVersionPassage(appKey, versionCode, reference, format = 'te
   return await client.getPassage(versionId, reference, format);
 }
 
+/**
+ * Keyword search across a YouVersion version.
+ * Tries native SDK search methods first; falls back to a direct Platform API call.
+ * Response shape normalised to: { data: [{ human_reference, usfm, text }] }
+ */
+async function searchYouVersionVerses(appKey, versionCode, query, pageSize = 25) {
+  const effectiveKey = String(appKey || defaultAppKey || '').trim();
+
+  const asNum = Number(versionCode);
+  const versionId = (!isNaN(asNum) && asNum > 0) ? asNum : await findYouVersionId(appKey, versionCode);
+
+  const client = createYouVersionClient(appKey);
+
+  // Try any search method the SDK might expose
+  for (const method of ['search', 'searchVerses', 'getSearchResults']) {
+    if (typeof client[method] === 'function') {
+      return await client[method](versionId, query, { page_size: pageSize });
+    }
+  }
+
+  // Direct Platform API call as fallback
+  const { net } = require('electron');
+  const url = `https://platform-api.youversion.com/bible/search?q=${encodeURIComponent(query)}&version_id=${versionId}&page_size=${pageSize}`;
+  const res = await net.fetch(url, {
+    headers: { 'Authorization': `Application ${effectiveKey}` },
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`YouVersion search ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json();
+}
+
 module.exports = {
   createYouVersionClient,
   hasDefaultAppKey,
@@ -80,4 +113,5 @@ module.exports = {
   getYouVersionVersion,
   getYouVersionPassage,
   findYouVersionId,
+  searchYouVersionVerses,
 };

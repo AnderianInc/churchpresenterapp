@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchYouVersionVersions: (appKey, language) => ipcRenderer.invoke('fetch-youversion-versions', appKey, language),
   fetchYouVersionVersion: (appKey, versionId) => ipcRenderer.invoke('fetch-youversion-version', appKey, versionId),
   fetchYouVersionPassage: (appKey, versionId, reference, format) => ipcRenderer.invoke('fetch-youversion-passage', appKey, versionId, reference, format),
+  searchYouVersionVerses: (opts) => ipcRenderer.invoke('search-youversion-verses', opts),
 
   // Windows
   openPresentation: (displayIndex) => ipcRenderer.invoke('open-presentation', displayIndex),

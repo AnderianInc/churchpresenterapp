@@ -159,16 +159,41 @@ export default function BiblePanel() {
         setLoading(false);
         return;
       }
-      if (!isRef) {
-        setResults([]);
-        setSearchMode('keyword');
-        setYouversionMessage('Online mode supports reference lookups (e.g. John 3:16). For keyword search, switch to offline mode.');
-        setLoading(false);
-        return;
-      }
       // Pass the numeric version ID directly to avoid a redundant API round-trip in main.js
       const versionParam = selectedVersionObj?.id?.toString() || version;
       const displayVersion = selectedVersionObj?.abbreviation || version;
+
+      if (!isRef) {
+        // Keyword search via YouVersion Platform API
+        try {
+          const result = await window.electronAPI.searchYouVersionVerses({
+            appKey: effectiveKey,
+            versionId: versionParam,
+            query,
+          });
+          // Normalise across possible response shapes
+          const hits = result?.data || result?.verses || result?.hits || [];
+          const mapped = hits
+            .map(h => ({
+              reference: h.human_reference || h.reference || h.usfm?.[0] || '',
+              text: h.text || h.content || '',
+              version: displayVersion,
+            }))
+            .filter(h => h.reference && h.text);
+          setResults(mapped);
+          setSearchMode('keyword');
+          if (mapped.length === 0) setYouversionMessage('No verses found. Try a different keyword or phrase.');
+        } catch (err) {
+          setResults([]);
+          setYouversionMessage(err.message?.includes('404') || err.message?.includes('not supported')
+            ? 'Keyword search is not available for this API key. Try a reference (e.g. John 3:16) or switch to offline mode.'
+            : (err.message || 'YouVersion keyword search failed.'));
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         const passage = await fetchYouVersionPassage(effectiveKey, versionParam, query, 'text');
         const content = passage?.content || passage?.data?.content || '';
@@ -505,7 +530,10 @@ export default function BiblePanel() {
         {!searched && (
           <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 12 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>📖</div>
-            Search by reference (John 3:16)<br />or keyword (grace, hope, love)
+            Search by reference (John 3:16)<br />or keyword (grace, hope, love)<br />
+          <span style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, display: 'block' }}>
+            {mode === 'online' ? 'Online: reference + keyword search via YouVersion' : 'Offline: all local translations searched simultaneously'}
+          </span>
           </div>
         )}
 
