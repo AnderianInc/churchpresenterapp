@@ -13,3 +13,4 @@ build-resources/icon.png
 
 # Electron builder cache
 .electron-builder-cache/
+public/Holy-Bible-*

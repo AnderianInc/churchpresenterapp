@@ -405,10 +405,6 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
   }, [initialTab]);
 
   // ── API key state ───────────────────────────────────────────────────────
-  const [yvKey, setYvKey] = useState(settings?.youversionApiKey || '');
-  const [yvSaved, setYvSaved] = useState(false);
-  const [showYvKey, setShowYvKey] = useState(false);
-
   const [pcoAppId, setPcoAppId] = useState(settings?.pcoAppId || '');
   const [pcoSecret, setPcoSecret] = useState(settings?.pcoSecret || '');
   const [pcoSaved, setPcoSaved] = useState(false);
@@ -427,11 +423,6 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
   const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
   // ── API key save handlers ───────────────────────────────────────────────
-  const saveYvKey = useCallback(() => {
-    saveSettings({ youversionApiKey: yvKey.trim() });
-    setYvSaved(true); setTimeout(() => setYvSaved(false), 2000);
-  }, [yvKey, saveSettings]);
-
   const savePco = useCallback(() => {
     saveSettings({ pcoAppId: pcoAppId.trim(), pcoSecret: pcoSecret.trim() });
     setPcoSaved(true); setTimeout(() => setPcoSaved(false), 2000);
@@ -516,29 +507,22 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
         {/* ── API Keys tab ──────────────────────────────────────────────── */}
         {activeTab === 'keys' && (
           <>
-            <Section title="Bible — YouVersion">
+            <Section title="Bible Search">
               <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                   <span style={{ fontSize: 16 }}>📖</span>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>YouVersion Bible API</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Required for online Bible search</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Bible.helloao.org</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Free online Bible API — no key required</div>
                   </div>
-                  {settings?.youversionApiKey && (
-                    <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SAVED</span>
-                  )}
+                  <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>READY</span>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <input type={showYvKey ? 'text' : 'password'} value={yvKey}
-                    onChange={e => { setYvKey(e.target.value); setYvSaved(false); }}
-                    onKeyDown={e => e.key === 'Enter' && saveYvKey()}
-                    placeholder="Paste your YouVersion App Key" style={{ ...inputStyle, flex: 1 }} />
-                  <button onClick={() => setShowYvKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showYvKey ? 'Hide' : 'Show'}</button>
-                </div>
-                <SaveRow onSave={saveYvKey} saved={yvSaved} disabled={!yvKey.trim()} label="Save Key" />
-                <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
-                    Get a free key at <ExternalLink href="https://developer.youversion.com">developer.youversion.com</ExternalLink> → Create App → copy the App Key. Offline search (KJV, NIV) works without it.
+                <div style={{ padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                    Online reference lookup works with no setup. For <strong style={{ color: 'var(--text)' }}>text (keyword) search</strong> across multiple versions,
+                    download a Beblia XML Bible from{' '}
+                    <ExternalLink href="https://github.com/Beblia/Holy-Bible-XML-Format">github.com/Beblia/Holy-Bible-XML-Format</ExternalLink>
+                    {' '}and import it via the Bible panel (📖 → Translations → Offline → Import XML).
                   </div>
                 </div>
               </div>

@@ -9,9 +9,10 @@
     "build": "react-scripts build",
     "electron": "wait-on http://localhost:3000 && electron .",
     "electron:dev": "concurrently \"BROWSER=none npm start\" \"npm run electron\"",
-    "electron:build": "npm run build && electron-builder",
+    "electron:build": "npm run update-translations && npm run build && electron-builder",
     "test": "react-scripts test --watchAll=false",
-    "test:watch": "react-scripts test"
+    "test:watch": "react-scripts test",
+    "update-translations": "node scripts/update-bible-translations.js"
   },
   "dependencies": {
     "@youversion/platform-core": "^1.22.3",

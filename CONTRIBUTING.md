@@ -100,9 +100,27 @@ Open a GitHub issue and include:
 
 1. Update `CHANGELOG.md` — move items from `[Unreleased]` to a new version section
 2. Bump the version in `package.json`
-3. Commit: `git commit -m "chore: release v1.x.x"`
-4. Tag: `git tag v1.x.x && git push origin v1.x.x`
-5. The `release.yml` workflow builds macOS/Windows/Linux installers and creates a GitHub Release automatically
+3. Refresh the bundled Bible translation list (see below)
+4. Commit: `git commit -m "chore: release v1.x.x"`
+5. Tag: `git tag v1.x.x && git push origin v1.x.x`
+6. The `release.yml` workflow builds macOS/Windows/Linux installers and creates a GitHub Release automatically
+
+> **Note:** `release.yml` runs `node scripts/update-bible-translations.js` automatically before each build, so you only need step 3 if you want the refreshed list committed to the repo (useful so `main` always ships the latest data even without a release).
+
+### Bundled Bible translation list
+
+The file `public/bibles/translations.json` contains a snapshot of all translations available from [bible.helloao.org](https://bible.helloao.org). The app loads this file immediately on launch (fast, works offline), then background-refreshes from the live API.
+
+**To regenerate the snapshot manually:**
+
+```bash
+npm run update-translations
+# → updates public/bibles/translations.json
+git add public/bibles/translations.json
+git commit -m "chore: update bundled Bible translations"
+```
+
+**Automated refresh:** `.github/workflows/update-translations.yml` runs this on the 1st of every month and commits the result automatically if anything changed. You can also trigger it manually from the Actions tab.
 
 ### Code signing (optional but recommended)
 
