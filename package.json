@@ -8,7 +8,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "electron": "wait-on http://localhost:3000 && electron .",
-    "electron:dev": "concurrently \"npm start\" \"npm run electron\"",
+    "electron:dev": "concurrently \"BROWSER=none npm start\" \"npm run electron\"",
     "electron:build": "npm run build && electron-builder",
     "test": "react-scripts test --watchAll=false",
     "test:watch": "react-scripts test"

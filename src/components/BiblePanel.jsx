@@ -19,7 +19,9 @@ const verseKey = (v) => v.version ? `${v.version}:${v.reference}` : v.reference;
 export default function BiblePanel() {
   const { addToSchedule, settings } = useApp();
   const [search, setSearch] = useState('');
-  const [version, setVersion] = useState('KJV'); // used only for online mode
+  const [version, setVersion] = useState('KJV'); // fallback abbreviation (online mode)
+  const [selectedVersionObj, setSelectedVersionObj] = useState(null); // { id, abbreviation, title }
+  const [versionFilter, setVersionFilter] = useState('');
   const [mode, setMode] = useState('offline');
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
@@ -84,14 +86,26 @@ export default function BiblePanel() {
       try {
         const response = await window.electronAPI.fetchYouVersionVersions(effectiveKey);
         if (cancelled) return;
+        // Store full objects so we can pass numeric IDs directly (no re-lookup)
+        const seen = new Set();
         const versions = (response?.data || [])
-          .filter(v => v.abbreviation)
-          .map(v => v.abbreviation.toUpperCase());
-        const unique = [...new Set(versions)].slice(0, 20);
-        setOnlineVersions(unique);
-        if (unique.length > 0) {
-          setVersion(v => unique.includes(v) ? v : unique[0]);
-          setYouversionMessage(`${unique.length} translations available.`);
+          .filter(v => v.id && v.abbreviation)
+          .map(v => ({
+            id: v.id,
+            abbreviation: (v.abbreviation || '').toUpperCase(),
+            title: v.local_title || v.title || v.abbreviation || '',
+            language: v.language_tag || '',
+          }))
+          .filter(v => { if (seen.has(v.id)) return false; seen.add(v.id); return true; });
+        setOnlineVersions(versions);
+        if (versions.length > 0) {
+          // Keep current selection if still valid, else pick the first English or first overall
+          setSelectedVersionObj(prev => {
+            if (prev && versions.find(v => v.id === prev.id)) return prev;
+            const eng = versions.find(v => v.language.startsWith('en'));
+            return eng || versions[0];
+          });
+          setYouversionMessage(`${versions.length} translation${versions.length !== 1 ? 's' : ''} available.`);
         } else {
           setYouversionMessage('No translations found for this API key.');
         }
@@ -107,7 +121,6 @@ export default function BiblePanel() {
   }, [mode, isElectron, youversionApiKey, youversionKeyConfigured]);
 
   const availableOfflineVersions = Object.keys(offlineBibleFolders);
-  const availableOnlineVersions = onlineVersions.length > 0 ? onlineVersions : [];
 
   const clearResults = () => {
     setResults([]);
@@ -149,14 +162,17 @@ export default function BiblePanel() {
       if (!isRef) {
         setResults([]);
         setSearchMode('keyword');
-        setYouversionMessage('Online mode supports reference lookups only (e.g. John 3:16).');
+        setYouversionMessage('Online mode supports reference lookups (e.g. John 3:16). For keyword search, switch to offline mode.');
         setLoading(false);
         return;
       }
+      // Pass the numeric version ID directly to avoid a redundant API round-trip in main.js
+      const versionParam = selectedVersionObj?.id?.toString() || version;
+      const displayVersion = selectedVersionObj?.abbreviation || version;
       try {
-        const passage = await fetchYouVersionPassage(effectiveKey, version, query, 'text');
+        const passage = await fetchYouVersionPassage(effectiveKey, versionParam, query, 'text');
         const content = passage?.content || passage?.data?.content || '';
-        setResults(content ? [{ reference: query, text: content, version }] : []);
+        setResults(content ? [{ reference: query, text: content, version: displayVersion }] : []);
         setSearchMode('reference');
         if (!content) setYouversionMessage('No content returned for that reference.');
       } catch (err) {
@@ -314,18 +330,57 @@ export default function BiblePanel() {
         Bible Search
       </div>
 
-      {/* Online mode version selector (not shown in offline mode — all versions searched) */}
-      {mode === 'online' && availableOnlineVersions.length > 0 && (
-        <div style={{ padding: '8px 8px 0', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {availableOnlineVersions.map(v => (
-            <button key={v} onClick={() => setVersion(v)} style={{
-              padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
-              background: version === v ? 'var(--accent)' : 'transparent',
-              border: version === v ? 'none' : '1px solid var(--border)',
-              color: version === v ? '#fff' : 'var(--text-muted)',
-              fontFamily: 'var(--font)', transition: 'all 0.15s',
-            }}>{v}</button>
-          ))}
+      {/* Online mode version selector — searchable dropdown */}
+      {mode === 'online' && onlineVersions.length > 0 && (
+        <div style={{ padding: '4px 8px 0' }}>
+          <div style={{ display: 'flex', gap: 4 }}>
+            <input
+              value={versionFilter}
+              onChange={e => setVersionFilter(e.target.value)}
+              placeholder={`Filter ${onlineVersions.length} versions…`}
+              style={{
+                flex: 1, background: 'var(--bg-input)', border: '1px solid var(--border)',
+                borderRadius: 'var(--radius)', color: 'var(--text)', padding: '5px 8px',
+                fontSize: 11, outline: 'none', fontFamily: 'var(--font)',
+              }}
+            />
+            {versionFilter && (
+              <button onClick={() => setVersionFilter('')} style={{
+                background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)',
+                borderRadius: 'var(--radius)', padding: '4px 7px', cursor: 'pointer', fontSize: 11,
+              }}>✕</button>
+            )}
+          </div>
+          <div style={{
+            maxHeight: 110, overflowY: 'auto', border: '1px solid var(--border)',
+            borderRadius: 'var(--radius)', marginTop: 4, background: 'var(--bg-input)',
+          }}>
+            {onlineVersions
+              .filter(v => {
+                const q = versionFilter.toLowerCase();
+                return !q || v.abbreviation.toLowerCase().includes(q) || v.title.toLowerCase().includes(q) || v.language.toLowerCase().includes(q);
+              })
+              .map(v => (
+                <div
+                  key={v.id}
+                  onClick={() => { setSelectedVersionObj(v); setVersionFilter(''); }}
+                  style={{
+                    padding: '4px 8px', cursor: 'pointer', fontSize: 11, display: 'flex', gap: 6,
+                    background: selectedVersionObj?.id === v.id ? 'var(--accent)' : 'transparent',
+                    color: selectedVersionObj?.id === v.id ? '#fff' : 'var(--text)',
+                  }}
+                >
+                  <span style={{ fontWeight: 700, minWidth: 40, flexShrink: 0 }}>{v.abbreviation}</span>
+                  <span style={{ color: selectedVersionObj?.id === v.id ? 'rgba(255,255,255,0.8)' : 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.title}</span>
+                </div>
+              ))
+            }
+          </div>
+          {selectedVersionObj && (
+            <div style={{ fontSize: 10, color: 'var(--text-dim)', padding: '2px 2px 0' }}>
+              Selected: <strong style={{ color: 'var(--text)' }}>{selectedVersionObj.abbreviation}</strong> — {selectedVersionObj.title}
+            </div>
+          )}
         </div>
       )}
 

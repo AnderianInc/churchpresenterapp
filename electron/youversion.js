@@ -44,16 +44,18 @@ async function findYouVersionId(appKey, versionCode) {
   if (versionIdCache[cacheKey]) return versionIdCache[cacheKey];
 
   const client = createYouVersionClient(appKey);
-  const response = await client.getVersions('en*');
+  // Search all languages so non-English versions resolve correctly
+  const response = await client.getVersions('');
   const versions = response?.data || [];
   const match = findVersionMatch(versionCode, versions);
-  if (!match) throw new Error(`Could not resolve YouVersion version for ${versionCode}.`);
+  if (!match) throw new Error(`Could not resolve YouVersion version for "${versionCode}".`);
   versionIdCache[cacheKey] = match.id;
   return match.id;
 }
 
-async function getYouVersionVersions(appKey, language = 'en*') {
+async function getYouVersionVersions(appKey, language = '') {
   const client = createYouVersionClient(appKey);
+  // Empty string returns all available translations across all languages
   return await client.getVersions(language);
 }
 
@@ -64,7 +66,9 @@ async function getYouVersionVersion(appKey, versionCode) {
 }
 
 async function getYouVersionPassage(appKey, versionCode, reference, format = 'text') {
-  const versionId = await findYouVersionId(appKey, versionCode);
+  // Accept a pre-resolved numeric ID directly to avoid a redundant API round-trip
+  const asNum = Number(versionCode);
+  const versionId = (!isNaN(asNum) && asNum > 0) ? asNum : await findYouVersionId(appKey, versionCode);
   const client = createYouVersionClient(appKey);
   return await client.getPassage(versionId, reference, format);
 }
