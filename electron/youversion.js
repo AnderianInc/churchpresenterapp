@@ -34,8 +34,49 @@ function findVersionMatch(version, data) {
   });
 }
 
+// Cache: { [maskedKey]: [{ id, abbreviation, title, language_tag }] }
+const allVersionsCache = {};
+
+/**
+ * Fetch every version the API key can access by paginating the Platform API directly.
+ * The SDK's getVersions() only returns one page (~12 items); this gets them all.
+ */
+async function getAllYouVersionVersions(appKey) {
+  const effectiveKey = String(appKey || defaultAppKey || '').trim();
+  if (!effectiveKey) throw new Error('YouVersion App Key is required.');
+
+  const cacheKey = effectiveKey.slice(-8);
+  if (allVersionsCache[cacheKey]) return { data: allVersionsCache[cacheKey] };
+
+  const { net } = require('electron');
+  const collected = [];
+  const PAGE_SIZE = 100;
+  let page = 1;
+
+  while (true) {
+    const url = `https://platform-api.youversion.com/bible/versions?page_size=${PAGE_SIZE}&page=${page}`;
+    const res = await net.fetch(url, {
+      headers: { 'Authorization': `Application ${effectiveKey}` },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`YouVersion API ${res.status}: ${text.slice(0, 120)}`);
+    }
+    const payload = await res.json();
+    const items = payload?.data || [];
+    collected.push(...items);
+
+    // Stop when we're on the last page (fewer items than page_size, or no next cursor)
+    const hasMore = items.length === PAGE_SIZE && (payload?.meta?.next_page || payload?.next);
+    if (!hasMore) break;
+    page++;
+  }
+
+  allVersionsCache[cacheKey] = collected;
+  return { data: collected };
+}
+
 // Cache: { [resolveKey]: numericVersionId }
-// resolveKey = `${maskedAppKey}:${versionCode.toLowerCase()}`
 const versionIdCache = {};
 
 async function findYouVersionId(appKey, versionCode) {
@@ -43,9 +84,8 @@ async function findYouVersionId(appKey, versionCode) {
   const cacheKey = `${effectiveKey.slice(-6)}:${normalizeVersionName(versionCode)}`;
   if (versionIdCache[cacheKey]) return versionIdCache[cacheKey];
 
-  const client = createYouVersionClient(appKey);
-  // Search all languages so non-English versions resolve correctly
-  const response = await client.getVersions('');
+  // Use the complete paginated list so non-English/obscure versions resolve correctly
+  const response = await getAllYouVersionVersions(appKey);
   const versions = response?.data || [];
   const match = findVersionMatch(versionCode, versions);
   if (!match) throw new Error(`Could not resolve YouVersion version for "${versionCode}".`);
@@ -53,10 +93,8 @@ async function findYouVersionId(appKey, versionCode) {
   return match.id;
 }
 
-async function getYouVersionVersions(appKey, language = '') {
-  const client = createYouVersionClient(appKey);
-  // Empty string returns all available translations across all languages
-  return await client.getVersions(language);
+async function getYouVersionVersions(appKey) {
+  return getAllYouVersionVersions(appKey);
 }
 
 async function getYouVersionVersion(appKey, versionCode) {
@@ -109,6 +147,7 @@ async function searchYouVersionVerses(appKey, versionCode, query, pageSize = 25)
 module.exports = {
   createYouVersionClient,
   hasDefaultAppKey,
+  getAllYouVersionVersions,
   getYouVersionVersions,
   getYouVersionVersion,
   getYouVersionPassage,

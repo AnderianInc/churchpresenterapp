@@ -6,7 +6,7 @@ const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
 const {
   hasDefaultAppKey,
-  getYouVersionVersions,
+  getAllYouVersionVersions,
   getYouVersionVersion,
   getYouVersionPassage,
   searchYouVersionVerses,
@@ -502,9 +502,11 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
 // (via environment variable or config file), so it doesn't need to prompt the user.
 ipcMain.handle('get-youversion-has-key', () => ({ configured: hasDefaultAppKey() }));
 
-ipcMain.handle('fetch-youversion-versions', async (_, appKey, language = 'en*') => {
+ipcMain.handle('fetch-youversion-versions', async (_, appKey) => {
   try {
-    return await getYouVersionVersions(appKey, language);
+    // getAllYouVersionVersions paginates the Platform API to retrieve every
+    // version the key can access — the SDK getVersions() only returns one page.
+    return await getAllYouVersionVersions(appKey);
   } catch (err) {
     console.error('[YouVersion] fetch-youversion-versions failed', err.message);
     throw new Error(err.message || 'Unable to load YouVersion versions.');
