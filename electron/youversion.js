@@ -34,12 +34,13 @@ function findVersionMatch(version, data) {
   });
 }
 
-// Cache: { [maskedKey]: [{ id, abbreviation, title, language_tag }] }
+// Cache: { [maskedKey]: version[] }
 const allVersionsCache = {};
 
 /**
- * Fetch every version the API key can access by paginating the Platform API directly.
- * The SDK's getVersions() only returns one page (~12 items); this gets them all.
+ * Fetch available YouVersion translations using the SDK (which has the correct API URL).
+ * Queries several language wildcards and merges results so we capture more than just
+ * the default English set that 'en*' returns.
  */
 async function getAllYouVersionVersions(appKey) {
   const effectiveKey = String(appKey || defaultAppKey || '').trim();
@@ -48,32 +49,26 @@ async function getAllYouVersionVersions(appKey) {
   const cacheKey = effectiveKey.slice(-8);
   if (allVersionsCache[cacheKey]) return { data: allVersionsCache[cacheKey] };
 
-  const { net } = require('electron');
-  const collected = [];
-  const PAGE_SIZE = 100;
-  let page = 1;
+  const client = createYouVersionClient(appKey);
+  const collected = new Map(); // keyed by version id to deduplicate
 
-  while (true) {
-    const url = `https://platform-api.youversion.com/bible/versions?page_size=${PAGE_SIZE}&page=${page}`;
-    const res = await net.fetch(url, {
-      headers: { 'Authorization': `Application ${effectiveKey}` },
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => '');
-      throw new Error(`YouVersion API ${res.status}: ${text.slice(0, 120)}`);
+  // Query broad language wildcards; the SDK resolves the correct API base URL.
+  // An empty string attempts to fetch without a language filter.
+  const queries = ['', 'en*', 'es*', 'pt*', 'fr*', 'de*', 'zh*', 'ko*', 'ja*', 'ar*', 'ru*', 'hi*'];
+  for (const lang of queries) {
+    try {
+      const response = await client.getVersions(lang);
+      for (const v of (response?.data || [])) {
+        if (v?.id && !collected.has(v.id)) collected.set(v.id, v);
+      }
+    } catch {
+      // Some language codes may not return results — continue
     }
-    const payload = await res.json();
-    const items = payload?.data || [];
-    collected.push(...items);
-
-    // Stop when we're on the last page (fewer items than page_size, or no next cursor)
-    const hasMore = items.length === PAGE_SIZE && (payload?.meta?.next_page || payload?.next);
-    if (!hasMore) break;
-    page++;
   }
 
-  allVersionsCache[cacheKey] = collected;
-  return { data: collected };
+  const versions = Array.from(collected.values());
+  allVersionsCache[cacheKey] = versions;
+  return { data: versions };
 }
 
 // Cache: { [resolveKey]: numericVersionId }
@@ -112,36 +107,30 @@ async function getYouVersionPassage(appKey, versionCode, reference, format = 'te
 }
 
 /**
- * Keyword search across a YouVersion version.
- * Tries native SDK search methods first; falls back to a direct Platform API call.
- * Response shape normalised to: { data: [{ human_reference, usfm, text }] }
+ * Keyword search using whatever search method the SDK exposes.
+ * The YouVersion private developer API does not publicly document a search
+ * endpoint, so we probe the BibleClient for known method names.
+ * Throws YOUVERSION_SEARCH_UNSUPPORTED if none are found so the UI can
+ * redirect the user to offline mode.
  */
-async function searchYouVersionVerses(appKey, versionCode, query, pageSize = 25) {
-  const effectiveKey = String(appKey || defaultAppKey || '').trim();
-
+async function searchYouVersionVerses(appKey, versionCode, query) {
   const asNum = Number(versionCode);
   const versionId = (!isNaN(asNum) && asNum > 0) ? asNum : await findYouVersionId(appKey, versionCode);
 
   const client = createYouVersionClient(appKey);
 
-  // Try any search method the SDK might expose
   for (const method of ['search', 'searchVerses', 'getSearchResults']) {
     if (typeof client[method] === 'function') {
-      return await client[method](versionId, query, { page_size: pageSize });
+      return await client[method](versionId, query);
     }
   }
 
-  // Direct Platform API call as fallback
-  const { net } = require('electron');
-  const url = `https://platform-api.youversion.com/bible/search?q=${encodeURIComponent(query)}&version_id=${versionId}&page_size=${pageSize}`;
-  const res = await net.fetch(url, {
-    headers: { 'Authorization': `Application ${effectiveKey}` },
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`YouVersion search ${res.status}: ${text.slice(0, 200)}`);
-  }
-  return res.json();
+  const err = new Error(
+    'Keyword search is not available with this YouVersion API plan. ' +
+    'Switch to Offline mode to search by text across your local translations.'
+  );
+  err.code = 'YOUVERSION_SEARCH_UNSUPPORTED';
+  throw err;
 }
 
 module.exports = {

@@ -164,14 +164,13 @@ export default function BiblePanel() {
       const displayVersion = selectedVersionObj?.abbreviation || version;
 
       if (!isRef) {
-        // Keyword search via YouVersion Platform API
+        // Attempt keyword search via YouVersion SDK
         try {
           const result = await window.electronAPI.searchYouVersionVerses({
             appKey: effectiveKey,
             versionId: versionParam,
             query,
           });
-          // Normalise across possible response shapes
           const hits = result?.data || result?.verses || result?.hits || [];
           const mapped = hits
             .map(h => ({
@@ -185,9 +184,8 @@ export default function BiblePanel() {
           if (mapped.length === 0) setYouversionMessage('No verses found. Try a different keyword or phrase.');
         } catch (err) {
           setResults([]);
-          setYouversionMessage(err.message?.includes('404') || err.message?.includes('not supported')
-            ? 'Keyword search is not available for this API key. Try a reference (e.g. John 3:16) or switch to offline mode.'
-            : (err.message || 'YouVersion keyword search failed.'));
+          // Mark as unsupported so the UI can offer a switch-to-offline shortcut
+          setYouversionMessage('__SEARCH_UNSUPPORTED__');
         } finally {
           setLoading(false);
         }
@@ -454,8 +452,22 @@ export default function BiblePanel() {
             </div>
           )}
           {isElectron && (
-            <div style={{ padding: '0 8px 4px', fontSize: 10, color: youversionMessage.startsWith('Failed') || youversionMessage.startsWith('No') ? 'var(--red)' : 'var(--text-dim)' }}>
-              {youversionLoading ? 'Connecting to YouVersion…' : (youversionMessage || (youversionKeyConfigured ? '' : 'Enter your App Key — translations will load automatically.'))}
+            <div style={{ padding: '0 8px 4px', fontSize: 10 }}>
+              {youversionLoading ? (
+                <span style={{ color: 'var(--text-dim)' }}>Connecting to YouVersion…</span>
+              ) : youversionMessage === '__SEARCH_UNSUPPORTED__' ? (
+                <span style={{ color: 'var(--yellow)', lineHeight: 1.5, display: 'block' }}>
+                  Keyword search is not available with this API plan.{' '}
+                  <button
+                    onClick={() => { setMode('offline'); setYouversionMessage(''); setResults([]); setSearched(false); }}
+                    style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, padding: 0, textDecoration: 'underline' }}
+                  >Switch to Offline</button>{' '}to search by text.
+                </span>
+              ) : (
+                <span style={{ color: youversionMessage.startsWith('Failed') || youversionMessage.startsWith('No') ? 'var(--red)' : 'var(--text-dim)' }}>
+                  {youversionMessage || (youversionKeyConfigured ? '' : 'Enter your App Key — translations will load automatically.')}
+                </span>
+              )}
             </div>
           )}
         </>
