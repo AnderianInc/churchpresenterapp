@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
+import ExternalLink from './ExternalLink';
+import BackgroundPicker, { bgToCss } from './BackgroundPicker';
 
 const SLIDE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'ending', 'tag', 'blank'];
 const FONTS = ['Georgia', 'Playfair Display', 'Times New Roman', 'Arial', 'Helvetica', 'Inter'];
 const KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 const TEMPOS = ['Slow', 'Medium-Slow', 'Medium', 'Medium-Fast', 'Fast'];
-const TAGS = ['hymn', 'contemporary', 'worship', 'classic', 'christmas', 'easter', 'communion'];
+const PRESET_TAGS = ['hymn', 'contemporary', 'worship', 'classic', 'christmas', 'easter', 'communion'];
+const STYLE_PRESETS = [
+  { label: 'Large Title', fontSize: 72, fontFamily: 'Georgia' },
+  { label: 'Subtitle', fontSize: 52, fontFamily: 'Georgia' },
+  { label: 'Body', fontSize: 36, fontFamily: 'Georgia' },
+  { label: 'Compact', fontSize: 28, fontFamily: 'Inter' },
+];
 
-const emptySlide = () => ({ id: uuidv4(), type: 'verse', label: 'Verse 1', lines: '' });
+const emptySlide = () => ({ id: uuidv4(), type: 'verse', label: 'Verse 1', lines: '', textAlign: 'center', chords: '' });
 
 const typeColors = {
   verse: '#4f8ef7', chorus: '#22c55e', bridge: '#a855f7',
@@ -22,6 +30,18 @@ const inputStyle = {
 };
 const labelStyle = { fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, display: 'block' };
 
+const AlignBtn = ({ align, current, onClick }) => {
+  const labels = { left: 'L', center: 'C', right: 'R' };
+  return (
+    <button onClick={() => onClick(align)} title={`Align ${align}`} style={{
+      width: 28, height: 28, background: current === align ? 'var(--accent)' : 'var(--bg-hover)',
+      border: `1px solid ${current === align ? 'var(--accent)' : 'var(--border)'}`,
+      borderRadius: 4, color: current === align ? '#fff' : 'var(--text-dim)',
+      cursor: 'pointer', fontSize: 11, fontWeight: 700, fontFamily: 'var(--font)',
+    }}>{labels[align]}</button>
+  );
+};
+
 export default function SongEditorModal({ song, onClose }) {
   const { addSong, updateSong } = useApp();
   const isNew = !song;
@@ -30,10 +50,15 @@ export default function SongEditorModal({ song, onClose }) {
   const [author, setAuthor] = useState(song?.author || '');
   const [songKey, setSongKey] = useState(song?.key || 'G');
   const [tempo, setTempo] = useState(song?.tempo || 'Medium');
+  const [bpm, setBpm] = useState(song?.bpm != null ? String(song.bpm) : '');
+  const [ccliNumber, setCcliNumber] = useState(song?.ccliNumber || '');
+  const [copyrightYear, setCopyrightYear] = useState(song?.copyrightYear || '');
   const [tags, setTags] = useState(song?.tags || []);
+  const [customTag, setCustomTag] = useState('');
   const [slides, setSlides] = useState(song?.slides?.length ? song.slides : [emptySlide()]);
   const [activeSlide, setActiveSlide] = useState(0);
-  const [bgColor, setBgColor] = useState(song?.background?.value || '#0a0f1e');
+  const [slideSubTab, setSlideSubTab] = useState('lyrics');
+  const [background, setBackground] = useState(song?.background || { type: 'color', value: '#0a0f1e' });
   const [textColor, setTextColor] = useState(song?.textColor || '#ffffff');
   const [fontSize, setFontSize] = useState(song?.fontSize || 44);
   const [fontFamily, setFontFamily] = useState(song?.fontFamily || 'Georgia');
@@ -80,13 +105,22 @@ export default function SongEditorModal({ song, onClose }) {
     setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
   };
 
+  const addCustomTag = () => {
+    const t = customTag.trim().toLowerCase();
+    if (t && !tags.includes(t)) setTags(prev => [...prev, t]);
+    setCustomTag('');
+  };
+
   const handleSave = () => {
     if (!title.trim()) return;
     const songData = {
       title: title.trim(), author: author.trim(), key: songKey,
       tempo, tags, slides,
-      background: { type: 'color', value: bgColor },
+      background,
       textColor, fontSize, fontFamily,
+      bpm: bpm ? Number(bpm) : undefined,
+      ccliNumber: ccliNumber.trim() || '',
+      copyrightYear: copyrightYear.trim() || '',
     };
     if (isNew) addSong(songData);
     else updateSong(song.id, songData);
@@ -99,13 +133,15 @@ export default function SongEditorModal({ song, onClose }) {
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  const slideAlign = currentSlide?.textAlign || 'center';
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
     }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{
-        width: 900, maxWidth: '95vw', height: 620, maxHeight: '90vh',
+        width: 920, maxWidth: '95vw', height: 640, maxHeight: '90vh',
         background: 'var(--bg-panel)', borderRadius: 10,
         border: '1px solid var(--border)', display: 'flex', flexDirection: 'column',
         boxShadow: '0 20px 60px rgba(0,0,0,0.6)', overflow: 'hidden',
@@ -140,7 +176,7 @@ export default function SongEditorModal({ song, onClose }) {
 
         {/* Tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-          {[['lyrics', '📝 Lyrics & Slides'], ['appearance', '🎨 Appearance']].map(([tab, label]) => (
+          {[['lyrics', '📝 Lyrics & Slides'], ['appearance', '🎨 Appearance'], ['metadata', '📋 Metadata']].map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{
               padding: '8px 16px', fontSize: 12, cursor: 'pointer',
               background: 'transparent', border: 'none',
@@ -183,8 +219,8 @@ export default function SongEditorModal({ song, onClose }) {
                   </div>
                 </div>
                 <label style={labelStyle}>Tags</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                  {TAGS.map(tag => (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
+                  {PRESET_TAGS.map(tag => (
                     <button key={tag} onClick={() => toggleTag(tag)} style={{
                       padding: '2px 7px', borderRadius: 12, fontSize: 10, cursor: 'pointer',
                       background: tags.includes(tag) ? 'var(--accent)' : 'transparent',
@@ -193,6 +229,27 @@ export default function SongEditorModal({ song, onClose }) {
                       fontFamily: 'var(--font)', transition: 'all 0.15s',
                     }}>{tag}</button>
                   ))}
+                  {tags.filter(t => !PRESET_TAGS.includes(t)).map(tag => (
+                    <button key={tag} onClick={() => toggleTag(tag)} style={{
+                      padding: '2px 7px', borderRadius: 12, fontSize: 10, cursor: 'pointer',
+                      background: 'rgba(79,142,247,0.2)', border: '1px solid rgba(79,142,247,0.4)',
+                      color: 'var(--accent)', fontFamily: 'var(--font)',
+                    }}>{tag} ✕</button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <input
+                    value={customTag}
+                    onChange={e => setCustomTag(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCustomTag()}
+                    placeholder="Add tag…"
+                    style={{ ...inputStyle, fontSize: 11, padding: '4px 7px' }}
+                  />
+                  <button onClick={addCustomTag} style={{
+                    background: 'var(--bg-hover)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', borderRadius: 'var(--radius)',
+                    padding: '0 8px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font)',
+                  }}>+</button>
                 </div>
               </div>
               {/* Slide list */}
@@ -211,6 +268,7 @@ export default function SongEditorModal({ song, onClose }) {
                     <span style={{ flex: 1, fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {slide.label || slide.type}
                     </span>
+                    {slide.chords && <span title="Has chord chart" style={{ fontSize: 9, color: 'var(--text-dim)' }}>♩</span>}
                     <div style={{ display: 'flex', gap: 1, flexShrink: 0 }}>
                       <button onClick={e => { e.stopPropagation(); moveSlide(i, -1); }}
                         style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 10, padding: '1px 3px' }}>↑</button>
@@ -241,7 +299,8 @@ export default function SongEditorModal({ song, onClose }) {
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               {currentSlide && (
                 <>
-                  <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'flex-end', flexShrink: 0 }}>
+                  {/* Slide header: type, label, alignment, counter */}
+                  <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'flex-end', flexShrink: 0, flexWrap: 'wrap' }}>
                     <div>
                       <label style={labelStyle}>Type</label>
                       <select value={currentSlide.type} onChange={e => updateCurrentSlide('type', e.target.value)}
@@ -249,7 +308,7 @@ export default function SongEditorModal({ song, onClose }) {
                         {SLIDE_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
                       </select>
                     </div>
-                    <div style={{ flex: 1 }}>
+                    <div style={{ flex: 1, minWidth: 100 }}>
                       <label style={labelStyle}>Label</label>
                       <input value={currentSlide.label} onChange={e => updateCurrentSlide('label', e.target.value)}
                         placeholder="e.g. Verse 1, Chorus..."
@@ -258,48 +317,130 @@ export default function SongEditorModal({ song, onClose }) {
                         onBlur={e => e.target.style.borderColor = 'var(--border)'}
                       />
                     </div>
-                    <span style={{ fontSize: 11, color: 'var(--text-dim)', paddingBottom: 8 }}>
+                    <div style={{ flexShrink: 0 }}>
+                      <label style={labelStyle}>Align</label>
+                      <div style={{ display: 'flex', gap: 3 }}>
+                        <AlignBtn align="left" current={slideAlign} onClick={v => updateCurrentSlide('textAlign', v)} />
+                        <AlignBtn align="center" current={slideAlign} onClick={v => updateCurrentSlide('textAlign', v)} />
+                        <AlignBtn align="right" current={slideAlign} onClick={v => updateCurrentSlide('textAlign', v)} />
+                      </div>
+                    </div>
+                    <span style={{ fontSize: 11, color: 'var(--text-dim)', paddingBottom: 8, flexShrink: 0 }}>
                       {activeSlide + 1} / {slides.length}
                     </span>
                   </div>
 
+                  {/* Lyrics / Chords / Background sub-tabs */}
+                  <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+                    {[['lyrics', '📝 Lyrics'], ['chords', '🎸 Chords'], ['slidebg', '🎨 BG']].map(([t, lbl]) => (
+                      <button key={t} onClick={() => setSlideSubTab(t)} style={{
+                        padding: '5px 14px', fontSize: 11, cursor: 'pointer',
+                        background: 'transparent', border: 'none',
+                        borderBottom: slideSubTab === t ? '2px solid var(--accent)' : '2px solid transparent',
+                        color: slideSubTab === t
+                          ? 'var(--accent)'
+                          : (t === 'slidebg' && currentSlide?.background ? '#d97706' : 'var(--text-muted)'),
+                        fontFamily: 'var(--font)',
+                      }}>{lbl}{t === 'slidebg' && currentSlide?.background ? ' ●' : ''}</button>
+                    ))}
+                  </div>
+
                   <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12 }}>
-                      <label style={labelStyle}>Lyrics (one line per line)</label>
-                      <textarea
-                        value={currentSlide.lines}
-                        onChange={e => updateCurrentSlide('lines', e.target.value)}
-                        placeholder={'Enter lyrics here...\n\nTip: Keep slides to 4–6 lines for readability.\nBlank lines create visual spacing.'}
-                        style={{
-                          ...inputStyle, flex: 1, resize: 'none',
-                          fontFamily: fontFamily, fontSize: 14, lineHeight: 1.9, padding: 12,
-                        }}
-                        onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
-                        onBlur={e => e.target.style.borderColor = 'var(--border)'}
-                      />
-                      <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4 }}>
-                        {(currentSlide.lines || '').split('\n').length} lines · {(currentSlide.lines || '').length} chars
-                      </div>
+                    {/* Lyrics / Chords / BG editor pane */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12, overflow: 'hidden' }}>
+                      {slideSubTab === 'lyrics' && (
+                        <>
+                          <label style={labelStyle}>Lyrics (one line per line)</label>
+                          <textarea
+                            value={currentSlide.lines}
+                            onChange={e => updateCurrentSlide('lines', e.target.value)}
+                            placeholder={'Enter lyrics here...\n\nTip: Keep slides to 4–6 lines for readability.'}
+                            style={{
+                              ...inputStyle, flex: 1, resize: 'none',
+                              fontFamily: fontFamily, fontSize: 14, lineHeight: 1.9, padding: 12,
+                              textAlign: slideAlign,
+                            }}
+                            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                          />
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4 }}>
+                            {(currentSlide.lines || '').split('\n').length} lines · {(currentSlide.lines || '').length} chars
+                          </div>
+                        </>
+                      )}
+                      {slideSubTab === 'chords' && (
+                        <>
+                          <label style={labelStyle}>Chord Chart — visible on Stage Display for worship team</label>
+                          <textarea
+                            value={currentSlide.chords || ''}
+                            onChange={e => updateCurrentSlide('chords', e.target.value)}
+                            placeholder={'G         Em        C         D\nAmazing grace! How sweet the sound\n\nG         Em        Am        D\nThat saved a wretch like me'}
+                            style={{
+                              ...inputStyle, flex: 1, resize: 'none',
+                              fontFamily: 'monospace', fontSize: 12, lineHeight: 2, padding: 12,
+                            }}
+                            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                          />
+                          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4 }}>
+                            Chord chart is shown on Stage Display — not visible to audience
+                          </div>
+                        </>
+                      )}
+                      {slideSubTab === 'slidebg' && (
+                        <div style={{ overflowY: 'auto', flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <label style={labelStyle}>Slide Background Override</label>
+                            {currentSlide.background && (
+                              <button
+                                onClick={() => updateCurrentSlide('background', null)}
+                                style={{ background: 'none', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)' }}
+                              >✕ Clear override</button>
+                            )}
+                          </div>
+                          {!currentSlide.background && (
+                            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.5 }}>
+                              This slide inherits the song background. Pick a color or gradient below to override it for this slide only.
+                            </div>
+                          )}
+                          <BackgroundPicker
+                            value={currentSlide.background || background}
+                            onChange={(bg) => updateCurrentSlide('background', bg)}
+                            compact
+                          />
+                          {currentSlide.background && (
+                            <div style={{ marginTop: 8, fontSize: 10, color: '#d97706' }}>
+                              ● This slide has a custom background
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Mini preview */}
+                    {/* Mini preview — shows per-slide bg if set */}
                     <div style={{ width: 210, padding: 12, borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
                       <label style={labelStyle}>Preview</label>
                       <div style={{
-                        flex: 1, background: bgColor, borderRadius: 6,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        padding: '10%', textAlign: 'center', border: '1px solid var(--border)',
+                        flex: 1,
+                        background: bgToCss(currentSlide?.background || background),
+                        borderRadius: 6,
+                        display: 'flex', alignItems: 'center',
+                        justifyContent: slideAlign === 'left' ? 'flex-start' : slideAlign === 'right' ? 'flex-end' : 'center',
+                        padding: '10%', textAlign: slideAlign, border: '1px solid var(--border)',
+                        overflow: 'hidden',
                       }}>
                         <div style={{
                           fontSize: Math.max(9, fontSize * 0.23), color: textColor,
                           fontFamily, lineHeight: 1.5, whiteSpace: 'pre-line',
                           textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                          textAlign: slideAlign,
                         }}>
                           {currentSlide.lines || '(empty slide)'}
                         </div>
                       </div>
                       <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center' }}>
                         {fontFamily} · {fontSize}px
+                        {currentSlide.background && <span style={{ color: '#d97706' }}> · custom bg</span>}
                       </div>
                     </div>
                   </div>
@@ -314,22 +455,24 @@ export default function SongEditorModal({ song, onClose }) {
           <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', gap: 32 }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div>
-                <label style={labelStyle}>Background Color</label>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)}
-                    style={{ width: 60, height: 40, borderRadius: 'var(--radius)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{bgColor}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {['#0a0f1e','#0d1117','#0f0d1a','#061525','#0a1a0f','#000000','#1a0a0a','#0d0a1e'].map(c => (
-                    <div key={c} onClick={() => setBgColor(c)} style={{
-                      width: 32, height: 32, borderRadius: 5, background: c, cursor: 'pointer',
-                      border: bgColor === c ? '2px solid var(--accent)' : '2px solid var(--border)',
-                      transition: 'border-color 0.15s',
-                    }} />
+                <label style={labelStyle}>Style Presets</label>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                  {STYLE_PRESETS.map(p => (
+                    <button key={p.label} onClick={() => { setFontSize(p.fontSize); setFontFamily(p.fontFamily); }} style={{
+                      padding: '6px 14px', borderRadius: 'var(--radius)', cursor: 'pointer',
+                      background: fontSize === p.fontSize && fontFamily === p.fontFamily ? 'var(--accent)' : 'var(--bg-hover)',
+                      border: fontSize === p.fontSize && fontFamily === p.fontFamily ? 'none' : '1px solid var(--border)',
+                      color: fontSize === p.fontSize && fontFamily === p.fontFamily ? '#fff' : 'var(--text-muted)',
+                      fontFamily: p.fontFamily, fontSize: 13, transition: 'all 0.15s',
+                    }}>{p.label}</button>
                   ))}
                 </div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Quick-set font size and family for common slide styles</div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Background</label>
+                <BackgroundPicker value={background} onChange={setBackground} />
               </div>
 
               <div>
@@ -379,9 +522,10 @@ export default function SongEditorModal({ song, onClose }) {
             <div style={{ width: 340, flexShrink: 0 }}>
               <label style={labelStyle}>Full Slide Preview</label>
               <div style={{
-                width: '100%', aspectRatio: '16/9', background: bgColor, borderRadius: 8,
+                width: '100%', aspectRatio: '16/9', background: bgToCss(background), borderRadius: 8,
                 border: '2px solid var(--border)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', padding: '8%', textAlign: 'center',
+                overflow: 'hidden',
               }}>
                 <div style={{
                   fontSize: fontSize * 0.33, color: textColor, fontFamily,
@@ -391,8 +535,67 @@ export default function SongEditorModal({ song, onClose }) {
                 </div>
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 6, textAlign: 'center' }}>
-                {fontFamily} · {fontSize}px · {bgColor}
+                {fontFamily} · {fontSize}px
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Metadata Tab */}
+        {activeTab === 'metadata' && (
+          <div style={{ flex: 1, overflowY: 'auto', padding: 24 }}>
+            <div style={{ maxWidth: 480, display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6, padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid var(--border)' }}>
+                Metadata is stored with the song for reference. CCLI number and copyright year may be required for license reporting.
+              </div>
+
+              <div>
+                <label style={labelStyle}>BPM (Beats Per Minute)</label>
+                <input
+                  type="number" min={40} max={300} value={bpm}
+                  onChange={e => setBpm(e.target.value)}
+                  placeholder="e.g. 120"
+                  style={{ ...inputStyle, width: 140 }}
+                  onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>CCLI Song Number</label>
+                <input
+                  value={ccliNumber}
+                  onChange={e => setCcliNumber(e.target.value)}
+                  placeholder="e.g. 4348399"
+                  style={{ ...inputStyle, width: 200 }}
+                  onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                />
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4 }}>
+                  Find song numbers at <ExternalLink href="https://songselect.ccli.com">songselect.ccli.com</ExternalLink>
+                </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Copyright Year</label>
+                <input
+                  value={copyrightYear}
+                  onChange={e => setCopyrightYear(e.target.value)}
+                  placeholder="e.g. 2019"
+                  style={{ ...inputStyle, width: 140 }}
+                  onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+                  onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                />
+              </div>
+
+              {(ccliNumber || copyrightYear || bpm) && (
+                <div style={{ padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 6, border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Summary</div>
+                  {bpm && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>BPM: <strong style={{ color: 'var(--text)' }}>{bpm}</strong></div>}
+                  {ccliNumber && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>CCLI #: <strong style={{ color: 'var(--text)' }}>{ccliNumber}</strong></div>}
+                  {copyrightYear && <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>© <strong style={{ color: 'var(--text)' }}>{copyrightYear}</strong></div>}
+                </div>
+              )}
             </div>
           </div>
         )}

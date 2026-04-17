@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import SlideRenderer from './SlideRenderer';
+import BackgroundPicker, { bgToCss } from './BackgroundPicker';
 
 export default function PreviewArea() {
   const [target, setTarget] = useState('program');
+  const [showBgPicker, setShowBgPicker] = useState(false);
   const {
     currentItem, currentSlide, currentSlides,
     liveProgram, liveStage, stageMirrorProgram, setStageMirrorProgram,
@@ -11,6 +13,7 @@ export default function PreviewArea() {
     activeSlideIdx, isBlackout, isClear,
     goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, nextSlide, prevSlide,
     presentationOpen, stageOpen, displays, outputWindows,
+    updateScheduleItem,
   } = useApp();
 
   const effectiveStage = stageMirrorProgram ? liveProgram : liveStage;
@@ -176,6 +179,44 @@ export default function PreviewArea() {
         {currentItem && (
           <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
             {activeSlideIdx + 1} / {currentSlides.length} · {currentItem.title}
+          </div>
+        )}
+
+        {/* Background editor for current schedule item */}
+        {currentItem && (
+          <div style={{ width: '100%', maxWidth: 340 }}>
+            <button
+              onClick={() => setShowBgPicker(v => !v)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)',
+                borderRadius: 6, padding: '6px 10px', cursor: 'pointer',
+                fontFamily: 'var(--font)', color: 'var(--text-muted)', fontSize: 11,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+            >
+              <div style={{
+                width: 16, height: 16, borderRadius: 3, flexShrink: 0,
+                background: bgToCss(currentItem.background),
+                border: '1px solid rgba(255,255,255,0.2)',
+              }} />
+              <span style={{ flex: 1, textAlign: 'left' }}>Item Background</span>
+              <span style={{ fontSize: 10 }}>{showBgPicker ? '▲' : '▼'}</span>
+            </button>
+            {showBgPicker && (
+              <div style={{
+                marginTop: 4, padding: 10, background: 'var(--bg-panel)',
+                border: '1px solid var(--border)', borderRadius: 8,
+              }}>
+                <BackgroundPicker
+                  value={currentItem.background}
+                  onChange={bg => updateScheduleItem(currentItem.scheduleId, { background: bg })}
+                  compact
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

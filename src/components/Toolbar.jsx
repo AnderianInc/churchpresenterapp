@@ -50,7 +50,7 @@ function DisplayPicker({ displays, onSelect, onClose }) {
   );
 }
 
-export default function Toolbar({ onNewSong }) {
+export default function Toolbar({ onNewSong, onOpenSettings }) {
   const {
     isBlackout, isClear,
     toggleBlackout, toggleClear,
@@ -58,7 +58,9 @@ export default function Toolbar({ onNewSong }) {
     openPresentation, closePresentation,
     openStage, closeStage,
     activeView, setActiveView,
+    settingsOpen, setSettingsOpen,
     saveStatus,
+    settings, saveSettings,
   } = useApp();
 
   const [clock, setClock] = useState('');
@@ -84,12 +86,20 @@ export default function Toolbar({ onNewSong }) {
     if (window.electronAPI) {
       window.electronAPI.getDisplays().then(d => {
         setDisplays(d);
+        // Restore preferred display from settings if it still exists
+        const preferred = settings?.preferredDisplayIndex;
+        if (preferred != null) {
+          const found = d.find(x => x.index === preferred);
+          if (found) { setSelectedDisplay(preferred); return; }
+          // Preferred display no longer connected — fall through to default
+        }
         // Default to first non-primary display if available
         const ext = d.find(x => !x.isPrimary);
         if (ext) setSelectedDisplay(ext.index);
       });
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount; settings are loaded before Toolbar mounts
 
   const handleGoLive = () => {
     if (presentationOpen) {
@@ -142,18 +152,7 @@ export default function Toolbar({ onNewSong }) {
         <button style={tabStyle('media')} onClick={() => setActiveView('media')}>🖼️ Media</button>
         <button style={tabStyle('announcements')} onClick={() => setActiveView('announcements')}>📢 Announcements</button>
         <button style={tabStyle('stream')} onClick={() => setActiveView('stream')}>📡 Stream</button>
-        <button style={tabStyle('sermon')} onClick={() => setActiveView('sermon')}>🎙 Sermon</button>
-        <button style={tabStyle('settings')} onClick={() => setActiveView('settings')}>⚙ Settings</button>
-        <button style={tabStyle('help')} onClick={() => setActiveView('help')}>❔ Help</button>
       </div>
-
-      <div style={{ width: 1, height: 22, background: 'var(--border)', margin: '0 8px' }} />
-
-      <button style={btn({ WebkitAppRegion: 'no-drag' })} onClick={onNewSong}
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
-        ＋ New Song
-      </button>
 
       <div style={{ flex: 1 }} />
 
@@ -199,6 +198,32 @@ export default function Toolbar({ onNewSong }) {
           onMouseEnter={e => !stageOpen && (e.currentTarget.style.background = 'var(--bg-hover)')}
           onMouseLeave={e => !stageOpen && (e.currentTarget.style.background = 'transparent')}
         >🖥️ Stage</button>
+
+        <button
+          onClick={() => onOpenSettings ? onOpenSettings('keys') : setSettingsOpen(v => !v)}
+          title="Settings"
+          style={{
+            ...btn(),
+            color: settingsOpen ? 'var(--text)' : 'var(--text-muted)',
+            background: settingsOpen ? 'rgba(255,255,255,0.1)' : 'transparent',
+            border: settingsOpen ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
+          }}
+          onMouseEnter={e => !settingsOpen && (e.currentTarget.style.background = 'var(--bg-hover)')}
+          onMouseLeave={e => !settingsOpen && (e.currentTarget.style.background = 'transparent')}
+        >⚙ Settings</button>
+
+        <button
+          onClick={() => onOpenSettings ? onOpenSettings('help') : setSettingsOpen(true)}
+          title="Help"
+          style={{
+            ...btn(),
+            color: 'var(--text-muted)',
+            background: 'transparent',
+            border: '1px solid transparent',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+        >❔ Help</button>
 
         <button
           onClick={() => setActiveView('outputs')}
@@ -252,7 +277,11 @@ export default function Toolbar({ onNewSong }) {
           {showDisplayPicker && displays.length > 0 && (
             <DisplayPicker
               displays={displays}
-              onSelect={(idx) => { setSelectedDisplay(idx); openPresentation(idx); }}
+              onSelect={(idx) => {
+                setSelectedDisplay(idx);
+                saveSettings({ preferredDisplayIndex: idx });
+                openPresentation(idx);
+              }}
               onClose={() => setShowDisplayPicker(false)}
             />
           )}

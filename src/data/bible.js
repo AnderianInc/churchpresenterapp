@@ -1,15 +1,186 @@
-export const BIBLE_VERSIONS = ['KJV', 'NIV', 'ESV', 'NKJV', 'NLT', 'AMP', 'TPT', 'MSG'];
+// Offline translations are discovered dynamically from /public/bibles/index.json
+// (falls back to OFFLINE_BIBLE_FOLDERS below). There is no hardcoded version list.
 
-export const BIBLE_VERSION_LABELS = {
-  KJV: 'King James Version',
-  NIV: 'New International Version',
-  ESV: 'English Standard Version',
-  NKJV: 'New King James Version',
-  NLT: 'New Living Translation',
-  AMP: 'Amplified Bible',
-  TPT: 'The Passion Translation',
-  MSG: 'The Message',
+// ── HelloAO Bible API (https://bible.helloao.org) ──────────────────────────
+// Free public API, no authentication required.
+export const HELLOAO_BASE = 'https://bible.helloao.org/api';
+const HELLOAO_TRANSLATIONS_URL = `${HELLOAO_BASE}/available_translations.json`;
+
+let _helloaoVersionsCache = null;
+let _helloaoVersionsPromise = null;
+
+function _normalizeVersionList(raw) {
+  const list = Array.isArray(raw) ? raw : (raw.versions || raw.translations || []);
+  return list
+    .filter(v => v && typeof v.id === 'string')
+    .map(v => ({
+      id:           v.id,
+      name:         v.name || v.englishName || v.id,
+      shortName:    v.shortName || v.id,
+      language:     v.language || '',
+      languageName: v.languageEnglishName || v.languageName || v.language || '',
+    }));
+}
+
+/**
+ * Fetch all available translations.
+ * 1. Loads the bundled /bibles/translations.json immediately (fast, works offline).
+ * 2. In the background, refreshes from the live API; calls onUpdate(freshVersions)
+ *    if the live list is larger than the bundled list.
+ *
+ * @param {function} [onUpdate] - optional callback(versions[]) for live refresh
+ */
+export async function fetchHelloaoVersions(onUpdate) {
+  if (_helloaoVersionsCache) {
+    // Already loaded — still schedule a background refresh if caller wants updates
+    if (onUpdate) _refreshHelloaoVersions(onUpdate, _helloaoVersionsCache.length);
+    return _helloaoVersionsCache;
+  }
+  if (_helloaoVersionsPromise) return _helloaoVersionsPromise;
+
+  _helloaoVersionsPromise = (async () => {
+    // ── Step 1: try bundled file (instant, works offline) ──────────────────
+    try {
+      const publicUrl = process.env.PUBLIC_URL || '';
+      const r = await fetch(`${publicUrl}/bibles/translations.json`);
+      if (r.ok) {
+        const data = await r.json();
+        const versions = _normalizeVersionList(data);
+        if (versions.length > 0) {
+          _helloaoVersionsCache = versions;
+          _helloaoVersionsPromise = null;
+          // Background refresh — update cache silently for the session
+          _refreshHelloaoVersions(onUpdate, versions.length);
+          return versions;
+        }
+      }
+    } catch { /* bundled file unavailable — fall through to live API */ }
+
+    // ── Step 2: live API (first-launch or bundled file missing) ────────────
+    const r2 = await fetch(HELLOAO_TRANSLATIONS_URL);
+    if (!r2.ok) throw new Error('Could not load Bible translations');
+    const data2 = await r2.json();
+    const versions2 = _normalizeVersionList(data2);
+    _helloaoVersionsCache = versions2;
+    _helloaoVersionsPromise = null;
+    return versions2;
+  })().catch(err => {
+    _helloaoVersionsPromise = null;
+    throw err;
+  });
+
+  return _helloaoVersionsPromise;
+}
+
+/** Background live refresh — updates cache and calls onUpdate if list grew. */
+async function _refreshHelloaoVersions(onUpdate, currentCount) {
+  try {
+    const r = await fetch(HELLOAO_TRANSLATIONS_URL);
+    if (!r.ok) return;
+    const data = await r.json();
+    const fresh = _normalizeVersionList(data);
+    if (fresh.length > 0) {
+      _helloaoVersionsCache = fresh;
+      if (onUpdate && fresh.length > currentCount) onUpdate(fresh);
+    }
+  } catch { /* silently ignored — live refresh is best-effort */ }
+}
+
+/** Map canonical book name → USFM book code used by helloao */
+const HELLOAO_BOOK_IDS = {
+  Genesis: 'GEN', Exodus: 'EXO', Leviticus: 'LEV', Numbers: 'NUM', Deuteronomy: 'DEU',
+  Joshua: 'JOS', Judges: 'JDG', Ruth: 'RUT', '1 Samuel': '1SA', '2 Samuel': '2SA',
+  '1 Kings': '1KI', '2 Kings': '2KI', '1 Chronicles': '1CH', '2 Chronicles': '2CH',
+  Ezra: 'EZR', Nehemiah: 'NEH', Esther: 'EST', Job: 'JOB', Psalms: 'PSA', Psalm: 'PSA',
+  Proverbs: 'PRO', Ecclesiastes: 'ECC', 'Song of Solomon': 'SNG', Isaiah: 'ISA',
+  Jeremiah: 'JER', Lamentations: 'LAM', Ezekiel: 'EZK', Daniel: 'DAN', Hosea: 'HOS',
+  Joel: 'JOL', Amos: 'AMO', Obadiah: 'OBA', Jonah: 'JON', Micah: 'MIC', Nahum: 'NAM',
+  Habakkuk: 'HAB', Zephaniah: 'ZEP', Haggai: 'HAG', Zechariah: 'ZEC', Malachi: 'MAL',
+  Matthew: 'MAT', Mark: 'MRK', Luke: 'LUK', John: 'JHN', Acts: 'ACT', Romans: 'ROM',
+  '1 Corinthians': '1CO', '2 Corinthians': '2CO', Galatians: 'GAL', Ephesians: 'EPH',
+  Philippians: 'PHP', Colossians: 'COL', '1 Thessalonians': '1TH', '2 Thessalonians': '2TH',
+  '1 Timothy': '1TI', '2 Timothy': '2TI', Titus: 'TIT', Philemon: 'PHM', Hebrews: 'HEB',
+  James: 'JAS', '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN',
+  '3 John': '3JN', Jude: 'JUD', Revelation: 'REV',
 };
+
+/**
+ * Fetch a single chapter from helloao and return [{reference, text}].
+ * @param {string} versionId  e.g. "en_kjv"
+ * @param {string} bookName   canonical name, e.g. "John"
+ * @param {number} chapterNum  e.g. 3
+ */
+export async function fetchHelloaoChapter(versionId, bookName, chapterNum) {
+  const bookId = HELLOAO_BOOK_IDS[bookName] || bookName.toUpperCase().replace(/\s+/g, '');
+  const url = `${HELLOAO_BASE}/${versionId}/${bookId}/${chapterNum}.json`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${bookName} ${chapterNum} not found in ${versionId}`);
+  const data = await r.json();
+  const verses = data.verses || data.chapter?.verses || [];
+  return verses.map(v => ({
+    reference: `${bookName} ${chapterNum}:${v.number || v.verseNumber || v.verse}`,
+    text: (v.text || v.content || '').trim(),
+  })).filter(v => v.text);
+}
+
+/**
+ * Search helloao by scripture reference. Returns [{reference, text}].
+ * Supports: "John 3:16", "John 3:16-18", "John 3" (whole chapter).
+ */
+export async function searchHelloaoByReference(query, versionId) {
+  const refMatch = query.trim().match(/^(.+?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?$/i);
+  if (!refMatch) return [];
+
+  const bookName = canonicalBook(refMatch[1]);
+  const chapter = parseInt(refMatch[2], 10);
+  const startVerse = refMatch[3] ? parseInt(refMatch[3], 10) : null;
+  const endVerse = refMatch[4] ? parseInt(refMatch[4], 10) : startVerse;
+
+  const allVerses = await fetchHelloaoChapter(versionId, bookName, chapter);
+  if (startVerse === null) return allVerses; // whole chapter
+  return allVerses.filter(v => {
+    const vNum = parseInt(v.reference.split(':')[1], 10);
+    return vNum >= startVerse && vNum <= (endVerse ?? startVerse);
+  });
+}
+
+// ── Beblia Holy-Bible-XML-Format parser ────────────────────────────────────
+/**
+ * Parse a Beblia-format XML string into the flat passages dict
+ * { "Genesis 1:1": "In the beginning...", ... }.
+ * Supports both single-book and whole-Bible XML files.
+ */
+export function parseBebliaXml(xmlString) {
+  if (typeof DOMParser === 'undefined') return {};
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlString, 'text/xml');
+  const passages = {};
+
+  // Tolerate whole-bible root (<bible>) or single-book root (<book>)
+  const bookEls = doc.querySelectorAll('bible > b, bible > book, book');
+  bookEls.forEach(bookEl => {
+    const rawName = bookEl.getAttribute('n') || bookEl.getAttribute('name') || '';
+    const bookName = canonicalBook(rawName);
+    if (!bookName) return;
+
+    const chEls = bookEl.querySelectorAll('c, chapter');
+    chEls.forEach(chEl => {
+      const chNum = chEl.getAttribute('n') || chEl.getAttribute('number') || chEl.getAttribute('num') || '';
+      if (!chNum) return;
+
+      const vEls = chEl.querySelectorAll('v, verse');
+      vEls.forEach(vEl => {
+        const vNum = vEl.getAttribute('n') || vEl.getAttribute('number') || vEl.getAttribute('num') || '';
+        const text = (vEl.textContent || '').trim();
+        if (vNum && text) {
+          passages[`${bookName} ${chNum}:${vNum}`] = text;
+        }
+      });
+    });
+  });
+
+  return passages;
+}
 
 export const QUICK_REFERENCES = [
   'John 3:16', 'Psalm 23:1-6', 'Romans 8:28',
@@ -269,52 +440,3 @@ export function getVerseText(reference, version = 'KJV', extraTexts = {}) {
   return source[reference] || '';
 }
 
-function getYouVersionApi() {
-  if (!window?.electronAPI) {
-    throw new Error('YouVersion support requires Electron with electronAPI enabled.');
-  }
-  if (!window.electronAPI.fetchYouVersionPassage) {
-    throw new Error('YouVersion API is not available in this Electron build.');
-  }
-  return window.electronAPI;
-}
-
-export async function fetchYouVersionPassage(appKey, versionId, reference, format = 'text') {
-  if (!versionId) {
-    throw new Error('YouVersion version ID is required.');
-  }
-  const api = getYouVersionApi();
-  const osis = bibleReferenceToOsis(reference);
-  return api.fetchYouVersionPassage(appKey, versionId, osis, format);
-}
-
-const OSIS_BOOK_CODES = {
-  Genesis: 'GEN', Exodus: 'EXO', Leviticus: 'LEV', Numbers: 'NUM', Deuteronomy: 'DEU',
-  Joshua: 'JOS', Judges: 'JDG', Ruth: 'RUT', '1 Samuel': '1SA', '2 Samuel': '2SA',
-  '1 Kings': '1KI', '2 Kings': '2KI', '1 Chronicles': '1CH', '2 Chronicles': '2CH',
-  Ezra: 'EZR', Nehemiah: 'NEH', Esther: 'EST', Job: 'JOB', Psalms: 'PSA', Psalm: 'PSA',
-  Proverbs: 'PRO', Ecclesiastes: 'ECC', 'Song of Solomon': 'SNG', Isaiah: 'ISA',
-  Jeremiah: 'JER', Lamentations: 'LAM', Ezekiel: 'EZK', Daniel: 'DAN', Hosea: 'HOS',
-  Joel: 'JOL', Amos: 'AMO', Obadiah: 'OBA', Jonah: 'JON', Micah: 'MIC', Nahum: 'NAM',
-  Habakkuk: 'HAB', Zephaniah: 'ZEP', Haggai: 'HAG', Zechariah: 'ZEC', Malachi: 'MAL',
-  Matthew: 'MAT', Mark: 'MRK', Luke: 'LUK', John: 'JHN', Acts: 'ACT', Romans: 'ROM',
-  '1 Corinthians': '1CO', '2 Corinthians': '2CO', Galatians: 'GAL', Ephesians: 'EPH',
-  Philippians: 'PHP', Colossians: 'COL', '1 Thessalonians': '1TH', '2 Thessalonians': '2TH',
-  '1 Timothy': '1TI', '2 Timothy': '2TI', Titus: 'TIT', Philemon: 'PHM', Hebrews: 'HEB',
-  James: 'JAS', '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN',
-  '3 John': '3JN', Jude: 'JUD', Revelation: 'REV', 'Song of Solomon': 'SNG',
-};
-
-export function bibleReferenceToOsis(reference) {
-  const trimmed = String(reference || '').trim();
-  const match = trimmed.match(/^(.+?)\s+(\d+)(?::(\d+)(?:-(\d+))?)?$/);
-  if (!match) return trimmed;
-  const book = canonicalBook(match[1]);
-  const chapter = match[2];
-  const verse = match[3];
-  const endVerse = match[4];
-  const bookCode = OSIS_BOOK_CODES[book] || book;
-  if (!verse) return `${bookCode}.${chapter}`;
-  if (endVerse) return `${bookCode}.${chapter}.${verse}-${bookCode}.${chapter}.${endVerse}`;
-  return `${bookCode}.${chapter}.${verse}`;
-}

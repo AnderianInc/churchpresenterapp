@@ -9,7 +9,7 @@ const {
   getAllYouVersionVersions,
   getYouVersionVersion,
   getYouVersionPassage,
-  searchBibleCom,
+  searchYouVersionVerses,
 } = require('./youversion');
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -25,7 +25,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [] }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [] }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -504,6 +504,8 @@ ipcMain.handle('get-youversion-has-key', () => ({ configured: hasDefaultAppKey()
 
 ipcMain.handle('fetch-youversion-versions', async (_, appKey) => {
   try {
+    // getAllYouVersionVersions paginates the Platform API to retrieve every
+    // version the key can access — the SDK getVersions() only returns one page.
     return await getAllYouVersionVersions(appKey);
   } catch (err) {
     console.error('[YouVersion] fetch-youversion-versions failed', err.message);
@@ -520,12 +522,12 @@ ipcMain.handle('fetch-youversion-version', async (_, appKey, versionId) => {
   }
 });
 
-ipcMain.handle('search-bible-com', async (_, { versionId, query }) => {
+ipcMain.handle('search-youversion-verses', async (_, { appKey, versionId, query }) => {
   try {
-    return await searchBibleCom(versionId, query);
+    return await searchYouVersionVerses(appKey, versionId, query);
   } catch (err) {
-    console.error('[Bible.com] search failed', err.message);
-    throw new Error(err.message || 'Bible.com search failed.');
+    console.error('[YouVersion] search-youversion-verses failed', err.message);
+    throw new Error(err.message || 'YouVersion verse search failed.');
   }
 });
 
@@ -732,16 +734,23 @@ ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
   if (!res.ok) throw new Error(`Failed to fetch lyrics page: ${res.status}`);
   const html = await res.text();
 
+  // Extract all data-lyrics-container div contents using a depth-tracking
+  // parser. The naive regex [\s\S]*?<\/div> stops at the first nested </div>
+  // and misses the rest of the lyrics.
   function extractLyricContainers(src) {
     const found = [];
     let pos = 0;
     while (pos < src.length) {
       const markerIdx = src.indexOf('data-lyrics-container="true"', pos);
       if (markerIdx === -1) break;
+      // Walk back to the opening < of this tag
       const tagOpen = src.lastIndexOf('<', markerIdx);
+      // Find the end of the opening tag
       const tagClose = src.indexOf('>', markerIdx);
       if (tagClose === -1) break;
+      // Self-closing div edge case
       if (src[tagClose - 1] === '/') { pos = tagClose + 1; continue; }
+      // Now walk forward tracking div depth to find the matching </div>
       let depth = 1;
       let cur = tagClose + 1;
       const innerStart = cur;
@@ -764,6 +773,7 @@ ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
   }
 
   const containers = extractLyricContainers(html);
+
   if (containers.length === 0) {
     throw new Error('Could not find lyrics on this page. The song page format may have changed.');
   }
@@ -772,13 +782,20 @@ ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
     .join('\n')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
+    // Decode numeric HTML entities before named ones
     .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
     .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
+  // Strip Genius metadata preamble concatenated before the first section marker.
+  // e.g. "28 ContributorsTranslationsEspañolPraise Lyrics[Intro: Chandler Moore]"
   const firstBracket = rawLyrics.indexOf('[');
   if (firstBracket > 0 && !rawLyrics.slice(0, firstBracket).includes('\n')) {
     rawLyrics = rawLyrics.slice(firstBracket);
@@ -834,6 +851,20 @@ ${transcript}`;
   } catch {
     return [];
   }
+});
+
+// IPC - Copy an imported media file (video/image) to the app's persistent media directory
+// Returns the stored file:// path so it survives app restarts.
+// In the renderer, Electron's File objects expose a .path property.
+ipcMain.handle('copy-media-file', async (_, srcPath) => {
+  if (!srcPath || typeof srcPath !== 'string') throw new Error('Invalid source path');
+  const mediaDir = path.join(app.getPath('userData'), 'media');
+  if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+  const ext = path.extname(srcPath) || '.mp4';
+  const destName = `${require('crypto').randomUUID()}${ext}`;
+  const destPath = path.join(mediaDir, destName);
+  fs.copyFileSync(srcPath, destPath);
+  return `file://${destPath}`;
 });
 
 app.whenReady().then(() => {

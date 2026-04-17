@@ -8,10 +8,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readDirectory: (folderPath) => ipcRenderer.invoke('read-directory', folderPath),
   readFileText: (filePath) => ipcRenderer.invoke('read-file-text', filePath),
   getYouVersionHasKey: () => ipcRenderer.invoke('get-youversion-has-key'),
-  fetchYouVersionVersions: (appKey) => ipcRenderer.invoke('fetch-youversion-versions', appKey),
+  fetchYouVersionVersions: (appKey, language) => ipcRenderer.invoke('fetch-youversion-versions', appKey, language),
   fetchYouVersionVersion: (appKey, versionId) => ipcRenderer.invoke('fetch-youversion-version', appKey, versionId),
   fetchYouVersionPassage: (appKey, versionId, reference, format) => ipcRenderer.invoke('fetch-youversion-passage', appKey, versionId, reference, format),
-  searchBibleCom: (opts) => ipcRenderer.invoke('search-bible-com', opts),
+  searchYouVersionVerses: (opts) => ipcRenderer.invoke('search-youversion-verses', opts),
 
   // Windows
   openPresentation: (displayIndex) => ipcRenderer.invoke('open-presentation', displayIndex),
@@ -73,6 +73,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   suggestVerses: (opts) => ipcRenderer.invoke('suggest-verses', opts),
 
   openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
+
+  // Media file persistence — copies imported video/image to app data dir; returns file:// path
+  copyMediaFile: (srcPath) => ipcRenderer.invoke('copy-media-file', srcPath),
 
   isElectron: true,
 });

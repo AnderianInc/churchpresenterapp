@@ -98,6 +98,120 @@ describe('validateScheduleArray', () => {
   });
 });
 
+describe('validateSong — slide field preservation (P6/P8 fields)', () => {
+  it('preserves textAlign on slides', () => {
+    const song = {
+      id: 's1', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', textAlign: 'center' },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].textAlign).toBe('center');
+  });
+
+  it('preserves chords on slides', () => {
+    const song = {
+      id: 's2', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', chords: 'G  D  Em' },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].chords).toBe('G  D  Em');
+  });
+
+  it('preserves per-slide color background override', () => {
+    const song = {
+      id: 's3', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', background: { type: 'color', value: '#ff0000' } },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].background).toEqual({ type: 'color', value: '#ff0000' });
+  });
+
+  it('preserves per-slide gradient background override', () => {
+    const css = 'linear-gradient(135deg, #000 0%, #111 100%)';
+    const song = {
+      id: 's4', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', background: { type: 'gradient', value: css } },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].background).toEqual({ type: 'gradient', value: css });
+  });
+
+  it('preserves per-slide image background override', () => {
+    const song = {
+      id: 's5', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', background: { type: 'image', value: 'file:///foo.jpg', brightness: 0.7 } },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].background).toEqual({ type: 'image', value: 'file:///foo.jpg', brightness: 0.7 });
+  });
+
+  it('omits background when slide has no override (not set to null/default)', () => {
+    const song = {
+      id: 's6', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello' },
+      ],
+    };
+    const result = validateSong(song);
+    expect(result.data.slides[0].background).toBeUndefined();
+  });
+
+  it('drops unknown background types gracefully (no crash)', () => {
+    const song = {
+      id: 's7', title: 'Test', slides: [
+        { id: 'sl1', type: 'verse', label: 'V1', lines: 'Hello', background: { type: 'unknown', value: 'xyz' } },
+      ],
+    };
+    expect(() => validateSong(song)).not.toThrow();
+    const result = validateSong(song);
+    expect(result.data.slides[0].background).toBeUndefined();
+  });
+
+  it('preserves all three P6/P8 fields together on one slide', () => {
+    const song = {
+      id: 's8', title: 'Test', slides: [
+        {
+          id: 'sl1', type: 'chorus', label: 'Chorus', lines: 'Words',
+          textAlign: 'right',
+          chords: 'Am  F  C  G',
+          background: { type: 'color', value: '#111' },
+        },
+      ],
+    };
+    const slide = validateSong(song).data.slides[0];
+    expect(slide.textAlign).toBe('right');
+    expect(slide.chords).toBe('Am  F  C  G');
+    expect(slide.background).toEqual({ type: 'color', value: '#111' });
+  });
+});
+
+describe('validateSong — song-level background', () => {
+  it('accepts a color background', () => {
+    const song = { id: 'x', title: 'T', slides: [], background: { type: 'color', value: '#123456' } };
+    expect(validateSong(song).data.background).toEqual({ type: 'color', value: '#123456' });
+  });
+
+  it('accepts an image background with brightness', () => {
+    const bg = { type: 'image', value: 'file:///bg.jpg', brightness: 0.5 };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background).toEqual(bg);
+  });
+
+  it('falls back to default color when background is missing', () => {
+    const song = { id: 'x', title: 'T', slides: [] };
+    expect(validateSong(song).data.background).toEqual({ type: 'color', value: '#0a0f1e' });
+  });
+
+  it('falls back to default color when background type is unrecognised', () => {
+    const song = { id: 'x', title: 'T', slides: [], background: { type: 'neon', value: '#f0f' } };
+    expect(validateSong(song).data.background).toEqual({ type: 'color', value: '#0a0f1e' });
+  });
+});
+
 describe('validateSettings', () => {
   it('returns defaults for null input', () => {
     const result = validateSettings(null);
