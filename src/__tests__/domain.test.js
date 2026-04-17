@@ -332,6 +332,183 @@ describe('removeFromSchedule', () => {
   });
 });
 
+// ── updateScheduleItem ────────────────────────────────────────────────────────
+
+/**
+ * updateScheduleItem logic (mirrors AppContext.updateScheduleItem)
+ * Merges a patch object into the matching schedule item (by scheduleId).
+ * All other items remain untouched (same object references).
+ */
+function updateScheduleItem(schedule, scheduleId, patch) {
+  return schedule.map(s => s.scheduleId === scheduleId ? { ...s, ...patch } : s);
+}
+
+describe('updateScheduleItem', () => {
+  function makeSchedule(titles) {
+    return titles.map((title, i) => ({
+      scheduleId: `sch-${i}`, title, type: 'song',
+      slides: makeSlides(2),
+      background: { type: 'color', value: '#0a0f1e' },
+    }));
+  }
+
+  it('updates the background of the target item', () => {
+    const schedule = makeSchedule(['Song A', 'Song B']);
+    const newBg = { type: 'gradient', value: 'linear-gradient(135deg, #000 0%, #111 100%)' };
+    const result = updateScheduleItem(schedule, 'sch-0', { background: newBg });
+    expect(result[0].background).toEqual(newBg);
+    expect(result[1].background).toEqual({ type: 'color', value: '#0a0f1e' }); // unchanged
+  });
+
+  it('does not mutate any other item', () => {
+    const schedule = makeSchedule(['A', 'B', 'C']);
+    const result = updateScheduleItem(schedule, 'sch-1', { title: 'Updated B' });
+    expect(result[0]).toBe(schedule[0]); // same reference
+    expect(result[2]).toBe(schedule[2]); // same reference
+    expect(result[1]).not.toBe(schedule[1]); // new object for patched item
+    expect(result[1].title).toBe('Updated B');
+  });
+
+  it('is a no-op for an unknown scheduleId (no item matches)', () => {
+    const schedule = makeSchedule(['A', 'B']);
+    const result = updateScheduleItem(schedule, 'nonexistent', { title: 'X' });
+    result.forEach((item, i) => expect(item).toBe(schedule[i]));
+  });
+
+  it('can patch multiple fields at once', () => {
+    const schedule = makeSchedule(['A']);
+    const patch = { title: 'New Title', fontSize: 52, textColor: '#ff0000' };
+    const result = updateScheduleItem(schedule, 'sch-0', patch);
+    expect(result[0].title).toBe('New Title');
+    expect(result[0].fontSize).toBe(52);
+    expect(result[0].textColor).toBe('#ff0000');
+    expect(result[0].slides).toEqual(schedule[0].slides); // unpatched fields preserved
+  });
+
+  it('preserves scheduleId on the patched item', () => {
+    const schedule = makeSchedule(['A']);
+    const result = updateScheduleItem(schedule, 'sch-0', { title: 'Changed' });
+    expect(result[0].scheduleId).toBe('sch-0');
+  });
+});
+
+// ── Schedule undo / redo ─────────────────────────────────────────────────────
+
+/**
+ * Simplified undo/redo stack that mirrors AppContext's ref-based implementation.
+ * History is an array of schedule snapshots; pointer moves back/forward.
+ */
+function makeHistoryManager(initial = [], maxSteps = 20) {
+  let history = [initial];
+  let idx = 0;
+
+  return {
+    push(snapshot) {
+      // Truncate forward history
+      history = history.slice(0, idx + 1);
+      history.push(snapshot);
+      if (history.length > maxSteps + 1) history.shift();
+      idx = history.length - 1;
+      return history[idx];
+    },
+    undo() {
+      if (idx > 0) idx--;
+      return history[idx];
+    },
+    redo() {
+      if (idx < history.length - 1) idx++;
+      return history[idx];
+    },
+    current() { return history[idx]; },
+    canUndo() { return idx > 0; },
+    canRedo() { return idx < history.length - 1; },
+    historyLength() { return history.length; },
+  };
+}
+
+describe('schedule undo / redo', () => {
+  function snap(titles) {
+    return titles.map((t, i) => ({ scheduleId: `s${i}`, title: t }));
+  }
+
+  it('initial state has one history entry, canUndo=false', () => {
+    const hm = makeHistoryManager(snap(['A', 'B']));
+    expect(hm.canUndo()).toBe(false);
+    expect(hm.canRedo()).toBe(false);
+    expect(hm.historyLength()).toBe(1);
+  });
+
+  it('pushing a snapshot enables undo', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    expect(hm.canUndo()).toBe(true);
+    expect(hm.canRedo()).toBe(false);
+  });
+
+  it('undo restores the previous state', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    const prev = hm.undo();
+    expect(prev.map(s => s.title)).toEqual(['A']);
+  });
+
+  it('redo re-applies the reverted state', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    hm.undo();
+    const redone = hm.redo();
+    expect(redone.map(s => s.title)).toEqual(['A', 'B']);
+  });
+
+  it('pushing after undo truncates the forward history', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    hm.push(snap(['A', 'B', 'C']));
+    hm.undo(); // back to ['A','B']
+    hm.push(snap(['A', 'X'])); // branch off — C is gone
+    expect(hm.canRedo()).toBe(false);
+    expect(hm.current().map(s => s.title)).toEqual(['A', 'X']);
+  });
+
+  it('undo at the start of history returns the initial state', () => {
+    const initial = snap(['A']);
+    const hm = makeHistoryManager(initial);
+    hm.push(snap(['A', 'B']));
+    hm.undo();
+    hm.undo(); // second undo — should clamp
+    expect(hm.current().map(s => s.title)).toEqual(['A']);
+    expect(hm.canUndo()).toBe(false);
+  });
+
+  it('redo at the end of history is a no-op', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    hm.redo(); // already at end
+    hm.redo();
+    expect(hm.current().map(s => s.title)).toEqual(['A', 'B']);
+  });
+
+  it('history is capped at maxSteps entries (oldest entry dropped)', () => {
+    const hm = makeHistoryManager([], 5); // max 5 steps
+    for (let i = 0; i < 8; i++) hm.push([{ scheduleId: `s${i}`, title: `Song ${i}` }]);
+    // With maxSteps=5, history stores at most 6 entries (initial + 5), but we
+    // drop the oldest when we exceed the cap, so history.length <= 6.
+    expect(hm.historyLength()).toBeLessThanOrEqual(6);
+  });
+
+  it('multiple undo/redo cycles are stable', () => {
+    const hm = makeHistoryManager(snap(['A']));
+    hm.push(snap(['A', 'B']));
+    hm.push(snap(['A', 'B', 'C']));
+    hm.undo(); // → ['A','B']
+    hm.undo(); // → ['A']
+    hm.redo(); // → ['A','B']
+    hm.redo(); // → ['A','B','C']
+    expect(hm.current().map(s => s.title)).toEqual(['A', 'B', 'C']);
+    expect(hm.canRedo()).toBe(false);
+  });
+});
+
 // ── StageView clear parity ─────────────────────────────────────────────────────
 
 describe('stage view clear parity', () => {

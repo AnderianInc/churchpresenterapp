@@ -3,15 +3,17 @@
  *
  * Single source of truth for the initial song library.
  * Used by:
- *   - src/store/AppContext.jsx (renderer)
- *   - electron/defaultData.js  re-exports this via a CJS bridge
+ *   - src/store/AppContext.jsx (renderer) via webpack default-import interop
+ *   - electron/defaultData.js via require() — CJS can require this file
+ *     because it uses module.exports (no ES-only syntax)
  *
  * IDs are stable strings (not uuidv4() at call time) so that the data
  * file written on first launch is deterministic and won't drift between
  * renderer and Electron seeds.
  */
 
-const defaultSongs = [
+// eslint-disable-next-line no-var
+var defaultSongs = [
   {
     id: 'default-song-1',
     title: 'Amazing Grace',
@@ -108,4 +110,6 @@ const defaultSongs = [
   },
 ];
 
-export default defaultSongs;
+// CommonJS export so electron/main.js can require() this file directly.
+// Webpack/babel interop treats module.exports as the default import in ESM consumers.
+module.exports = defaultSongs;

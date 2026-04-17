@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import ExternalLink from './ExternalLink';
+import BackgroundPicker, { bgToCss } from './BackgroundPicker';
 
 const SLIDE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'ending', 'tag', 'blank'];
 const FONTS = ['Georgia', 'Playfair Display', 'Times New Roman', 'Arial', 'Helvetica', 'Inter'];
@@ -57,7 +58,7 @@ export default function SongEditorModal({ song, onClose }) {
   const [slides, setSlides] = useState(song?.slides?.length ? song.slides : [emptySlide()]);
   const [activeSlide, setActiveSlide] = useState(0);
   const [slideSubTab, setSlideSubTab] = useState('lyrics');
-  const [bgColor, setBgColor] = useState(song?.background?.value || '#0a0f1e');
+  const [background, setBackground] = useState(song?.background || { type: 'color', value: '#0a0f1e' });
   const [textColor, setTextColor] = useState(song?.textColor || '#ffffff');
   const [fontSize, setFontSize] = useState(song?.fontSize || 44);
   const [fontFamily, setFontFamily] = useState(song?.fontFamily || 'Georgia');
@@ -115,7 +116,7 @@ export default function SongEditorModal({ song, onClose }) {
     const songData = {
       title: title.trim(), author: author.trim(), key: songKey,
       tempo, tags, slides,
-      background: { type: 'color', value: bgColor },
+      background,
       textColor, fontSize, fontFamily,
       bpm: bpm ? Number(bpm) : undefined,
       ccliNumber: ccliNumber.trim() || '',
@@ -329,23 +330,25 @@ export default function SongEditorModal({ song, onClose }) {
                     </span>
                   </div>
 
-                  {/* Lyrics / Chords sub-tabs */}
+                  {/* Lyrics / Chords / Background sub-tabs */}
                   <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-                    {[['lyrics', '📝 Lyrics'], ['chords', '🎸 Chords']].map(([t, lbl]) => (
+                    {[['lyrics', '📝 Lyrics'], ['chords', '🎸 Chords'], ['slidebg', '🎨 BG']].map(([t, lbl]) => (
                       <button key={t} onClick={() => setSlideSubTab(t)} style={{
                         padding: '5px 14px', fontSize: 11, cursor: 'pointer',
                         background: 'transparent', border: 'none',
                         borderBottom: slideSubTab === t ? '2px solid var(--accent)' : '2px solid transparent',
-                        color: slideSubTab === t ? 'var(--accent)' : 'var(--text-muted)',
+                        color: slideSubTab === t
+                          ? 'var(--accent)'
+                          : (t === 'slidebg' && currentSlide?.background ? '#d97706' : 'var(--text-muted)'),
                         fontFamily: 'var(--font)',
-                      }}>{lbl}</button>
+                      }}>{lbl}{t === 'slidebg' && currentSlide?.background ? ' ●' : ''}</button>
                     ))}
                   </div>
 
                   <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-                    {/* Lyrics or Chords editor */}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12 }}>
-                      {slideSubTab === 'lyrics' ? (
+                    {/* Lyrics / Chords / BG editor pane */}
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 12, overflow: 'hidden' }}>
+                      {slideSubTab === 'lyrics' && (
                         <>
                           <label style={labelStyle}>Lyrics (one line per line)</label>
                           <textarea
@@ -364,7 +367,8 @@ export default function SongEditorModal({ song, onClose }) {
                             {(currentSlide.lines || '').split('\n').length} lines · {(currentSlide.lines || '').length} chars
                           </div>
                         </>
-                      ) : (
+                      )}
+                      {slideSubTab === 'chords' && (
                         <>
                           <label style={labelStyle}>Chord Chart — visible on Stage Display for worship team</label>
                           <textarea
@@ -383,16 +387,47 @@ export default function SongEditorModal({ song, onClose }) {
                           </div>
                         </>
                       )}
+                      {slideSubTab === 'slidebg' && (
+                        <div style={{ overflowY: 'auto', flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                            <label style={labelStyle}>Slide Background Override</label>
+                            {currentSlide.background && (
+                              <button
+                                onClick={() => updateCurrentSlide('background', null)}
+                                style={{ background: 'none', border: '1px solid rgba(239,68,68,0.4)', color: '#f87171', borderRadius: 4, padding: '2px 8px', cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)' }}
+                              >✕ Clear override</button>
+                            )}
+                          </div>
+                          {!currentSlide.background && (
+                            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.5 }}>
+                              This slide inherits the song background. Pick a color or gradient below to override it for this slide only.
+                            </div>
+                          )}
+                          <BackgroundPicker
+                            value={currentSlide.background || background}
+                            onChange={(bg) => updateCurrentSlide('background', bg)}
+                            compact
+                          />
+                          {currentSlide.background && (
+                            <div style={{ marginTop: 8, fontSize: 10, color: '#d97706' }}>
+                              ● This slide has a custom background
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Mini preview */}
+                    {/* Mini preview — shows per-slide bg if set */}
                     <div style={{ width: 210, padding: 12, borderLeft: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
                       <label style={labelStyle}>Preview</label>
                       <div style={{
-                        flex: 1, background: bgColor, borderRadius: 6,
+                        flex: 1,
+                        background: bgToCss(currentSlide?.background || background),
+                        borderRadius: 6,
                         display: 'flex', alignItems: 'center',
                         justifyContent: slideAlign === 'left' ? 'flex-start' : slideAlign === 'right' ? 'flex-end' : 'center',
                         padding: '10%', textAlign: slideAlign, border: '1px solid var(--border)',
+                        overflow: 'hidden',
                       }}>
                         <div style={{
                           fontSize: Math.max(9, fontSize * 0.23), color: textColor,
@@ -405,6 +440,7 @@ export default function SongEditorModal({ song, onClose }) {
                       </div>
                       <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center' }}>
                         {fontFamily} · {fontSize}px
+                        {currentSlide.background && <span style={{ color: '#d97706' }}> · custom bg</span>}
                       </div>
                     </div>
                   </div>
@@ -435,22 +471,8 @@ export default function SongEditorModal({ song, onClose }) {
               </div>
 
               <div>
-                <label style={labelStyle}>Background Color</label>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-                  <input type="color" value={bgColor} onChange={e => setBgColor(e.target.value)}
-                    style={{ width: 60, height: 40, borderRadius: 'var(--radius)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                  />
-                  <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{bgColor}</span>
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {['#0a0f1e','#0d1117','#0f0d1a','#061525','#0a1a0f','#000000','#1a0a0a','#0d0a1e'].map(c => (
-                    <div key={c} onClick={() => setBgColor(c)} style={{
-                      width: 32, height: 32, borderRadius: 5, background: c, cursor: 'pointer',
-                      border: bgColor === c ? '2px solid var(--accent)' : '2px solid var(--border)',
-                      transition: 'border-color 0.15s',
-                    }} />
-                  ))}
-                </div>
+                <label style={labelStyle}>Background</label>
+                <BackgroundPicker value={background} onChange={setBackground} />
               </div>
 
               <div>
@@ -500,9 +522,10 @@ export default function SongEditorModal({ song, onClose }) {
             <div style={{ width: 340, flexShrink: 0 }}>
               <label style={labelStyle}>Full Slide Preview</label>
               <div style={{
-                width: '100%', aspectRatio: '16/9', background: bgColor, borderRadius: 8,
+                width: '100%', aspectRatio: '16/9', background: bgToCss(background), borderRadius: 8,
                 border: '2px solid var(--border)', display: 'flex', alignItems: 'center',
                 justifyContent: 'center', padding: '8%', textAlign: 'center',
+                overflow: 'hidden',
               }}>
                 <div style={{
                   fontSize: fontSize * 0.33, color: textColor, fontFamily,
@@ -512,7 +535,7 @@ export default function SongEditorModal({ song, onClose }) {
                 </div>
               </div>
               <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 6, textAlign: 'center' }}>
-                {fontFamily} · {fontSize}px · {bgColor}
+                {fontFamily} · {fontSize}px
               </div>
             </div>
           </div>

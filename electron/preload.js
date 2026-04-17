@@ -74,5 +74,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
 
+  // Media file persistence — copies imported video/image to app data dir; returns file:// path
+  copyMediaFile: (srcPath) => ipcRenderer.invoke('copy-media-file', srcPath),
+
   isElectron: true,
 });

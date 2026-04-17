@@ -17,33 +17,73 @@ const PRESET_BACKGROUNDS = [
   { id: 'g4', name: 'Golden Hour', type: 'gradient', value: 'linear-gradient(135deg, #1a0f00 0%, #3a2a0a 100%)', category: 'gradient' },
 ];
 
-const VIDEO_BACKGROUNDS = [
-  { id: 'v1', name: 'Worship Loop 1', type: 'video-placeholder', category: 'video', icon: '🌊' },
-  { id: 'v2', name: 'Candle Glow', type: 'video-placeholder', category: 'video', icon: '🕯️' },
-  { id: 'v3', name: 'Cross Silhouette', type: 'video-placeholder', category: 'video', icon: '✝️' },
-  { id: 'v4', name: 'Stars Loop', type: 'video-placeholder', category: 'video', icon: '⭐' },
-];
+const NUM_FAVORITE_SLOTS = 4;
 
 export default function MediaPanel() {
-  const { addToSchedule } = useApp();
+  const { addToSchedule, settings, saveSettings } = useApp();
   const [category, setCategory] = useState('solid');
   const [customColor, setCustomColor] = useState('#0a0f1e');
   const fileInputRef = useRef(null);
+  // slotIndex tracks which favorite slot is being assigned (-1 = add to schedule directly)
+  const [assigningSlot, setAssigningSlot] = useState(-1);
 
-  const handleVideoImport = (event) => {
+  const videoFavorites = settings?.videoFavorites || [];
+
+  const importVideoFile = async (file) => {
+    let videoUrl;
+    if (window.electronAPI?.copyMediaFile && file.path) {
+      try { videoUrl = await window.electronAPI.copyMediaFile(file.path); }
+      catch { videoUrl = URL.createObjectURL(file); }
+    } else {
+      videoUrl = URL.createObjectURL(file);
+    }
+    return { url: videoUrl, name: file.name };
+  };
+
+  const handleVideoImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
+    const { url: videoUrl, name } = await importVideoFile(file);
+
+    if (assigningSlot >= 0) {
+      // Assign to a favorite slot
+      const newFavorites = [...videoFavorites];
+      while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
+      newFavorites[assigningSlot] = { url: videoUrl, name };
+      saveSettings({ videoFavorites: newFavorites });
+    } else {
+      // Add directly to schedule
+      addToSchedule({
+        type: 'video',
+        title: name,
+        slides: [{ id: uuidv4(), type: 'video', label: name, lines: '' }],
+        background: { type: 'video', value: videoUrl, name },
+        textColor: '#ffffff',
+        fontSize: 44,
+        fontFamily: 'Georgia',
+      });
+    }
+    setAssigningSlot(-1);
+    event.target.value = '';
+  };
+
+  const playFavorite = (fav) => {
     addToSchedule({
       type: 'video',
-      title: file.name,
-      slides: [{ id: uuidv4(), type: 'video', label: file.name, lines: '' }],
-      background: { type: 'video', value: url, name: file.name },
+      title: fav.name,
+      slides: [{ id: uuidv4(), type: 'video', label: fav.name, lines: '' }],
+      background: { type: 'video', value: fav.url, name: fav.name },
       textColor: '#ffffff',
       fontSize: 44,
       fontFamily: 'Georgia',
     });
-    event.target.value = '';
+  };
+
+  const clearFavorite = (idx) => {
+    const newFavorites = [...videoFavorites];
+    while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
+    newFavorites[idx] = null;
+    saveSettings({ videoFavorites: newFavorites });
   };
 
   const applyBackground = (bg) => {
@@ -130,9 +170,6 @@ export default function MediaPanel() {
 
         {category === 'video' && (
           <>
-            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.5 }}>
-              Video backgrounds require local video files. Add your own video loops using the button below.
-            </div>
             <input
               ref={fileInputRef}
               type="file"
@@ -140,35 +177,84 @@ export default function MediaPanel() {
               style={{ display: 'none' }}
               onChange={handleVideoImport}
             />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {VIDEO_BACKGROUNDS.map(v => (
-                <div key={v.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '8px 10px', borderRadius: 'var(--radius)',
-                  background: 'var(--bg-hover)', border: '1px solid var(--border)',
-                  cursor: 'pointer',
-                }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(79,142,247,0.3)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                >
-                  <span style={{ fontSize: 22 }}>{v.icon}</span>
-                  <div>
-                    <div style={{ fontSize: 12, color: 'var(--text)' }}>{v.name}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>MP4 Loop</div>
-                  </div>
-                </div>
-              ))}
+
+            {/* Favorite slots */}
+            <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+              Video Favorites
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              {Array.from({ length: NUM_FAVORITE_SLOTS }).map((_, idx) => {
+                const fav = videoFavorites[idx] || null;
+                return fav ? (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 10px', borderRadius: 'var(--radius)',
+                    background: 'var(--bg-hover)', border: '1px solid var(--border)',
+                  }}>
+                    <span style={{ fontSize: 18, flexShrink: 0 }}>🎬</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Slot {idx + 1}</div>
+                    </div>
+                    <button
+                      onClick={() => playFavorite(fav)}
+                      title="Add to schedule"
+                      style={{
+                        background: 'var(--accent)', border: 'none', color: '#fff',
+                        borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                        fontSize: 10, fontFamily: 'var(--font)',
+                      }}
+                    >▶</button>
+                    <button
+                      onClick={() => { setAssigningSlot(idx); fileInputRef.current?.click(); }}
+                      title="Reassign slot"
+                      style={{
+                        background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border)',
+                        color: 'var(--text-dim)', borderRadius: 4, padding: '3px 6px',
+                        cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)',
+                      }}
+                    >🔄</button>
+                    <button
+                      onClick={() => clearFavorite(idx)}
+                      title="Remove favorite"
+                      style={{
+                        background: 'transparent', border: 'none', color: 'var(--text-dim)',
+                        cursor: 'pointer', fontSize: 13, padding: '0 2px',
+                      }}
+                    >✕</button>
+                  </div>
+                ) : (
+                  <button key={idx} type="button" onClick={() => { setAssigningSlot(idx); fileInputRef.current?.click(); }} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '7px 10px', borderRadius: 'var(--radius)',
+                    background: 'transparent', border: '1px dashed var(--border)',
+                    color: 'var(--text-dim)', cursor: 'pointer',
+                    fontFamily: 'var(--font)', fontSize: 11, textAlign: 'left', width: '100%',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(79,142,247,0.4)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+                  >
+                    <span style={{ fontSize: 16 }}>＋</span>
+                    <div>
+                      <div>Set Favorite {idx + 1}</div>
+                      <div style={{ fontSize: 10, opacity: 0.7 }}>Click to assign video file</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* One-off import */}
             <button type="button" style={{
-              marginTop: 12, width: '100%', background: 'none', border: '1px dashed var(--border)',
-              color: 'var(--text-muted)', padding: '10px', borderRadius: 'var(--radius)',
-              cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)',
+              width: '100%', background: 'none', border: '1px solid var(--border)',
+              color: 'var(--text-muted)', padding: '8px', borderRadius: 'var(--radius)',
+              cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
             }}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => { setAssigningSlot(-1); fileInputRef.current?.click(); }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
-              📁 Import Video File
+              📁 Import Video to Schedule
             </button>
           </>
         )}

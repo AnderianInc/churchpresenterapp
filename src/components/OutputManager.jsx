@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
 import SlideRenderer from './SlideRenderer';
+import BackgroundPicker, { bgToCss } from './BackgroundPicker';
+import { v4 as uuidv4 } from 'uuid';
 
 const ROLE_LABELS = {
   presentation: 'Program',
@@ -272,6 +274,54 @@ function CreateOutputSection({ displays, onCreateOutput }) {
   );
 }
 
+// ── Background color broadcast (pushes a solid/gradient to all background-role outputs) ──
+function BackgroundBroadcastSection({ onPush }) {
+  const [bg, setBg] = useState({ type: 'color', value: '#0a0f1e' });
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button
+        onClick={() => setExpanded(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+          background: expanded ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.02)',
+          border: `1px solid ${expanded ? 'rgba(16,185,129,0.2)' : 'var(--border)'}`,
+          borderRadius: 7, padding: '8px 10px', cursor: 'pointer',
+          marginBottom: expanded ? 8 : 0,
+        }}
+      >
+        <div style={{ width: 16, height: 16, borderRadius: 3, background: bgToCss(bg), border: '1px solid rgba(255,255,255,0.15)', flexShrink: 0 }} />
+        <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: 'var(--text)', textAlign: 'left' }}>
+          Push Background Color
+        </span>
+        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{expanded ? '▲' : '▼'}</span>
+      </button>
+
+      {expanded && (
+        <div style={{ padding: '10px 10px 12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 7px 7px' }}>
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.5 }}>
+            Push a solid color or gradient to all <strong style={{ color: '#10b981' }}>Background</strong> role outputs — no slide content needed.
+          </div>
+          <BackgroundPicker value={bg} onChange={setBg} compact />
+          <button
+            onClick={() => onPush(bg)}
+            style={{
+              marginTop: 10, width: '100%', background: '#10b981', border: 'none', color: '#fff',
+              padding: '7px', borderRadius: 5, cursor: 'pointer',
+              fontSize: 11, fontWeight: 600, fontFamily: 'var(--font)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+          >
+            Push to Background Outputs
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OutputManager() {
   const {
     outputWindows, displays, liveOutputs, liveRoleSlides,
@@ -301,6 +351,19 @@ export default function OutputManager() {
 
   const handleLoadPreset = async (preset) => {
     await loadRoutingPreset(preset);
+  };
+
+  const handlePushBackground = (bg) => {
+    // Build a blank slide carrying the chosen background and push it to every background-role output
+    const blankSlide = {
+      id: uuidv4(), type: 'blank', label: 'Background', lines: '',
+      item: { type: 'background', title: 'Background', background: bg, textColor: '#fff', fontSize: 44, fontFamily: 'Georgia' },
+    };
+    blankSlide.item = { ...blankSlide.item };
+    // Push to every open background-role output
+    outputWindows.filter(w => w.role === 'background').forEach(w => goLiveOutput(w.id, blankSlide));
+    // Also push to the background role slot (covers future windows)
+    goLiveOutput('background', blankSlide);
   };
 
   return (
@@ -376,6 +439,10 @@ export default function OutputManager() {
           displayLabels={displayLabels}
           onUpdateLabel={updateDisplayLabel}
         />
+
+        <div style={{ borderTop: '1px solid var(--border)', marginTop: 4, marginBottom: 16 }} />
+
+        <BackgroundBroadcastSection onPush={handlePushBackground} />
       </div>
     </div>
   );

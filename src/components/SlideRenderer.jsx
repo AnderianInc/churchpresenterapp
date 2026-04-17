@@ -1,14 +1,46 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
+import { bgToCss } from './BackgroundPicker';
 
-export default function SlideRenderer({ slide, item, scale = 1, fullscreen = false }) {
-  const bgType = item?.background?.type;
-  const bg = (bgType === 'color' || bgType === 'gradient') ? item.background.value : '#0d1117';
+/**
+ * Renders a single slide for preview thumbnails, live output, and stage views.
+ *
+ * Background resolution order:
+ *   slide.background  (per-slide override)  → item.background  (song/item default)
+ *
+ * Video lifecycle:
+ *   Pass videoRef to receive a ref to the <video> element for external play/pause control.
+ *   Pass videoLoop={false} to disable looping.
+ *   Pass videoBrightness to override the dim filter (default 0.45).
+ */
+export default function SlideRenderer({
+  slide,
+  item,
+  scale = 1,
+  fullscreen = false,
+  videoRef: externalVideoRef,
+  videoLoop = true,
+  videoBrightness,
+}) {
+  // Per-slide background overrides item-level background
+  const effectiveBg = slide?.background || item?.background;
+  const bgType = effectiveBg?.type;
+  const bg = bgToCss(effectiveBg);
+
   const textColor = item?.textColor || '#ffffff';
   const fontSize = (item?.fontSize || 44) * scale;
   const fontFamily = item?.fontFamily || 'Georgia';
   const lines = slide?.lines || '';
   const textAlign = slide?.textAlign || 'center';
   const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+
+  // Internal video ref — merged with external if provided
+  const internalVideoRef = useRef(null);
+  useEffect(() => {
+    if (externalVideoRef) {
+      if (typeof externalVideoRef === 'function') externalVideoRef(internalVideoRef.current);
+      else externalVideoRef.current = internalVideoRef.current;
+    }
+  });
 
   const containerStyle = fullscreen ? {
     width: '100vw', height: '100vh',
@@ -24,31 +56,38 @@ export default function SlideRenderer({ slide, item, scale = 1, fullscreen = fal
     position: 'relative',
   };
 
+  const dimLevel = videoBrightness ?? 0.45;
+
   return (
     <div style={containerStyle}>
-      {/* Background image overlay if applicable */}
-      {item?.background?.type === 'image' && (
+      {/* Image background */}
+      {bgType === 'image' && (
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: `url(${item.background.value})`,
+          backgroundImage: `url(${effectiveBg.value})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: `brightness(${item.background.brightness || 0.6})`,
+          filter: `brightness(${effectiveBg.brightness || 0.6})`,
         }} />
       )}
-      {item?.background?.type === 'video' && (
+
+      {/* Video background */}
+      {bgType === 'video' && (
         <video
+          ref={internalVideoRef}
           autoPlay
           muted
-          loop
+          loop={videoLoop}
           playsInline
-          src={item.background.value}
+          src={effectiveBg.value}
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%', objectFit: 'cover',
-            filter: 'brightness(0.45)',
+            filter: `brightness(${dimLevel})`,
           }}
         />
       )}
+
+      {/* Text layer */}
       <div style={{ position: 'relative', zIndex: 1, width: '100%', textAlign }}>
         <div style={{
           fontSize, fontFamily, color: textColor,

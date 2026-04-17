@@ -25,7 +25,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [] }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [] }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -851,6 +851,20 @@ ${transcript}`;
   } catch {
     return [];
   }
+});
+
+// IPC - Copy an imported media file (video/image) to the app's persistent media directory
+// Returns the stored file:// path so it survives app restarts.
+// In the renderer, Electron's File objects expose a .path property.
+ipcMain.handle('copy-media-file', async (_, srcPath) => {
+  if (!srcPath || typeof srcPath !== 'string') throw new Error('Invalid source path');
+  const mediaDir = path.join(app.getPath('userData'), 'media');
+  if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+  const ext = path.extname(srcPath) || '.mp4';
+  const destName = `${require('crypto').randomUUID()}${ext}`;
+  const destPath = path.join(mediaDir, destName);
+  fs.copyFileSync(srcPath, destPath);
+  return `file://${destPath}`;
 });
 
 app.whenReady().then(() => {

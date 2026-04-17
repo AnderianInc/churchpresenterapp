@@ -93,20 +93,22 @@ const sections = [
     title: 'Sermon Assistant',
     icon: '🎙',
     body: [
-      'Click the 🎙 Sermon tab to open the Sermon Assistant panel.',
-      'Click "Start Listening" to activate the microphone — the app listens for Bible references in real time.',
-      'Detected references (e.g. "John 3:16", "Romans 8:28") appear instantly. Click ＋ Add to add them to the schedule, or LT to send as a lower-third overlay.',
-      'Click "Suggest Verses from Sermon" to ask Claude AI for thematically relevant verses based on what has been transcribed. Requires an Anthropic API key in ⚙ Settings → AI.',
-      'Privacy: no audio is stored. The transcript is only sent to Anthropic when you click "Suggest Verses".',
+      'The Sermon Assistant lives inside the 📡 Stream panel — open Stream to access all sermon and live-output controls in one place.',
+      'Click "🎙 Listen" to activate the microphone. The app transcribes speech and detects Bible references in real time.',
+      'Detected references (e.g. "John 3:16", "Romans 8:28") appear with ＋ Add (puts them in the schedule) and → LT (sends as a lower-third overlay) buttons.',
+      'Verse Suggestions: Claude AI suggests thematically relevant verses automatically every ~45 seconds of new speech. Requires an Anthropic API key in ⚙ Settings → API Keys.',
+      'The 14-bar level meter confirms your mic is picking up audio. If all bars stay flat, check OS privacy settings or configure in ⚙ Settings → Devices.',
+      'Preferred microphone: set and test it in ⚙ Settings → Devices (live VU meter included). Speech recognition always uses your system default audio input.',
+      'Privacy: no audio is stored. The transcript is sent to Anthropic only when verse suggestions are generated.',
     ],
   },
   {
     title: 'Streaming (OBS / Zoom)',
     icon: '📡',
     body: [
-      'Open the Stream tab to access streaming controls.',
+      'Open the 📡 Stream tab to access all stream, sermon, and lower-third controls in one place.',
       'Open Stream Window launches a 1280×720 window — screen-share this in Zoom or Teams.',
-      'Select a camera source (webcam or OBS Virtual Camera) and click Send to Stream to show it in the stream window.',
+      'Camera: set your preferred camera in ⚙ Settings → Devices. The Stream panel previews and sends that camera automatically.',
       'Lower-Third sends an animated text overlay to the bottom of the stream window.',
       'Blackout from the toolbar also clears the stream window instantly.',
     ],
@@ -115,7 +117,7 @@ const sections = [
     title: 'Social Media Streaming',
     icon: '🔴',
     body: [
-      'Configure platforms and stream keys in ⚙ Settings → Social Media Streaming.',
+      'Configure platforms and stream keys in ⚙ Settings → 📡 Social Media tab.',
       'Supported: Facebook Live, YouTube Live, Instagram Live, and any custom RTMP endpoint.',
       'Requires FFmpeg installed on your system (brew install ffmpeg on macOS, winget install ffmpeg on Windows).',
       'Open the Stream Window first, then click Go Live — Social in the Stream panel.',
@@ -126,10 +128,10 @@ const sections = [
     title: 'Settings',
     icon: '⚙',
     body: [
-      'Open ⚙ Settings from the nav bar.',
-      'API Keys: save your YouVersion API key here — it persists across sessions and auto-fills in the Bible panel.',
-      'Social Media Streaming: add and manage RTMP destinations and stream keys.',
-      'Presentation Defaults: set the default font and font size for new slides.',
+      'Open ⚙ Settings from the nav bar. Settings are organized into three tabs:',
+      '🔑 API Keys — YouVersion (online Bible search), Genius (lyrics import), Planning Center (song library import), Anthropic (AI verse suggestions). All keys are stored locally and never uploaded.',
+      '📡 Social Media — Add and manage RTMP streaming destinations (Facebook Live, YouTube Live, Instagram, custom RTMP). Configure stream keys here, then go live from the 📡 Stream panel.',
+      '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults. Grant mic and camera access here to unlock device selection.',
     ],
   },
   {
@@ -207,7 +209,7 @@ function HelpSection({ section, forceOpen }) {
   );
 }
 
-export default function HelpPanel() {
+export default function HelpPanel({ inline = false }) {
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -221,14 +223,12 @@ export default function HelpPanel() {
     });
   }, [search]);
 
-  return (
-    <div style={{
-      width: 280, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden',
-    }}>
-      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Help & Quick Reference</div>
-        <div style={{ position: 'relative', marginTop: 8 }}>
+  const inner = (
+    <>
+      {/* Search bar */}
+      <div style={{ padding: inline ? '8px 14px' : '12px 14px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        {!inline && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Help & Quick Reference</div>}
+        <div style={{ position: 'relative' }}>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -254,6 +254,7 @@ export default function HelpPanel() {
         </div>
       </div>
 
+      {/* Sections */}
       <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
         {filtered.length === 0 ? (
           <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 11, color: 'var(--text-dim)' }}>
@@ -270,6 +271,24 @@ export default function HelpPanel() {
           </div>
         </div>
       </div>
+    </>
+  );
+
+  // inline = rendered inside another panel (e.g. Settings Help tab) — no outer sidebar wrapper
+  if (inline) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{
+      width: 280, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)',
+      display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden',
+    }}>
+      {inner}
     </div>
   );
 }

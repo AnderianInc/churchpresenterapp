@@ -362,15 +362,43 @@ Stream keys are stored in your local `settings.json` only. They are never transm
 
 ---
 
+## Documentation
+
+| Guide | Description |
+|---|---|
+| [Setup Guide](docs/setup-guide.md) | Installation, display hardware, API keys, FFmpeg |
+| [Service Day Runbook](docs/service-day-runbook.md) | Step-by-step Sunday morning checklist |
+| [Display Setup](docs/display-setup.md) | Projectors, stage display, multi-output routing, presets |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and fixes |
+| [Backup & Restore](docs/backup-restore.md) | Protecting your song library and settings |
+| [Contributing](CONTRIBUTING.md) | Development setup, conventions, release process |
+
+---
+
 ## Build an Installer
 
 ```bash
 npm run electron:build
 # Output in /dist:
-#   macOS   -> Church Presenter.dmg
-#   Windows -> Church Presenter Setup.exe
-#   Linux   -> Church Presenter.AppImage
+#   macOS   -> Church Presenter-x.x.x-arm64.dmg  (Apple Silicon)
+#             Church Presenter-x.x.x-x64.dmg     (Intel)
+#   Windows -> Church Presenter Setup x.x.x.exe
+#   Linux   -> Church Presenter-x.x.x.AppImage
+#             church-presenter_x.x.x_amd64.deb
 ```
+
+Icons (`build-resources/icon.icns`, `icon.ico`, `icon.png`) must be present before building a production installer. See [build-resources/README.md](build-resources/README.md) for generation instructions.
+
+### Automated releases via GitHub Actions
+
+Tagging a commit triggers the release pipeline automatically:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow builds macOS (arm64 + x64), Windows (x64), and Linux (x64 AppImage + .deb) installers and creates a GitHub Release with all artifacts attached. Code-signing is applied when the appropriate secrets are set — see [CONTRIBUTING.md](CONTRIBUTING.md#release-process-maintainers) for the required secrets.
 
 ---
 
@@ -446,17 +474,20 @@ ChurchPresenterApp/
 
 ## Troubleshooting
 
-**"electron: command not found"** — run `npm install` first.
+For a comprehensive list of issues and solutions, see the [Troubleshooting Guide](docs/troubleshooting.md).
 
-**Blank presentation window** — click **Send** in the preview area before clicking **Go Live** in the toolbar.
+**Quick answers:**
 
-**Second screen not detected** — connect your projector or second monitor before launching the app; Electron detects displays on startup.
-
-**Songs not saving in browser** — check that localStorage is enabled in your browser settings.
-
-**Bible search returns no results** — for reference searches (e.g. `John 3:16`), the book is loaded on demand from `/public/bibles`. If the version folder or book file is missing, the search returns empty. Check the browser console for network errors.
-
-**YouVersion shows "No translations found"** — verify your API key is valid and has Bible access enabled in the YouVersion developer portal.
+| Problem | Fix |
+|---|---|
+| "electron: command not found" | Run `npm install` first |
+| Blank presentation window | Click **Send** before **Go Live** |
+| Second screen not detected | Connect display before launching; use Extended (not Mirror) mode |
+| App blocked by macOS Gatekeeper | Right-click → Open, or run `xattr -cr "/Applications/Church Presenter.app"` |
+| Songs not saving (browser) | Check localStorage is enabled; clear `*_backup_*` keys if storage is full |
+| Bible search returns no results | Check `/public/bibles/` folder is intact; see browser console for 404s |
+| YouVersion "No translations found" | Verify API key is valid; online search requires Electron |
+| FFmpeg not found | `brew install ffmpeg` (macOS) or `winget install Gyan.FFmpeg` (Windows) |
 
 **Stream panel shows no camera devices** — click **Allow Camera Access** to trigger the OS permission dialog. On macOS, camera permission must be granted to the app in System Settings → Privacy & Security → Camera.
 
