@@ -11,16 +11,44 @@
 
 const { randomUUID } = require('crypto');
 
+function validateBackground(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const type = typeof raw.type === 'string' ? raw.type : null;
+  if (type === 'color') return { type: 'color', value: typeof raw.value === 'string' ? raw.value : '#0a0f1e' };
+  if (type === 'gradient') {
+    const out = { type: 'gradient' };
+    if (typeof raw.value === 'string') out.value = raw.value;
+    if (Array.isArray(raw.stops)) out.stops = raw.stops;
+    if (typeof raw.angle === 'number') out.angle = raw.angle;
+    return out;
+  }
+  if (type === 'image') {
+    const out = { type: 'image', value: typeof raw.value === 'string' ? raw.value : '' };
+    if (typeof raw.brightness === 'number') out.brightness = raw.brightness;
+    return out;
+  }
+  if (type === 'video') {
+    return { type: 'video', value: typeof raw.value === 'string' ? raw.value : '', name: typeof raw.name === 'string' ? raw.name : '' };
+  }
+  return null; // unknown type — let caller supply default
+}
+
 function validateSlide(raw) {
   if (!raw || typeof raw !== 'object') {
     return { id: randomUUID(), type: 'verse', label: 'Slide', lines: '' };
   }
-  return {
+  const slide = {
     id: typeof raw.id === 'string' && raw.id ? raw.id : randomUUID(),
     type: typeof raw.type === 'string' ? raw.type : 'verse',
     label: typeof raw.label === 'string' ? raw.label : '',
     lines: typeof raw.lines === 'string' ? raw.lines : '',
   };
+  // Preserve optional per-slide fields added in P6/P8
+  if (typeof raw.textAlign === 'string') slide.textAlign = raw.textAlign;
+  if (typeof raw.chords === 'string') slide.chords = raw.chords;
+  const bg = validateBackground(raw.background);
+  if (bg) slide.background = bg;
+  return slide;
 }
 
 function validateSong(raw) {
@@ -39,9 +67,7 @@ function validateSong(raw) {
     tempo: typeof raw.tempo === 'string' ? raw.tempo : '',
     tags: Array.isArray(raw.tags) ? raw.tags : [],
     slides: Array.isArray(raw.slides) ? raw.slides.map(validateSlide) : [],
-    background: raw.background && typeof raw.background === 'object'
-      ? raw.background
-      : { type: 'color', value: '#0a0f1e' },
+    background: validateBackground(raw.background) || { type: 'color', value: '#0a0f1e' },
     textColor: typeof raw.textColor === 'string' ? raw.textColor : '#ffffff',
     fontSize: typeof raw.fontSize === 'number' && raw.fontSize > 0 ? raw.fontSize : 44,
     fontFamily: typeof raw.fontFamily === 'string' ? raw.fontFamily : 'Georgia',

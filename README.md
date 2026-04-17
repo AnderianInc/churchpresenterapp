@@ -7,8 +7,8 @@ A free, offline-first church presentation app built with Electron + React. Runs 
 ## Features
 
 - **Song Library** — store and manage your full song collection with lyrics, author, key, and tempo
-- **Song Import** — import songs from Planning Center Online, OpenLyrics XML files, or paste lyrics with automatic slide parsing
-- **Lyrics Editor** — multi-slide editor with verse, chorus, bridge, tag, intro, ending, and blank slide types
+- **Song Import** — import songs from Genius Lyrics, Planning Center Online, OpenLyrics XML files, or paste lyrics with automatic slide parsing
+- **Lyrics Editor** — multi-slide editor with verse/chorus/bridge slide types, per-slide text alignment, chord chart tab for worship team, style presets, and metadata fields (BPM, CCLI number, copyright year)
 - **Bible Search** — search by reference (John 3:16) or keyword; offline KJV and NIV included; searches all translations simultaneously; online search via YouVersion API
 - **Live Presentation Output** — fullscreen slide output for projectors and second screens
 - **Stage Display** — dedicated monitor for the worship team with lyrics, key, tempo, and live clock
@@ -150,7 +150,24 @@ The app will detect it automatically.
 
 ## Song Import
 
-Click **↓ Import** in the Songs panel header to open the Song Import modal. Three import paths are available:
+Click **↓ Import** in the Songs panel header to open the Song Import modal. Four import paths are available:
+
+### Genius Lyrics
+
+Search Genius.com for worship song lyrics and import them directly with automatic slide parsing.
+
+**Setup:**
+1. Go to `genius.com/api-clients` and create a new API client
+2. Copy the **Client Access Token** (not the secret — the public read token)
+3. In Church Presenter, open **⚙ Settings → Lyrics Search** and save the token
+
+**Importing:**
+1. Open **Songs → ↓ Import → 🎵 Genius Lyrics**
+2. Search by song title or artist and press **Search**
+3. Select a result — lyrics are fetched and parsed automatically
+4. Review slides in the preview pane, edit title/artist if needed, and click **Import**
+
+> **CCLI notice:** Lyrics sourced from Genius are for internal, non-commercial church use only. Ensure you hold a valid CCLI license for any songs displayed publicly.
 
 ### Planning Center Online
 
@@ -199,6 +216,31 @@ Supported section types: `[Verse N]`, `[Chorus]`, `[Bridge]`, `[Pre-Chorus]`, `[
 2. Fill in the song title, author, key, and tempo
 3. Paste lyrics with `[Section]` markers — slides update in real time on the right
 4. Click **Import Song**
+
+---
+
+## Song Editor
+
+Click the pencil icon on any song in the library to open the full Song Editor modal.
+
+### Lyrics & Slides tab
+- Add, remove, duplicate, and reorder slides using the sidebar
+- Set slide **type** (verse, chorus, bridge, intro, ending, tag, blank) and **label**
+- Set per-slide **text alignment** — Left (L), Center (C), or Right (R) — affects both the editor preview and the live output
+- **🎸 Chords sub-tab** — enter a chord chart for a slide. Chords are displayed on the **Stage Display** for the worship team and are never shown to the audience
+
+### Appearance tab
+- Set background color, text color, font family, and font size
+- **Style presets** — Large Title (72px Georgia), Subtitle (52px), Body (36px), Compact (28px Inter) — quickly configure the most common slide styles
+
+### Metadata tab
+- **BPM** — beats per minute (shown on Stage Display next to tempo)
+- **CCLI Song Number** — for CCLI license reporting; find song numbers at `songselect.ccli.com`
+- **Copyright Year** — stored alongside song data
+
+### Tags
+- Click preset tags (hymn, contemporary, worship, etc.) to toggle them
+- Type any custom tag in the input and press **Enter** or **+** to add it
 
 ---
 
@@ -320,15 +362,43 @@ Stream keys are stored in your local `settings.json` only. They are never transm
 
 ---
 
+## Documentation
+
+| Guide | Description |
+|---|---|
+| [Setup Guide](docs/setup-guide.md) | Installation, display hardware, API keys, FFmpeg |
+| [Service Day Runbook](docs/service-day-runbook.md) | Step-by-step Sunday morning checklist |
+| [Display Setup](docs/display-setup.md) | Projectors, stage display, multi-output routing, presets |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and fixes |
+| [Backup & Restore](docs/backup-restore.md) | Protecting your song library and settings |
+| [Contributing](CONTRIBUTING.md) | Development setup, conventions, release process |
+
+---
+
 ## Build an Installer
 
 ```bash
 npm run electron:build
 # Output in /dist:
-#   macOS   -> Church Presenter.dmg
-#   Windows -> Church Presenter Setup.exe
-#   Linux   -> Church Presenter.AppImage
+#   macOS   -> Church Presenter-x.x.x-arm64.dmg  (Apple Silicon)
+#             Church Presenter-x.x.x-x64.dmg     (Intel)
+#   Windows -> Church Presenter Setup x.x.x.exe
+#   Linux   -> Church Presenter-x.x.x.AppImage
+#             church-presenter_x.x.x_amd64.deb
 ```
+
+Icons (`build-resources/icon.icns`, `icon.ico`, `icon.png`) must be present before building a production installer. See [build-resources/README.md](build-resources/README.md) for generation instructions.
+
+### Automated releases via GitHub Actions
+
+Tagging a commit triggers the release pipeline automatically:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow builds macOS (arm64 + x64), Windows (x64), and Linux (x64 AppImage + .deb) installers and creates a GitHub Release with all artifacts attached. Code-signing is applied when the appropriate secrets are set — see [CONTRIBUTING.md](CONTRIBUTING.md#release-process-maintainers) for the required secrets.
 
 ---
 
@@ -404,17 +474,20 @@ ChurchPresenterApp/
 
 ## Troubleshooting
 
-**"electron: command not found"** — run `npm install` first.
+For a comprehensive list of issues and solutions, see the [Troubleshooting Guide](docs/troubleshooting.md).
 
-**Blank presentation window** — click **Send** in the preview area before clicking **Go Live** in the toolbar.
+**Quick answers:**
 
-**Second screen not detected** — connect your projector or second monitor before launching the app; Electron detects displays on startup.
-
-**Songs not saving in browser** — check that localStorage is enabled in your browser settings.
-
-**Bible search returns no results** — for reference searches (e.g. `John 3:16`), the book is loaded on demand from `/public/bibles`. If the version folder or book file is missing, the search returns empty. Check the browser console for network errors.
-
-**YouVersion shows "No translations found"** — verify your API key is valid and has Bible access enabled in the YouVersion developer portal.
+| Problem | Fix |
+|---|---|
+| "electron: command not found" | Run `npm install` first |
+| Blank presentation window | Click **Send** before **Go Live** |
+| Second screen not detected | Connect display before launching; use Extended (not Mirror) mode |
+| App blocked by macOS Gatekeeper | Right-click → Open, or run `xattr -cr "/Applications/Church Presenter.app"` |
+| Songs not saving (browser) | Check localStorage is enabled; clear `*_backup_*` keys if storage is full |
+| Bible search returns no results | Check `/public/bibles/` folder is intact; see browser console for 404s |
+| YouVersion "No translations found" | Verify API key is valid; online search requires Electron |
+| FFmpeg not found | `brew install ffmpeg` (macOS) or `winget install Gyan.FFmpeg` (Windows) |
 
 **Stream panel shows no camera devices** — click **Allow Camera Access** to trigger the OS permission dialog. On macOS, camera permission must be granted to the app in System Settings → Privacy & Security → Camera.
 
@@ -429,6 +502,12 @@ ChurchPresenterApp/
 **Detected references are missing** — the parser requires at least a book name and chapter number. Short abbreviations (e.g. "Gen 1") are supported; check that the book name is followed by a digit.
 
 **"Anthropic API 401" in AI suggestions** — the API key is invalid or has been revoked. Generate a new key at `console.anthropic.com`.
+
+**Genius search returns "No Genius API key configured"** — open ⚙ Settings → Lyrics Search and save your Client Access Token from `genius.com/api-clients`.
+
+**Genius search returns 401 / authorization error** — the token has expired or is incorrect. Generate a new Client Access Token at `genius.com/api-clients`.
+
+**Genius lyrics are blank after selecting a song** — Genius occasionally changes their HTML structure. The scraper looks for `data-lyrics-container` divs; if lyrics are empty, the song may use a layout that is not yet supported.
 
 **Planning Center search returns "PCO API 401"** — your App ID or Secret is incorrect, or the Personal Access Token does not have Services (Songs) read access. Regenerate the token in the PCO developer portal.
 

@@ -8,7 +8,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "electron": "wait-on http://localhost:3000 && electron .",
-    "electron:dev": "concurrently \"npm start\" \"npm run electron\"",
+    "electron:dev": "concurrently \"BROWSER=none npm start\" \"npm run electron\"",
     "electron:build": "npm run build && electron-builder",
     "test": "react-scripts test --watchAll=false",
     "test:watch": "react-scripts test"
@@ -31,21 +31,75 @@
   "build": {
     "appId": "com.church.churchpresenter",
     "productName": "Church Presenter",
+    "copyright": "Copyright © 2024 Church Presenter Contributors",
     "files": [
       "build/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "src/data/defaultSongs.js",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,LICENSE}",
+      "!**/node_modules/.cache"
     ],
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build-resources"
     },
+    "asar": true,
+    "compression": "maximum",
     "mac": {
-      "category": "public.app-category.productivity"
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "icon": "build-resources/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build-resources/entitlements.mac.plist",
+      "entitlementsInherit": "build-resources/entitlements.mac.plist",
+      "extendInfo": {
+        "NSCameraUsageDescription": "Church Presenter uses the camera for live streaming.",
+        "NSMicrophoneUsageDescription": "Church Presenter uses the microphone for the Sermon Assistant live transcription feature."
+      }
+    },
+    "dmg": {
+      "title": "Church Presenter ${version}",
+      "contents": [
+        { "x": 410, "y": 150, "type": "link", "path": "/Applications" },
+        { "x": 130, "y": 150, "type": "file" }
+      ],
+      "window": { "width": 540, "height": 380 }
     },
     "win": {
-      "target": "nsis"
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "build-resources/icon.ico",
+      "publisherName": "Church Presenter Contributors",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
+      "installerIcon": "build-resources/icon.ico",
+      "uninstallerIcon": "build-resources/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Church Presenter"
     },
     "linux": {
-      "target": "AppImage"
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ],
+      "icon": "build-resources/icon.png",
+      "category": "AudioVideo",
+      "description": "Free offline-first church presentation software",
+      "maintainer": "Church Presenter Contributors"
+    },
+    "publish": {
+      "provider": "github",
+      "releaseType": "release"
     }
   },
   "eslintConfig": {

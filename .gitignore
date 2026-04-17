@@ -5,3 +5,11 @@ build/
 .DS_Store
 config.local.js
 .env
+
+# Build resources — icons not committed (see build-resources/README.md for generation instructions)
+build-resources/icon.icns
+build-resources/icon.ico
+build-resources/icon.png
+
+# Electron builder cache
+.electron-builder-cache/

@@ -146,12 +146,29 @@ export default function StageView() {
                 lineHeight: 1.55, whiteSpace: 'pre-line',
                 textShadow: '0 2px 12px rgba(0,0,0,0.8)',
                 maxWidth: '85%',
+                textAlign: slide.textAlign || 'center',
               }}>
                 {slide.lines}
               </div>
               {slide.label && (
                 <div style={{ marginTop: 16, fontSize: 14, color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif' }}>
                   {slide.label}
+                </div>
+              )}
+              {slide.chords && (
+                <div style={{
+                  marginTop: 28, width: '85%', padding: '14px 18px',
+                  background: 'rgba(0,0,0,0.45)', borderRadius: 8,
+                  border: '1px solid rgba(255,255,255,0.1)',
+                }}>
+                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 8 }}>
+                    Chord Chart
+                  </div>
+                  <pre style={{
+                    margin: 0, fontSize: 'clamp(12px, 1.6vw, 20px)',
+                    color: 'rgba(255,220,100,0.9)', fontFamily: 'monospace',
+                    lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  }}>{slide.chords}</pre>
                 </div>
               )}
             </>
@@ -210,7 +227,7 @@ export default function StageView() {
 
           <div style={{ height: 1, background: 'rgba(255,255,255,0.06)' }} />
 
-          {/* Tempo */}
+          {/* Tempo / BPM */}
           <div>
             <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>
               Tempo
@@ -218,6 +235,11 @@ export default function StageView() {
             <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)' }}>
               {slide?.item?.tempo || '–'}
             </div>
+            {slide?.item?.bpm && (
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>
+                {slide.item.bpm} BPM
+              </div>
+            )}
           </div>
 
           <div style={{ flex: 1 }} />

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import ExternalLink from './ExternalLink';
 
 const sections = [
   {
@@ -47,10 +48,35 @@ const sections = [
     icon: '📥',
     body: [
       'Click "↓ Import" in the Songs panel header to open the Song Import modal.',
+      'Genius Lyrics: search Genius.com for worship song lyrics — configure your Client Access Token in ⚙ Settings → Lyrics Search first.',
       'Planning Center: search your PCO song library by title or artist — configure your App ID and Secret in ⚙ Settings → Planning Center first.',
       'OpenLyrics XML: import .xml files exported from SongSelect, OpenLP, or downloaded from openlyrics.info.',
       'Paste Lyrics: paste lyrics with [Verse 1], [Chorus], [Bridge] section markers — slides are created automatically as you type.',
       'After import the song is added to your library and ready to add to the schedule.',
+    ],
+  },
+  {
+    title: 'Genius Lyrics Import',
+    icon: '🎵',
+    body: [
+      'Search Genius.com for any worship song and import parsed lyrics directly into your library.',
+      'Setup: go to genius.com/api-clients, create a new API client, and copy the Client Access Token. Paste it in ⚙ Settings → Lyrics Search.',
+      'Search: type a song title or artist and press Search. Select a result to fetch lyrics automatically.',
+      'Lyrics are split into slides using [Section] markers when present — otherwise the whole song becomes one slide.',
+      'Edit the title and artist in the preview pane before importing.',
+      'CCLI notice: lyrics from Genius are for internal, non-commercial church use. Ensure you hold a valid CCLI license for songs displayed publicly.',
+    ],
+  },
+  {
+    title: 'Song Editor',
+    icon: '✏️',
+    body: [
+      'Open the editor by clicking Edit (pencil icon) on any song in the library.',
+      'Lyrics tab: edit slides, set slide type (verse/chorus/bridge/etc.), label, and text alignment (L / C / R).',
+      'Chord Chart: click the 🎸 Chords sub-tab to enter a chord chart for a slide — chords are shown on the Stage Display for the worship team and not visible to the audience.',
+      'Appearance tab: choose background color, text color, font family, font size, and style presets (Large Title, Subtitle, Body, Compact).',
+      'Metadata tab: record BPM, CCLI song number, and copyright year for license reporting.',
+      'Tags: click preset tags or type a custom tag and press Enter to add it.',
     ],
   },
   {
@@ -67,20 +93,22 @@ const sections = [
     title: 'Sermon Assistant',
     icon: '🎙',
     body: [
-      'Click the 🎙 Sermon tab to open the Sermon Assistant panel.',
-      'Click "Start Listening" to activate the microphone — the app listens for Bible references in real time.',
-      'Detected references (e.g. "John 3:16", "Romans 8:28") appear instantly. Click ＋ Add to add them to the schedule, or LT to send as a lower-third overlay.',
-      'Click "Suggest Verses from Sermon" to ask Claude AI for thematically relevant verses based on what has been transcribed. Requires an Anthropic API key in ⚙ Settings → AI.',
-      'Privacy: no audio is stored. The transcript is only sent to Anthropic when you click "Suggest Verses".',
+      'The Sermon Assistant lives inside the 📡 Stream panel — open Stream to access all sermon and live-output controls in one place.',
+      'Click "🎙 Listen" to activate the microphone. The app transcribes speech and detects Bible references in real time.',
+      'Detected references (e.g. "John 3:16", "Romans 8:28") appear with ＋ Add (puts them in the schedule) and → LT (sends as a lower-third overlay) buttons.',
+      'Verse Suggestions: Claude AI suggests thematically relevant verses automatically every ~45 seconds of new speech. Requires an Anthropic API key in ⚙ Settings → API Keys.',
+      'The 14-bar level meter confirms your mic is picking up audio. If all bars stay flat, check OS privacy settings or configure in ⚙ Settings → Devices.',
+      'Preferred microphone: set and test it in ⚙ Settings → Devices (live VU meter included). Speech recognition always uses your system default audio input.',
+      'Privacy: no audio is stored. The transcript is sent to Anthropic only when verse suggestions are generated.',
     ],
   },
   {
     title: 'Streaming (OBS / Zoom)',
     icon: '📡',
     body: [
-      'Open the Stream tab to access streaming controls.',
+      'Open the 📡 Stream tab to access all stream, sermon, and lower-third controls in one place.',
       'Open Stream Window launches a 1280×720 window — screen-share this in Zoom or Teams.',
-      'Select a camera source (webcam or OBS Virtual Camera) and click Send to Stream to show it in the stream window.',
+      'Camera: set your preferred camera in ⚙ Settings → Devices. The Stream panel previews and sends that camera automatically.',
       'Lower-Third sends an animated text overlay to the bottom of the stream window.',
       'Blackout from the toolbar also clears the stream window instantly.',
     ],
@@ -89,7 +117,7 @@ const sections = [
     title: 'Social Media Streaming',
     icon: '🔴',
     body: [
-      'Configure platforms and stream keys in ⚙ Settings → Social Media Streaming.',
+      'Configure platforms and stream keys in ⚙ Settings → 📡 Social Media tab.',
       'Supported: Facebook Live, YouTube Live, Instagram Live, and any custom RTMP endpoint.',
       'Requires FFmpeg installed on your system (brew install ffmpeg on macOS, winget install ffmpeg on Windows).',
       'Open the Stream Window first, then click Go Live — Social in the Stream panel.',
@@ -100,10 +128,10 @@ const sections = [
     title: 'Settings',
     icon: '⚙',
     body: [
-      'Open ⚙ Settings from the nav bar.',
-      'API Keys: save your YouVersion API key here — it persists across sessions and auto-fills in the Bible panel.',
-      'Social Media Streaming: add and manage RTMP destinations and stream keys.',
-      'Presentation Defaults: set the default font and font size for new slides.',
+      'Open ⚙ Settings from the nav bar. Settings are organized into three tabs:',
+      '🔑 API Keys — YouVersion (online Bible search), Genius (lyrics import), Planning Center (song library import), Anthropic (AI verse suggestions). All keys are stored locally and never uploaded.',
+      '📡 Social Media — Add and manage RTMP streaming destinations (Facebook Live, YouTube Live, Instagram, custom RTMP). Configure stream keys here, then go live from the 📡 Stream panel.',
+      '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults. Grant mic and camera access here to unlock device selection.',
     ],
   },
   {
@@ -141,25 +169,26 @@ function ShortcutRow({ kb, desc }) {
   );
 }
 
-function HelpSection({ section }) {
+function HelpSection({ section, forceOpen }) {
   const [open, setOpen] = useState(true);
+  const isOpen = forceOpen || open;
   return (
     <div style={{ borderRadius: 8, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 8 }}>
       <button
         onClick={() => setOpen(v => !v)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-          background: open ? 'rgba(79,142,247,0.06)' : 'rgba(255,255,255,0.02)',
+          background: isOpen ? 'rgba(79,142,247,0.06)' : 'rgba(255,255,255,0.02)',
           border: 'none', padding: '9px 12px', cursor: 'pointer',
-          borderBottom: open ? '1px solid var(--border)' : 'none',
+          borderBottom: isOpen ? '1px solid var(--border)' : 'none',
         }}
       >
         <span style={{ fontSize: 14 }}>{section.icon}</span>
         <span style={{ flex: 1, fontSize: 11, fontWeight: 600, color: 'var(--text)', textAlign: 'left' }}>{section.title}</span>
-        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{open ? '▲' : '▼'}</span>
+        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>{isOpen ? '▲' : '▼'}</span>
       </button>
 
-      {open && (
+      {isOpen && (
         <div style={{ padding: '10px 12px', background: 'rgba(255,255,255,0.01)' }}>
           {section.items ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -180,28 +209,86 @@ function HelpSection({ section }) {
   );
 }
 
-export default function HelpPanel() {
+export default function HelpPanel({ inline = false }) {
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return sections;
+    return sections.filter(s => {
+      if (s.title.toLowerCase().includes(q)) return true;
+      if (s.items) return s.items.some(it => it.key.toLowerCase().includes(q) || it.desc.toLowerCase().includes(q));
+      if (s.body) return s.body.some(line => line.toLowerCase().includes(q));
+      return false;
+    });
+  }, [search]);
+
+  const inner = (
+    <>
+      {/* Search bar */}
+      <div style={{ padding: inline ? '8px 14px' : '12px 14px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        {!inline && <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8 }}>Help & Quick Reference</div>}
+        <div style={{ position: 'relative' }}>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search help topics…"
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: 'var(--bg-input)', border: '1px solid var(--border)',
+              borderRadius: 6, color: 'var(--text)', padding: '5px 28px 5px 9px',
+              fontSize: 11, fontFamily: 'var(--font)', outline: 'none',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          {search ? (
+            <button onClick={() => setSearch('')} style={{
+              position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)',
+              background: 'none', border: 'none', color: 'var(--text-dim)',
+              cursor: 'pointer', fontSize: 13, lineHeight: 1, padding: 0,
+            }}>✕</button>
+          ) : (
+            <span style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', fontSize: 11, color: 'var(--text-dim)', pointerEvents: 'none' }}>🔍</span>
+          )}
+        </div>
+      </div>
+
+      {/* Sections */}
+      <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
+        {filtered.length === 0 ? (
+          <div style={{ padding: '20px 0', textAlign: 'center', fontSize: 11, color: 'var(--text-dim)' }}>
+            No results for "{search}"
+          </div>
+        ) : (
+          filtered.map(s => <HelpSection key={s.title} section={s} forceOpen={!!search} />)
+        )}
+
+        <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+            Found a bug or need help?<br />
+            <ExternalLink href="https://github.com/anderianinc/churchpresenterapp">github.com/anderianinc/churchpresenterapp</ExternalLink>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+  // inline = rendered inside another panel (e.g. Settings Help tab) — no outer sidebar wrapper
+  if (inline) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+        {inner}
+      </div>
+    );
+  }
+
   return (
     <div style={{
       width: 280, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden',
     }}>
-      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Help & Quick Reference</div>
-        <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>Click a section to expand or collapse</div>
-      </div>
-
-      <div style={{ flex: 1, overflow: 'auto', padding: 12 }}>
-        {sections.map(s => <HelpSection key={s.title} section={s} />)}
-
-        <div style={{ marginTop: 8, padding: '8px 10px', borderRadius: 6, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
-          <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
-            Found a bug or need help?<br />
-            Report issues at{' '}
-            <span style={{ color: 'var(--accent)' }}>github.com/anderianinc/churchpresenterapp</span>
-          </div>
-        </div>
-      </div>
+      {inner}
     </div>
   );
 }

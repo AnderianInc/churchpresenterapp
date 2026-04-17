@@ -9,12 +9,28 @@ import { useEffect } from 'react';
  * Enter                          → send current slide to program (go live)
  * B                              → toggle blackout
  * C                              → toggle clear
+ * Cmd/Ctrl+Z                     → undo schedule change
+ * Cmd/Ctrl+Shift+Z / Ctrl+Y      → redo schedule change
  * F11                            → toggle fullscreen (Electron)
  */
-export function useKeyboardShortcuts({ onNext, onPrev, onGoLive, onBlackout, onClear }) {
+export function useKeyboardShortcuts({ onNext, onPrev, onGoLive, onBlackout, onClear, onUndo, onRedo }) {
   useEffect(() => {
     const handler = (e) => {
-      // Skip if focus is inside an input/textarea/select
+      // Undo/redo work even when focused in inputs (Cmd/Ctrl+Z is expected everywhere)
+      const isMod = e.metaKey || e.ctrlKey;
+      if (isMod && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        if (e.shiftKey) onRedo?.();
+        else onUndo?.();
+        return;
+      }
+      if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault();
+        onRedo?.();
+        return;
+      }
+
+      // Skip remaining shortcuts if focus is inside an input/textarea/select
       const tag = document.activeElement?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
@@ -57,5 +73,5 @@ export function useKeyboardShortcuts({ onNext, onPrev, onGoLive, onBlackout, onC
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [onNext, onPrev, onGoLive, onBlackout, onClear]);
+  }, [onNext, onPrev, onGoLive, onBlackout, onClear, onUndo, onRedo]);
 }

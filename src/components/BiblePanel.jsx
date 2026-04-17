@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import {
-  BIBLE_VERSION_LABELS, QUICK_REFERENCES,
+  QUICK_REFERENCES,
   OFFLINE_BIBLE_FOLDERS,
   BIBLE_TEXTS,
   fetchBibleTranslationFromAsset,
@@ -13,17 +13,15 @@ import {
   fetchYouVersionPassage,
 } from '../data/bible';
 
-// Unique key per verse result (version + reference), needed when searching all translations
 const verseKey = (v) => v.version ? `${v.version}:${v.reference}` : v.reference;
 
 export default function BiblePanel() {
-  const { addToSchedule, settings } = useApp();
+  const { addToSchedule, settings, saveSettings } = useApp();
   const [search, setSearch] = useState('');
-  const [version, setVersion] = useState('KJV'); // used only for online mode
   const [mode, setMode] = useState('offline');
   const [results, setResults] = useState([]);
   const [searched, setSearched] = useState(false);
-  const [searchMode, setSearchMode] = useState('reference'); // reference | keyword
+  const [searchMode, setSearchMode] = useState('reference');
   const [loading, setLoading] = useState(false);
   const [translationMessage, setTranslationMessage] = useState('');
   const [offlineBibleFolders, setOfflineBibleFolders] = useState(OFFLINE_BIBLE_FOLDERS);
@@ -35,28 +33,28 @@ export default function BiblePanel() {
   const [youversionMessage, setYouversionMessage] = useState('');
   const [onlineVersions, setOnlineVersions] = useState([]);
   const [youversionKeyConfigured, setYouversionKeyConfigured] = useState(false);
+
+  // Version search + favorites
+  const [versionQuery, setVersionQuery] = useState('');
+  const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+  const [favoriteVersions, setFavoriteVersions] = useState([]); // [{id, abbreviation, title}]
+
   const isElectron = !!window.electronAPI;
 
+  // ── Offline setup ───────────────────────────────────────────────────────────
   useEffect(() => {
-    async function loadOfflineVersions() {
-      try {
-        const mapping = await getOfflineBibleFolderMapping();
-        setOfflineBibleFolders(mapping);
-      } catch (err) {
-        console.warn('Unable to load offline Bible manifest:', err);
-      }
-    }
-    loadOfflineVersions();
+    getOfflineBibleFolderMapping()
+      .then(m => setOfflineBibleFolders(m))
+      .catch(() => {});
   }, []);
 
-  // Sync YouVersion key from settings when settings load
+  // ── YouVersion key sync ─────────────────────────────────────────────────────
   useEffect(() => {
     if (settings?.youversionApiKey && !youversionApiKey) {
       setYouversionApiKey(settings.youversionApiKey);
     }
   }, [settings?.youversionApiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Check on mount whether a YouVersion key is already configured in the main process
   useEffect(() => {
     if (!isElectron) return;
     window.electronAPI.getYouVersionHasKey()
@@ -64,37 +62,36 @@ export default function BiblePanel() {
       .catch(() => {});
   }, [isElectron]);
 
-  // Load available YouVersion translations — triggered by entering a key OR a pre-configured key
+  // ── Load YouVersion versions ────────────────────────────────────────────────
   useEffect(() => {
     if (mode !== 'online' || !isElectron) {
       if (mode === 'online' && !isElectron) {
-        setYouversionMessage('Online search requires the desktop app (Electron). Use offline mode in the browser.');
+        setYouversionMessage('Online search requires the desktop app. Use offline mode in the browser.');
       }
       return;
     }
     const hasKey = youversionKeyConfigured || youversionApiKey.trim().length > 0;
     if (!hasKey) return;
-
     const effectiveKey = youversionKeyConfigured ? '' : youversionApiKey.trim();
-
     let cancelled = false;
-    async function loadVersions() {
+    async function load() {
       setYouversionLoading(true);
       setYouversionMessage('');
       try {
         const response = await window.electronAPI.fetchYouVersionVersions(effectiveKey);
         if (cancelled) return;
+        const seen = new Set();
         const versions = (response?.data || [])
-          .filter(v => v.abbreviation)
-          .map(v => v.abbreviation.toUpperCase());
-        const unique = [...new Set(versions)].slice(0, 20);
-        setOnlineVersions(unique);
-        if (unique.length > 0) {
-          setVersion(v => unique.includes(v) ? v : unique[0]);
-          setYouversionMessage(`${unique.length} translations available.`);
-        } else {
-          setYouversionMessage('No translations found for this API key.');
-        }
+          .filter(v => v.id && v.abbreviation)
+          .map(v => ({
+            id: v.id,
+            abbreviation: (v.abbreviation || '').toUpperCase(),
+            title: v.local_title || v.title || v.abbreviation || '',
+            language: v.language_tag || '',
+          }))
+          .filter(v => { if (seen.has(v.id)) return false; seen.add(v.id); return true; });
+        setOnlineVersions(versions);
+        if (versions.length === 0) setYouversionMessage('No translations found for this API key.');
       } catch (err) {
         if (!cancelled) setYouversionMessage(err.message || 'Failed to load YouVersion translations.');
       } finally {
@@ -102,13 +99,60 @@ export default function BiblePanel() {
       }
     }
     const delay = youversionKeyConfigured ? 0 : 600;
-    const timer = setTimeout(loadVersions, delay);
+    const timer = setTimeout(load, delay);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [mode, isElectron, youversionApiKey, youversionKeyConfigured]);
 
-  const availableOfflineVersions = Object.keys(offlineBibleFolders);
-  const availableOnlineVersions = onlineVersions.length > 0 ? onlineVersions : [];
+  // ── Restore favorites from settings once versions are loaded ────────────────
+  useEffect(() => {
+    const savedIds = settings?.bibleFavoriteVersionIds;
+    if (!savedIds?.length || !onlineVersions.length) return;
+    setFavoriteVersions(
+      savedIds.map(id => onlineVersions.find(v => v.id === id)).filter(Boolean)
+    );
+  }, [settings?.bibleFavoriteVersionIds, onlineVersions]);
 
+  // ── Favorite helpers ────────────────────────────────────────────────────────
+  const isFavorite = useCallback(
+    (v) => favoriteVersions.some(f => f.id === v.id),
+    [favoriteVersions]
+  );
+
+  const toggleFavorite = useCallback((v) => {
+    setFavoriteVersions(prev => {
+      const next = prev.some(f => f.id === v.id)
+        ? prev.filter(f => f.id !== v.id)
+        : [...prev, v];
+      saveSettings({ bibleFavoriteVersionIds: next.map(f => f.id) });
+      return next;
+    });
+  }, [saveSettings]);
+
+  const removeFavorite = useCallback((v) => {
+    setFavoriteVersions(prev => {
+      const next = prev.filter(f => f.id !== v.id);
+      saveSettings({ bibleFavoriteVersionIds: next.map(f => f.id) });
+      return next;
+    });
+  }, [saveSettings]);
+
+  // ── Version search dropdown results ────────────────────────────────────────
+  const versionDropdownResults = useMemo(() => {
+    const q = versionQuery.trim().toLowerCase();
+    if (!q) return onlineVersions.slice(0, 30);
+    return onlineVersions
+      .filter(v =>
+        v.abbreviation.toLowerCase().includes(q) ||
+        v.title.toLowerCase().includes(q) ||
+        v.language.toLowerCase().includes(q)
+      )
+      .slice(0, 30);
+  }, [versionQuery, onlineVersions]);
+
+  // ── Available offline versions ──────────────────────────────────────────────
+  const availableOfflineVersions = Object.keys(offlineBibleFolders);
+
+  // ── Clear ───────────────────────────────────────────────────────────────────
   const clearResults = () => {
     setResults([]);
     setSearch('');
@@ -120,6 +164,7 @@ export default function BiblePanel() {
     setShowSuggestions(false);
   };
 
+  // ── Search ──────────────────────────────────────────────────────────────────
   const runSearch = async (q = search) => {
     const query = q.trim();
     if (!query) return;
@@ -146,61 +191,92 @@ export default function BiblePanel() {
         setLoading(false);
         return;
       }
-      if (!isRef) {
+
+      const versionsToSearch = favoriteVersions.length > 0
+        ? favoriteVersions
+        : onlineVersions.slice(0, 1); // fallback: first loaded version
+
+      if (versionsToSearch.length === 0) {
         setResults([]);
-        setSearchMode('keyword');
-        setYouversionMessage('Online mode supports reference lookups only (e.g. John 3:16).');
+        setYouversionMessage('No translations loaded yet. Wait for versions to load or add your API key.');
         setLoading(false);
         return;
       }
-      try {
-        const passage = await fetchYouVersionPassage(effectiveKey, version, query, 'text');
-        const content = passage?.content || passage?.data?.content || '';
-        setResults(content ? [{ reference: query, text: content, version }] : []);
-        setSearchMode('reference');
-        if (!content) setYouversionMessage('No content returned for that reference.');
-      } catch (err) {
-        setResults([]);
-        setYouversionMessage(err.message || 'Failed to load passage from YouVersion.');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
 
-    // Offline mode: search ALL available translations simultaneously
-    try {
+      if (!isRef && favoriteVersions.length === 0) {
+        setResults([]);
+        setYouversionMessage('Star at least one translation above to enable text search across YouVersion.');
+        setLoading(false);
+        return;
+      }
+
       const allResults = [];
-      const versionsToSearch = availableOfflineVersions.length > 0 ? availableOfflineVersions : [version];
+      let searchUnsupported = false;
 
       for (const ver of versionsToSearch) {
+        const versionParam = ver.id.toString();
         try {
           if (isRef) {
-            const bookMatch = query.match(/^(.+?)\s+\d/i);
-            if (bookMatch) {
-              const bookName = canonicalBook(bookMatch[1]);
-              await fetchBibleBookIfNeeded(ver, bookName);
-            }
-            const found = searchByReference(query, ver);
-            for (const r of found) allResults.push({ ...r, version: ver });
+            const passage = await fetchYouVersionPassage(effectiveKey, versionParam, query, 'text');
+            const content = passage?.content || passage?.data?.content || '';
+            if (content) allResults.push({ reference: query, text: content, version: ver.abbreviation });
           } else {
-            // Keyword search: need the full translation loaded
-            if (!Object.keys(BIBLE_TEXTS[ver] || {}).length) {
-              await fetchBibleTranslationFromAsset(ver);
+            try {
+              const result = await window.electronAPI.searchYouVersionVerses({
+                appKey: effectiveKey, versionId: versionParam, query,
+              });
+              const hits = (result?.data || result?.verses || result?.hits || [])
+                .map(h => ({
+                  reference: h.human_reference || h.reference || h.usfm?.[0] || '',
+                  text: h.text || h.content || '',
+                  version: ver.abbreviation,
+                }))
+                .filter(h => h.reference && h.text);
+              allResults.push(...hits);
+            } catch {
+              searchUnsupported = true;
             }
-            const found = searchByKeyword(query, ver);
-            for (const r of found) allResults.push({ ...r, version: ver });
           }
         } catch (err) {
-          console.warn(`[Bible] Search in ${ver} failed:`, err.message);
+          console.warn(`[Bible] Online search in ${ver.abbreviation} failed:`, err.message);
         }
       }
 
       setResults(allResults);
       setSearchMode(isRef ? 'reference' : 'keyword');
       if (allResults.length === 0) {
-        setTranslationMessage('');
+        if (!isRef && searchUnsupported) {
+          setYouversionMessage('__SEARCH_UNSUPPORTED__');
+        } else {
+          setYouversionMessage(isRef ? 'No content returned for that reference.' : 'No verses found.');
+        }
       }
+      setLoading(false);
+      return;
+    }
+
+    // ── Offline ────────────────────────────────────────────────────────────────
+    try {
+      const allResults = [];
+      const versionsToSearch = availableOfflineVersions.length > 0 ? availableOfflineVersions : [];
+      for (const ver of versionsToSearch) {
+        try {
+          if (isRef) {
+            const bookMatch = query.match(/^(.+?)\s+\d/i);
+            if (bookMatch) await fetchBibleBookIfNeeded(ver, canonicalBook(bookMatch[1]));
+            for (const r of searchByReference(query, ver)) allResults.push({ ...r, version: ver });
+          } else {
+            if (!Object.keys(BIBLE_TEXTS[ver] || {}).length) {
+              await fetchBibleTranslationFromAsset(ver);
+            }
+            for (const r of searchByKeyword(query, ver)) allResults.push({ ...r, version: ver });
+          }
+        } catch (err) {
+          console.warn(`[Bible] Search in ${ver} failed:`, err.message);
+        }
+      }
+      setResults(allResults);
+      setSearchMode(isRef ? 'reference' : 'keyword');
     } catch (err) {
       setResults([]);
       setTranslationMessage(err.message || 'Offline Bible search failed.');
@@ -211,33 +287,20 @@ export default function BiblePanel() {
 
   const handleKey = (e) => { if (e.key === 'Enter') runSearch(); };
 
+  // ── Offline autocomplete suggestions ───────────────────────────────────────
   const updateSearchSuggestions = (value) => {
-    const query = value.trim();
-    // Suggestions only search already-cached data — never trigger a load on keystroke.
-    if (!query || mode !== 'offline') {
-      setSuggestions([]);
-      return;
-    }
-    // Use first available offline version that has cached data
-    const cachedVersion = availableOfflineVersions.find(v => Object.keys(BIBLE_TEXTS[v] || {}).length > 0);
-    if (!cachedVersion) {
-      setSuggestions([]);
-      return;
-    }
-
-    const refSuggestions = searchByReference(query, cachedVersion);
-    const keywordSuggestions = searchByKeyword(query, cachedVersion);
+    if (!value.trim() || mode !== 'offline') { setSuggestions([]); return; }
+    const cachedVer = availableOfflineVersions.find(v => Object.keys(BIBLE_TEXTS[v] || {}).length > 0);
+    if (!cachedVer) { setSuggestions([]); return; }
     const merged = [];
     const seen = new Set();
-
-    for (const item of [...refSuggestions, ...keywordSuggestions]) {
+    for (const item of [...searchByReference(value, cachedVer), ...searchByKeyword(value, cachedVer)]) {
       if (!seen.has(item.reference)) {
         seen.add(item.reference);
-        merged.push({ ...item, version: cachedVersion });
+        merged.push({ ...item, version: cachedVer });
         if (merged.length >= 8) break;
       }
     }
-
     setSuggestions(merged);
   };
 
@@ -253,23 +316,14 @@ export default function BiblePanel() {
     runSearch(reference);
   };
 
+  // ── Verse selection ─────────────────────────────────────────────────────────
   const toggleVerseSelection = (verse) => {
     const key = verseKey(verse);
-    setSelectedRefs((prev) => {
+    setSelectedRefs(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
+      next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
-  };
-
-  const clearSelections = () => setSelectedRefs(new Set());
-
-  const addSelectedVerses = () => {
-    const selected = results.filter(v => selectedRefs.has(verseKey(v)));
-    if (!selected.length) return;
-    addVerses(selected);
-    clearSelections();
   };
 
   const addVerses = (verses) => {
@@ -277,17 +331,21 @@ export default function BiblePanel() {
     const firstRef = verses[0].reference;
     const lastRef = verses[verses.length - 1].reference;
     const title = verses.length === 1 ? firstRef : `${firstRef}–${lastRef.split(':')[1]}`;
-    const versionLabel = verses[0].version || version;
-    const slides = verses.map(v => ({
-      id: uuidv4(), type: 'scripture', label: v.reference,
-      lines: `${v.text}\n\n— ${v.reference} (${v.version || version})`,
-    }));
+    const versionLabel = verses[0].version || 'Bible';
     addToSchedule({
       type: 'scripture', title, reference: title, version: versionLabel,
-      slides,
+      slides: verses.map(v => ({
+        id: uuidv4(), type: 'scripture', label: v.reference,
+        lines: `${v.text}\n\n— ${v.reference} (${v.version || 'Bible'})`,
+      })),
       background: { type: 'color', value: '#0a1a0f' },
       textColor: '#ffffff', fontSize: 38, fontFamily: 'Georgia',
     });
+  };
+
+  const addSelectedVerses = () => {
+    const selected = results.filter(v => selectedRefs.has(verseKey(v)));
+    if (selected.length) { addVerses(selected); setSelectedRefs(new Set()); }
   };
 
   const inputStyle = {
@@ -296,17 +354,18 @@ export default function BiblePanel() {
     fontSize: 12, outline: 'none', fontFamily: 'var(--font)',
   };
 
-  // Group results by version for display summary
   const versionCounts = results.reduce((acc, v) => {
     if (v.version) acc[v.version] = (acc[v.version] || 0) + 1;
     return acc;
   }, {});
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div style={{
       width: 300, background: 'var(--bg-sidebar)', borderLeft: '1px solid var(--border)',
       display: 'flex', flexDirection: 'column', flexShrink: 0,
     }}>
+      {/* Header */}
       <div style={{
         padding: '8px 12px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
         textTransform: 'uppercase', letterSpacing: '0.8px', borderBottom: '1px solid var(--border)',
@@ -314,71 +373,167 @@ export default function BiblePanel() {
         Bible Search
       </div>
 
-      {/* Online mode version selector (not shown in offline mode — all versions searched) */}
-      {mode === 'online' && availableOnlineVersions.length > 0 && (
-        <div style={{ padding: '8px 8px 0', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {availableOnlineVersions.map(v => (
-            <button key={v} onClick={() => setVersion(v)} style={{
-              padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
-              background: version === v ? 'var(--accent)' : 'transparent',
-              border: version === v ? 'none' : '1px solid var(--border)',
-              color: version === v ? '#fff' : 'var(--text-muted)',
-              fontFamily: 'var(--font)', transition: 'all 0.15s',
-            }}>{v}</button>
-          ))}
-        </div>
-      )}
-
-      <div style={{ padding: '8px 8px 0', display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-        <button onClick={() => setMode('offline')} style={{
-          padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
-          background: mode === 'offline' ? 'var(--accent)' : 'transparent',
-          border: mode === 'offline' ? 'none' : '1px solid var(--border)',
-          color: mode === 'offline' ? '#fff' : 'var(--text-muted)',
-          fontFamily: 'var(--font)', transition: 'all 0.15s',
-        }}>Offline</button>
-        <button onClick={() => setMode('online')} style={{
-          padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
-          background: mode === 'online' ? 'var(--accent)' : 'transparent',
-          border: mode === 'online' ? 'none' : '1px solid var(--border)',
-          color: mode === 'online' ? '#fff' : 'var(--text-muted)',
-          fontFamily: 'var(--font)', transition: 'all 0.15s',
-        }}>Online</button>
-        <div style={{ fontSize: 10, color: 'var(--text-dim)', alignSelf: 'center', minWidth: 220 }}>
+      {/* Mode toggle */}
+      <div style={{ padding: '8px 8px 0', display: 'flex', gap: 4, alignItems: 'center' }}>
+        {['offline', 'online'].map(m => (
+          <button key={m} onClick={() => setMode(m)} style={{
+            padding: '3px 8px', borderRadius: 4, fontSize: 11, cursor: 'pointer',
+            background: mode === m ? 'var(--accent)' : 'transparent',
+            border: mode === m ? 'none' : '1px solid var(--border)',
+            color: mode === m ? '#fff' : 'var(--text-muted)',
+            fontFamily: 'var(--font)', textTransform: 'capitalize',
+          }}>{m}</button>
+        ))}
+        <div style={{ fontSize: 10, color: 'var(--text-dim)', flex: 1 }}>
           {mode === 'offline'
             ? availableOfflineVersions.length > 0
-              ? `Searching all ${availableOfflineVersions.length} offline translation${availableOfflineVersions.length === 1 ? '' : 's'}: ${availableOfflineVersions.join(', ')}`
+              ? `${availableOfflineVersions.length} local: ${availableOfflineVersions.join(', ')}`
               : 'No offline translations available.'
-            : 'Online mode uses YouVersion API.'}
+            : 'YouVersion API'}
         </div>
       </div>
 
+      {/* ── Online mode controls ─────────────────────────────────────────────── */}
       {mode === 'online' && (
-        <>
+        <div style={{ padding: '6px 8px 0' }}>
           {!isElectron ? (
-            <div style={{ padding: '6px 8px 4px', fontSize: 11, color: 'var(--yellow)', lineHeight: 1.5 }}>
-              Online search requires the desktop app. Use offline mode in the browser.
-            </div>
-          ) : youversionKeyConfigured ? (
-            <div style={{ padding: '4px 8px', fontSize: 10, color: 'var(--green)' }}>
-              ✓ API key configured via environment / config file.
+            <div style={{ fontSize: 11, color: 'var(--yellow)', padding: '4px 0' }}>
+              Online search requires the desktop app.
             </div>
           ) : (
-            <div style={{ padding: '0 8px 4px', display: 'flex', gap: 4, alignItems: 'center' }}>
-              <input
-                value={youversionApiKey}
-                onChange={e => setYouversionApiKey(e.target.value)}
-                placeholder='YouVersion App Key'
-                style={{ ...inputStyle, flex: 1 }}
-              />
-            </div>
+            <>
+              {/* API key input */}
+              {!youversionKeyConfigured && (
+                <input
+                  value={youversionApiKey}
+                  onChange={e => setYouversionApiKey(e.target.value)}
+                  placeholder="YouVersion App Key"
+                  style={{ ...inputStyle, width: '100%', marginBottom: 4, boxSizing: 'border-box' }}
+                />
+              )}
+              {youversionKeyConfigured && (
+                <div style={{ fontSize: 10, color: 'var(--green)', marginBottom: 4 }}>
+                  ✓ API key configured.
+                </div>
+              )}
+
+              {/* Version search + favorites */}
+              {youversionLoading ? (
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', padding: '4px 0' }}>
+                  Loading translations…
+                </div>
+              ) : onlineVersions.length > 0 ? (
+                <>
+                  {/* Version search input */}
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      value={versionQuery}
+                      onChange={e => { setVersionQuery(e.target.value); setShowVersionDropdown(true); }}
+                      onFocus={() => setShowVersionDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowVersionDropdown(false), 160)}
+                      placeholder={`🔍 Search ${onlineVersions.length} translations…`}
+                      style={{ ...inputStyle, width: '100%', boxSizing: 'border-box', padding: '5px 8px' }}
+                    />
+                    {showVersionDropdown && versionDropdownResults.length > 0 && (
+                      <div style={{
+                        position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 200,
+                        background: 'var(--bg-sidebar)', border: '1px solid var(--border)',
+                        borderRadius: 4, marginTop: 2, maxHeight: 180, overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                      }}>
+                        {versionDropdownResults.map(v => (
+                          <div
+                            key={v.id}
+                            onMouseDown={e => e.preventDefault()}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: 6, padding: '5px 8px',
+                              cursor: 'default', borderBottom: '1px solid var(--border)',
+                            }}
+                          >
+                            <button
+                              onClick={() => toggleFavorite(v)}
+                              title={isFavorite(v) ? 'Remove from favorites' : 'Add to favorites'}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                fontSize: 15, padding: 0, lineHeight: 1, flexShrink: 0,
+                                color: isFavorite(v) ? '#fbbf24' : 'var(--text-dim)',
+                              }}
+                            >
+                              {isFavorite(v) ? '★' : '☆'}
+                            </button>
+                            <span style={{ fontWeight: 700, fontSize: 11, minWidth: 38, flexShrink: 0 }}>
+                              {v.abbreviation}
+                            </span>
+                            <span style={{
+                              fontSize: 10, color: 'var(--text-dim)',
+                              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                            }}>
+                              {v.title}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Favorites chips */}
+                  <div style={{ marginTop: 5 }}>
+                    {favoriteVersions.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+                        <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Favorites:</span>
+                        {favoriteVersions.map(v => (
+                          <span key={v.id} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                            background: 'rgba(79,142,247,0.15)', border: '1px solid rgba(79,142,247,0.35)',
+                            borderRadius: 12, padding: '2px 7px', fontSize: 10, color: 'var(--accent)',
+                          }}>
+                            {v.abbreviation}
+                            <button
+                              onClick={() => removeFavorite(v)}
+                              style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                color: 'var(--text-dim)', padding: 0, fontSize: 11, lineHeight: 1,
+                              }}
+                            >×</button>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>
+                        ☆ Star translations above — searches run across all favorites simultaneously.
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', padding: '2px 0' }}>
+                  {youversionMessage || 'Enter your App Key to load available translations.'}
+                </div>
+              )}
+
+              {/* YouVersion error / unsupported message */}
+              {youversionMessage && youversionMessage !== '__SEARCH_UNSUPPORTED__' && onlineVersions.length > 0 && (
+                <div style={{
+                  fontSize: 10, marginTop: 3,
+                  color: youversionMessage.startsWith('No') || youversionMessage.startsWith('Failed')
+                    ? 'var(--red)' : 'var(--text-dim)',
+                }}>
+                  {youversionMessage}
+                </div>
+              )}
+              {youversionMessage === '__SEARCH_UNSUPPORTED__' && (
+                <div style={{ fontSize: 10, color: 'var(--yellow)', marginTop: 3, lineHeight: 1.5 }}>
+                  Keyword search not available with this API plan.{' '}
+                  <button
+                    onClick={() => { setMode('offline'); setYouversionMessage(''); setResults([]); setSearched(false); }}
+                    style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, padding: 0, textDecoration: 'underline' }}
+                  >Switch to Offline</button>
+                  {' '}for text search.
+                </div>
+              )}
+            </>
           )}
-          {isElectron && (
-            <div style={{ padding: '0 8px 4px', fontSize: 10, color: youversionMessage.startsWith('Failed') || youversionMessage.startsWith('No') ? 'var(--red)' : 'var(--text-dim)' }}>
-              {youversionLoading ? 'Connecting to YouVersion…' : (youversionMessage || (youversionKeyConfigured ? '' : 'Enter your App Key — translations will load automatically.'))}
-            </div>
-          )}
-        </>
+        </div>
       )}
 
       {/* Search bar */}
@@ -387,7 +542,7 @@ export default function BiblePanel() {
           value={search}
           onChange={e => handleSearchChange(e.target.value)}
           onKeyDown={handleKey}
-          placeholder='e.g. John 3:16 or "grace"'
+          placeholder='John 3:16 or "grace"'
           style={{ ...inputStyle, flex: 1 }}
           onFocus={e => e.target.style.borderColor = 'var(--border-focus)'}
           onBlur={e => { e.target.style.borderColor = 'var(--border)'; setTimeout(() => setShowSuggestions(false), 150); }}
@@ -401,11 +556,12 @@ export default function BiblePanel() {
           <button onClick={clearResults} title='Clear results' style={{
             background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-muted)',
             padding: '7px 10px', borderRadius: 'var(--radius)', cursor: 'pointer',
-            fontSize: 12, fontFamily: 'var(--font)', lineHeight: 1,
+            fontSize: 12, lineHeight: 1,
           }}>✕</button>
         )}
       </div>
 
+      {/* Offline autocomplete suggestions */}
       {showSuggestions && suggestions.length > 0 && (
         <div style={{ padding: '0 8px 8px', maxHeight: 220, overflowY: 'auto' }}>
           <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>Suggestions:</div>
@@ -426,7 +582,7 @@ export default function BiblePanel() {
         </div>
       )}
 
-      {/* Quick reference buttons */}
+      {/* Quick references */}
       <div style={{ padding: '0 8px 8px' }}>
         <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>Quick access:</div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -451,6 +607,11 @@ export default function BiblePanel() {
           <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--text-dim)', fontSize: 12 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>📖</div>
             Search by reference (John 3:16)<br />or keyword (grace, hope, love)
+            {mode === 'online' && favoriteVersions.length > 0 && (
+              <div style={{ fontSize: 10, marginTop: 6, color: 'var(--accent)' }}>
+                Searching across: {favoriteVersions.map(v => v.abbreviation).join(', ')}
+              </div>
+            )}
           </div>
         )}
 
@@ -488,7 +649,7 @@ export default function BiblePanel() {
                       color: '#a7f3d0', padding: '4px 10px', borderRadius: 4,
                       cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
                     }}>＋ Add Selected ({selectedRefs.size})</button>
-                    <button onClick={clearSelections} style={{
+                    <button onClick={() => setSelectedRefs(new Set())} style={{
                       background: 'transparent', border: '1px solid var(--border)',
                       color: 'var(--text-muted)', padding: '4px 10px', borderRadius: 4,
                       cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',

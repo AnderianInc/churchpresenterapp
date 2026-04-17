@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   fetchYouVersionVersions: (appKey, language) => ipcRenderer.invoke('fetch-youversion-versions', appKey, language),
   fetchYouVersionVersion: (appKey, versionId) => ipcRenderer.invoke('fetch-youversion-version', appKey, versionId),
   fetchYouVersionPassage: (appKey, versionId, reference, format) => ipcRenderer.invoke('fetch-youversion-passage', appKey, versionId, reference, format),
+  searchYouVersionVerses: (opts) => ipcRenderer.invoke('search-youversion-verses', opts),
 
   // Windows
   openPresentation: (displayIndex) => ipcRenderer.invoke('open-presentation', displayIndex),
@@ -64,8 +65,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchPcoSongs: (opts) => ipcRenderer.invoke('search-pco-songs', opts),
   fetchPcoArrangements: (opts) => ipcRenderer.invoke('fetch-pco-arrangements', opts),
 
+  // Genius lyrics search
+  searchGeniusSongs: (opts) => ipcRenderer.invoke('search-genius-songs', opts),
+  fetchGeniusLyrics: (opts) => ipcRenderer.invoke('fetch-genius-lyrics', opts),
+
   // Sermon Assistant — AI verse suggestions
   suggestVerses: (opts) => ipcRenderer.invoke('suggest-verses', opts),
+
+  openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
+
+  // Media file persistence — copies imported video/image to app data dir; returns file:// path
+  copyMediaFile: (srcPath) => ipcRenderer.invoke('copy-media-file', srcPath),
 
   isElectron: true,
 });

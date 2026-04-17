@@ -37,32 +37,115 @@ export function AppProvider({ children }) {
   const [activeView, setActiveView] = useState('schedule');
   const [loaded, setLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'error'
+  const [recoveryData, setRecoveryData] = useState(null); // unsaved session snapshot detected on startup
+
+  // ── Schedule undo/redo history ────────────────────────────────────────────
+  const scheduleHistoryRef = useRef([]);
+  const historyIdxRef = useRef(-1);
   const [ffmpegAvailable, setFfmpegAvailable] = useState(null); // null=unchecked, true/false
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // ── Sermon assist — shared between SermonAssistPanel and StreamPanel ──────
+  const [sermonTranscript, setSermonTranscript] = useState('');
+  const [sermonInterim, setSermonInterim] = useState('');
+  const [sermonReferences, setSermonReferences] = useState([]);
+  const [sermonSuggestions, setSermonSuggestions] = useState([]);
+  const [sermonListening, setSermonListening] = useState(false);
+  const [sermonSuggesting, setSermonSuggesting] = useState(false);
+  const clearSermon = useCallback(() => {
+    setSermonTranscript(''); setSermonInterim('');
+    setSermonReferences([]); setSermonSuggestions([]);
+  }, []);
 
   const isElectron = !!window.electronAPI;
   const path = window.location.pathname + window.location.hash;
   const isOutputView = path.includes('/presentation') || path.includes('/stage') || path.includes('/output') || path.includes('/stream') || path.includes('#/presentation') || path.includes('#/stage') || path.includes('#/output') || path.includes('#/stream');
 
-  // Load data
+  // ── Schedule history helper ───────────────────────────────────────────────
+  const pushScheduleHistory = useCallback((snap) => {
+    const newH = scheduleHistoryRef.current.slice(0, historyIdxRef.current + 1);
+    newH.push(snap);
+    if (newH.length > 20) newH.shift();
+    scheduleHistoryRef.current = newH;
+    historyIdxRef.current = newH.length - 1;
+  }, []);
+
+  const undoSchedule = useCallback(async () => {
+    if (historyIdxRef.current <= 0) return;
+    historyIdxRef.current -= 1;
+    const snap = scheduleHistoryRef.current[historyIdxRef.current];
+    setSchedule(snap);
+    setSaveStatus('saving');
+    try {
+      if (isElectron) {
+        const ok = await window.electronAPI.writeFile('schedules', snap);
+        setSaveStatus(ok ? 'saved' : 'error');
+      } else {
+        storage.save('cp_schedule', snap);
+        setSaveStatus('saved');
+      }
+    } catch { setSaveStatus('error'); }
+  }, [isElectron]);
+
+  const redoSchedule = useCallback(async () => {
+    if (historyIdxRef.current >= scheduleHistoryRef.current.length - 1) return;
+    historyIdxRef.current += 1;
+    const snap = scheduleHistoryRef.current[historyIdxRef.current];
+    setSchedule(snap);
+    setSaveStatus('saving');
+    try {
+      if (isElectron) {
+        const ok = await window.electronAPI.writeFile('schedules', snap);
+        setSaveStatus(ok ? 'saved' : 'error');
+      } else {
+        storage.save('cp_schedule', snap);
+        setSaveStatus('saved');
+      }
+    } catch { setSaveStatus('error'); }
+  }, [isElectron]);
+
+  // ── Load data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const load = async () => {
+      let loadedSongs, loadedSchedule, loadedSettings;
       if (isElectron) {
         const [s, sch, st] = await Promise.all([
           window.electronAPI.readFile('songs'),
           window.electronAPI.readFile('schedules'),
           window.electronAPI.readFile('settings'),
         ]);
-        // Electron main.js now validates & normalises; renderer applies a final
-        // safety net so a mid-session race can't crash the UI.
-        setSongs(validateSongsArray(s) ?? defaultSongs);
-        setSchedule(validateScheduleArray(sch));
-        setSettings(validateSettings(st));
+        loadedSongs = validateSongsArray(s) ?? defaultSongs;
+        loadedSchedule = validateScheduleArray(sch);
+        loadedSettings = validateSettings(st);
       } else {
         migrateLegacyStorage();
-        setSongs(storage.load('cp_songs', validateSongsArray, defaultSongs));
-        setSchedule(storage.load('cp_schedule', validateScheduleArray, []));
-        setSettings(storage.load('cp_settings', validateSettings, { theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' }));
+        loadedSongs = storage.load('cp_songs', validateSongsArray, defaultSongs);
+        loadedSchedule = storage.load('cp_schedule', validateScheduleArray, []);
+        loadedSettings = storage.load('cp_settings', validateSettings, { theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' });
       }
+      setSongs(loadedSongs);
+      setSchedule(loadedSchedule);
+      setSettings(loadedSettings);
+
+      // Seed undo history with the loaded schedule
+      scheduleHistoryRef.current = [loadedSchedule];
+      historyIdxRef.current = 0;
+
+      // Crash-safe recovery: check if there's a snapshot newer than last save
+      try {
+        const raw = localStorage.getItem('cp_recovery_snapshot');
+        if (raw) {
+          const snap = JSON.parse(raw);
+          const schedMatch = JSON.stringify(snap.schedule) === JSON.stringify(loadedSchedule);
+          const songsMatch = JSON.stringify(snap.songs) === JSON.stringify(loadedSongs);
+          if (!schedMatch || !songsMatch) {
+            setRecoveryData(snap);
+          } else {
+            localStorage.removeItem('cp_recovery_snapshot');
+          }
+        }
+      } catch {}
+
       setLoaded(true);
     };
     load();
@@ -162,15 +245,17 @@ export function AppProvider({ children }) {
   const addToSchedule = useCallback((item) => {
     const entry = { ...item, scheduleId: uuidv4() };
     const newSch = [...schedule, entry];
+    pushScheduleHistory(newSch);
     saveSchedule(newSch);
     setActiveScheduleIdx(newSch.length - 1);
     setActiveSlideIdx(0);
-  }, [schedule, saveSchedule]);
+  }, [schedule, saveSchedule, pushScheduleHistory]);
 
   const removeFromSchedule = useCallback((scheduleId) => {
     const idx = schedule.findIndex(s => s.scheduleId === scheduleId);
     if (idx === -1) return;
     const newSch = schedule.filter(s => s.scheduleId !== scheduleId);
+    pushScheduleHistory(newSch);
     saveSchedule(newSch);
     if (idx < activeScheduleIdx) {
       setActiveScheduleIdx(Math.max(0, activeScheduleIdx - 1));
@@ -178,17 +263,52 @@ export function AppProvider({ children }) {
       setActiveScheduleIdx(Math.min(activeScheduleIdx, Math.max(0, newSch.length - 1)));
     }
     setActiveSlideIdx(0);
-  }, [schedule, saveSchedule, activeScheduleIdx]);
+  }, [schedule, saveSchedule, activeScheduleIdx, pushScheduleHistory]);
+
+  const updateScheduleItem = useCallback((scheduleId, patch) => {
+    const newSch = schedule.map(s => s.scheduleId === scheduleId ? { ...s, ...patch } : s);
+    pushScheduleHistory(newSch);
+    saveSchedule(newSch);
+  }, [schedule, saveSchedule, pushScheduleHistory]);
 
   const reorderSchedule = useCallback((newOrder) => {
+    pushScheduleHistory(newOrder);
     saveSchedule(newOrder);
-  }, [saveSchedule]);
+  }, [saveSchedule, pushScheduleHistory]);
 
   const clearSchedule = useCallback(() => {
+    pushScheduleHistory([]);
     saveSchedule([]);
     setActiveScheduleIdx(0);
     setActiveSlideIdx(0);
-  }, [saveSchedule]);
+  }, [saveSchedule, pushScheduleHistory]);
+
+  // Crash-safe autosave — write snapshot to localStorage every 60s
+  // Uses refs so the interval doesn't restart on every schedule/songs change
+  const scheduleSnapRef = useRef(schedule);
+  const songsSnapRef = useRef(songs);
+  useEffect(() => { scheduleSnapRef.current = schedule; }, [schedule]);
+  useEffect(() => { songsSnapRef.current = songs; }, [songs]);
+  useEffect(() => {
+    if (!loaded) return;
+    const id = setInterval(() => {
+      try {
+        localStorage.setItem('cp_recovery_snapshot', JSON.stringify({
+          schedule: scheduleSnapRef.current,
+          songs: songsSnapRef.current,
+          timestamp: Date.now(),
+        }));
+      } catch {}
+    }, 60000);
+    return () => clearInterval(id);
+  }, [loaded]);
+
+  const restoreRecovery = useCallback(async (snap) => {
+    if (snap.songs) await saveSongs(snap.songs);
+    await saveSchedule(snap.schedule);
+    localStorage.removeItem('cp_recovery_snapshot');
+    setRecoveryData(null);
+  }, [saveSongs, saveSchedule]);
 
   // Stable BroadcastChannel ref for browser mode
   const broadcastRef = useRef(null);
@@ -211,6 +331,9 @@ export function AppProvider({ children }) {
       };
     }
     return () => { broadcastRef.current?.close(); broadcastRef.current = null; };
+  // liveOutputs/liveRoleSlides intentionally omitted — adding them would
+  // tear down and recreate the BroadcastChannel on every live state change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear]);
 
   const broadcast = useCallback((type, payload) => {
@@ -599,11 +722,21 @@ export function AppProvider({ children }) {
       displays, outputWindows, createOutputWindow, moveOutputWindow, updateOutputWindowRole, closeOutputWindow,
       saveSettings, updateDisplayLabel, saveRoutingPreset, loadRoutingPreset, deleteRoutingPreset,
       ffmpegAvailable,
+      settingsOpen, setSettingsOpen,
       activeView, setActiveView,
       currentItem, currentSlides, currentSlide,
       isElectron,
+      sermonTranscript, setSermonTranscript,
+      sermonInterim, setSermonInterim,
+      sermonReferences, setSermonReferences,
+      sermonSuggestions, setSermonSuggestions,
+      sermonListening, setSermonListening,
+      sermonSuggesting, setSermonSuggesting,
+      clearSermon,
+      recoveryData, setRecoveryData, restoreRecovery,
+      undoSchedule, redoSchedule,
       addSong, updateSong, deleteSong,
-      addToSchedule, removeFromSchedule, reorderSchedule, clearSchedule,
+      addToSchedule, removeFromSchedule, updateScheduleItem, reorderSchedule, clearSchedule,
       goLive, goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, toggleBlackout, toggleClear,
       openPresentation, closePresentation, openStage, closeStage,
       openStream, closeStream, pushLowerThird, sendStreamConfig,

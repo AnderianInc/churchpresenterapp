@@ -1,15 +1,5 @@
-export const BIBLE_VERSIONS = ['KJV', 'NIV', 'ESV', 'NKJV', 'NLT', 'AMP', 'TPT', 'MSG'];
-
-export const BIBLE_VERSION_LABELS = {
-  KJV: 'King James Version',
-  NIV: 'New International Version',
-  ESV: 'English Standard Version',
-  NKJV: 'New King James Version',
-  NLT: 'New Living Translation',
-  AMP: 'Amplified Bible',
-  TPT: 'The Passion Translation',
-  MSG: 'The Message',
-};
+// Offline translations are discovered dynamically from /public/bibles/index.json
+// (falls back to OFFLINE_BIBLE_FOLDERS below). There is no hardcoded version list.
 
 export const QUICK_REFERENCES = [
   'John 3:16', 'Psalm 23:1-6', 'Romans 8:28',
@@ -302,7 +292,7 @@ const OSIS_BOOK_CODES = {
   Philippians: 'PHP', Colossians: 'COL', '1 Thessalonians': '1TH', '2 Thessalonians': '2TH',
   '1 Timothy': '1TI', '2 Timothy': '2TI', Titus: 'TIT', Philemon: 'PHM', Hebrews: 'HEB',
   James: 'JAS', '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN', '2 John': '2JN',
-  '3 John': '3JN', Jude: 'JUD', Revelation: 'REV', 'Song of Solomon': 'SNG',
+  '3 John': '3JN', Jude: 'JUD', Revelation: 'REV',
 };
 
 export function bibleReferenceToOsis(reference) {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { AppProvider } from './store/AppContext';
 import MainLayout from './components/MainLayout';
 import PresentationView from './components/PresentationView';
