@@ -8,9 +8,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readDirectory: (folderPath) => ipcRenderer.invoke('read-directory', folderPath),
   readFileText: (filePath) => ipcRenderer.invoke('read-file-text', filePath),
   getYouVersionHasKey: () => ipcRenderer.invoke('get-youversion-has-key'),
-  fetchYouVersionVersions: (appKey, language) => ipcRenderer.invoke('fetch-youversion-versions', appKey, language),
+  fetchYouVersionVersions: (appKey) => ipcRenderer.invoke('fetch-youversion-versions', appKey),
   fetchYouVersionVersion: (appKey, versionId) => ipcRenderer.invoke('fetch-youversion-version', appKey, versionId),
   fetchYouVersionPassage: (appKey, versionId, reference, format) => ipcRenderer.invoke('fetch-youversion-passage', appKey, versionId, reference, format),
+  searchBibleCom: (opts) => ipcRenderer.invoke('search-bible-com', opts),
 
   // Windows
   openPresentation: (displayIndex) => ipcRenderer.invoke('open-presentation', displayIndex),
@@ -64,8 +65,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   searchPcoSongs: (opts) => ipcRenderer.invoke('search-pco-songs', opts),
   fetchPcoArrangements: (opts) => ipcRenderer.invoke('fetch-pco-arrangements', opts),
 
+  // Genius lyrics search
+  searchGeniusSongs: (opts) => ipcRenderer.invoke('search-genius-songs', opts),
+  fetchGeniusLyrics: (opts) => ipcRenderer.invoke('fetch-genius-lyrics', opts),
+
   // Sermon Assistant — AI verse suggestions
   suggestVerses: (opts) => ipcRenderer.invoke('suggest-verses', opts),
+
+  openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
 
   isElectron: true,
 });

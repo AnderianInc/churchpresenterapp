@@ -6,9 +6,10 @@ const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
 const {
   hasDefaultAppKey,
-  getYouVersionVersions,
+  getAllYouVersionVersions,
   getYouVersionVersion,
   getYouVersionPassage,
+  searchBibleCom,
 } = require('./youversion');
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -24,7 +25,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '' }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [] }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -501,9 +502,9 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
 // (via environment variable or config file), so it doesn't need to prompt the user.
 ipcMain.handle('get-youversion-has-key', () => ({ configured: hasDefaultAppKey() }));
 
-ipcMain.handle('fetch-youversion-versions', async (_, appKey, language = 'en*') => {
+ipcMain.handle('fetch-youversion-versions', async (_, appKey) => {
   try {
-    return await getYouVersionVersions(appKey, language);
+    return await getAllYouVersionVersions(appKey);
   } catch (err) {
     console.error('[YouVersion] fetch-youversion-versions failed', err.message);
     throw new Error(err.message || 'Unable to load YouVersion versions.');
@@ -516,6 +517,15 @@ ipcMain.handle('fetch-youversion-version', async (_, appKey, versionId) => {
   } catch (err) {
     console.error('[YouVersion] fetch-youversion-version failed', err.message);
     throw new Error(err.message || 'Unable to load YouVersion version metadata.');
+  }
+});
+
+ipcMain.handle('search-bible-com', async (_, { versionId, query }) => {
+  try {
+    return await searchBibleCom(versionId, query);
+  } catch (err) {
+    console.error('[Bible.com] search failed', err.message);
+    throw new Error(err.message || 'Bible.com search failed.');
   }
 });
 
@@ -687,6 +697,102 @@ ipcMain.handle('fetch-pco-arrangements', async (_, { songId, appId, secret }) =>
   );
   if (!res.ok) throw new Error(`PCO API ${res.status}`);
   return res.json();
+});
+
+// IPC - Genius.com lyrics search and scrape
+ipcMain.handle('search-genius-songs', async (_, { query, apiKey }) => {
+  if (!apiKey) throw new Error('No Genius API key configured');
+  const { net } = require('electron');
+  const url = `https://api.genius.com/search?q=${encodeURIComponent(query)}`;
+  const res = await net.fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Genius API ${res.status}: ${text.slice(0, 120)}`);
+  }
+  const data = await res.json();
+  return (data.response?.hits || []).map(h => ({
+    id: h.result.id,
+    title: h.result.title,
+    artist: h.result.primary_artist?.name || '',
+    thumbnail: h.result.song_art_image_thumbnail_url || '',
+    url: h.result.url,
+  }));
+});
+
+ipcMain.handle('fetch-genius-lyrics', async (_, { pageUrl }) => {
+  if (!pageUrl) throw new Error('No page URL provided');
+  const { net } = require('electron');
+  const res = await net.fetch(pageUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to fetch lyrics page: ${res.status}`);
+  const html = await res.text();
+
+  function extractLyricContainers(src) {
+    const found = [];
+    let pos = 0;
+    while (pos < src.length) {
+      const markerIdx = src.indexOf('data-lyrics-container="true"', pos);
+      if (markerIdx === -1) break;
+      const tagOpen = src.lastIndexOf('<', markerIdx);
+      const tagClose = src.indexOf('>', markerIdx);
+      if (tagClose === -1) break;
+      if (src[tagClose - 1] === '/') { pos = tagClose + 1; continue; }
+      let depth = 1;
+      let cur = tagClose + 1;
+      const innerStart = cur;
+      while (cur < src.length && depth > 0) {
+        const nextOpen = src.indexOf('<div', cur);
+        const nextClose = src.indexOf('</div>', cur);
+        if (nextClose === -1) break;
+        if (nextOpen !== -1 && nextOpen < nextClose) {
+          depth++;
+          cur = nextOpen + 4;
+        } else {
+          depth--;
+          if (depth === 0) found.push(src.slice(innerStart, nextClose));
+          cur = nextClose + 6;
+        }
+      }
+      pos = cur;
+    }
+    return found;
+  }
+
+  const containers = extractLyricContainers(html);
+  if (containers.length === 0) {
+    throw new Error('Could not find lyrics on this page. The song page format may have changed.');
+  }
+
+  let rawLyrics = containers
+    .join('\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&#x([0-9a-fA-F]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  const firstBracket = rawLyrics.indexOf('[');
+  if (firstBracket > 0 && !rawLyrics.slice(0, firstBracket).includes('\n')) {
+    rawLyrics = rawLyrics.slice(firstBracket);
+  }
+
+  return rawLyrics;
+});
+
+// IPC - Open external URL in the system browser
+ipcMain.handle('open-external-link', async (_, url) => {
+  const { shell } = require('electron');
+  if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
+    await shell.openExternal(url);
+  }
 });
 
 // IPC - Claude AI verse suggestions for sermon assistant
