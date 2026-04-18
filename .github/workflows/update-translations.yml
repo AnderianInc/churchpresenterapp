@@ -1,11 +1,9 @@
-name: Update Bible Translations
+name: Update Bible Indexes
 
 # ── Schedule ──────────────────────────────────────────────────────────────────
 # Runs on the 1st of every month at 03:00 UTC.
 # Also available to trigger manually from the Actions tab.
-# The release.yml workflow runs `npm run electron:build` which calls
-# `update-translations` automatically — this monthly job just keeps the
-# bundled file current between releases.
+# Keeps the bundled online-index.json and offline-index.json current.
 on:
   schedule:
     - cron: '0 3 1 * *'   # 1st of every month, 03:00 UTC
@@ -13,10 +11,10 @@ on:
 
 jobs:
   update:
-    name: Refresh translations.json
+    name: Refresh Bible indexes
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # needed to push the updated file
+      contents: write      # needed to push updated index files
 
     steps:
       - name: Checkout
@@ -27,21 +25,24 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Fetch latest translations from bible.helloao.org
-        run: node scripts/update-bible-translations.js
+      - name: Rebuild offline index from bundled XML files
+        run: node scripts/build-offline-index.js
+
+      - name: Fetch latest online translations from bible.helloao.org
+        run: node scripts/update-online-index.js
 
       - name: Check for changes
         id: diff
         run: |
-          git diff --quiet public/bibles/translations.json \
+          git diff --quiet public/bibles/offline-index.json public/bibles/online-index.json \
             && echo "changed=false" >> "$GITHUB_OUTPUT" \
             || echo "changed=true"  >> "$GITHUB_OUTPUT"
 
-      - name: Commit and push (only if translations changed)
+      - name: Commit and push (only if indexes changed)
         if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/bibles/translations.json
-          git commit -m "chore: update bundled Bible translations [skip ci]"
+          git add public/bibles/offline-index.json public/bibles/online-index.json
+          git commit -m "chore: update bundled Bible indexes [skip ci]"
           git push

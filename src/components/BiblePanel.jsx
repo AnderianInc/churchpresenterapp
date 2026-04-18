@@ -482,7 +482,16 @@ export default function BiblePanel() {
         // Parallel: search two versions simultaneously
         const verA = favorites[0] || (hasOnlineFavs ? onlineFavs[0] : null) || (defaultOnline[0] ? { ...defaultOnline[0], isOffline: false } : null);
         const verB = parallelSecond
-          ? (favorites.find(f => f.id === parallelSecond) || onlineVersions.find(v => v.id === parallelSecond) || offlineVersions.includes(parallelSecond) ? hydrateOfflineFavorite(parallelSecond) : null)
+          ? favorites.find(f => f.id === parallelSecond) || (() => {
+              const online = onlineVersions.find(v => v.id === parallelSecond);
+              if (online) return { ...online, isOffline: false };
+              if (parallelSecond.startsWith('offline:')) {
+                const bareId = parallelSecond.slice('offline:'.length);
+                const entry = offlineVersions.find(v => v.id === bareId);
+                return entry ? buildOfflineFavorite(entry) : null;
+              }
+              return null;
+            })()
           : favorites[1];
 
         const [hitsA, hitsB] = await Promise.all([
