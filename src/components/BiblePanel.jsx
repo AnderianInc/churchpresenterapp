@@ -316,7 +316,11 @@ export default function BiblePanel() {
 
   // ── Hydrate favorites from settings once versions are available ───────────
   useEffect(() => {
-    const ids = settings?.bibleFavoriteVersionIds || [];
+    // Coerce each entry to a string — old settings may contain objects (e.g. from
+    // the previous YouVersion integration which stored version objects, not IDs).
+    const ids = (settings?.bibleFavoriteVersionIds || [])
+      .map(id => typeof id === 'string' ? id : (typeof id?.id === 'string' ? id.id : null))
+      .filter(Boolean);
     if (!ids.length) return;
     const hydrated = ids.map(id => {
       if (id.startsWith('offline:')) {

@@ -377,6 +377,25 @@ export function AppProvider({ children }) {
     });
   }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides]);
 
+  /**
+   * Compute the slide that comes immediately after the currently active slide.
+   * Returns null if there is no next slide (end of schedule).
+   * Used by the stage monitor to show a "next up" preview.
+   */
+  const computeNextSlidePayload = useCallback(() => {
+    const currentItemSlides = schedule[activeScheduleIdx]?.slides || [];
+    if (activeSlideIdx < currentItemSlides.length - 1) {
+      const s = currentItemSlides[activeSlideIdx + 1];
+      return s ? { ...s, item: schedule[activeScheduleIdx] } : null;
+    }
+    if (activeScheduleIdx < schedule.length - 1) {
+      const nextItem = schedule[activeScheduleIdx + 1];
+      const s = nextItem?.slides?.[0];
+      return s ? { ...s, item: nextItem } : null;
+    }
+    return null;
+  }, [schedule, activeScheduleIdx, activeSlideIdx]);
+
   const goLiveProgram = useCallback((slide) => {
     setLiveProgram(slide);
     setIsLive(true);
@@ -384,9 +403,12 @@ export function AppProvider({ children }) {
     setIsClear(false);
     const newStage = stageMirrorProgram ? slide : liveStage;
     if (stageMirrorProgram) setLiveStage(slide);
+    // Attach the next slide so the stage/confidence monitor can show a preview
+    const nextSlide = computeNextSlidePayload();
+    const stageWithNext = { ...newStage, nextSlide };
     if (isElectron) {
       window.electronAPI.sendSlideProgram(slide);
-      window.electronAPI.sendSlideStage(newStage);
+      window.electronAPI.sendSlideStage(stageWithNext);
       sendOutputState(slide, newStage);
     } else {
       persistBrowserLive({
@@ -396,9 +418,9 @@ export function AppProvider({ children }) {
         isClear: false,
       });
       broadcast('slide-program', slide);
-      broadcast('slide-stage', stageMirrorProgram ? slide : liveStage);
+      broadcast('slide-stage', stageWithNext);
     }
-  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState]);
+  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState, computeNextSlidePayload]);
 
   /** Send a different slide to the stage output (ignored while stage mirrors program) */
   const goLiveStage = useCallback((slide) => {
@@ -456,9 +478,11 @@ export function AppProvider({ children }) {
     setIsBlackout(false);
     setIsClear(false);
 
+    const nextSlide = computeNextSlidePayload();
+    const stageWithNext = { ...slide, nextSlide };
     if (isElectron) {
       window.electronAPI.sendSlideProgram(slide);
-      window.electronAPI.sendSlideStage(slide);
+      window.electronAPI.sendSlideStage(stageWithNext);
       sendOutputState(slide, slide);
     } else {
       persistBrowserLive({
@@ -470,11 +494,11 @@ export function AppProvider({ children }) {
         isClear: false,
       });
       broadcast('slide-program', slide);
-      broadcast('slide-stage', slide);
+      broadcast('slide-stage', stageWithNext);
       Object.keys(outputs).forEach((id) => broadcast('output-target', { id, slide }));
       ['announcement', 'background', 'confidence'].forEach((role) => broadcast('output-role-target', { role, slide }));
     }
-  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast]);
+  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast, computeNextSlidePayload]);
 
   const goLive = goLiveProgram;
 
