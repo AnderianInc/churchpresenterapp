@@ -1,0 +1,5246 @@
+{
+  "generatedAt": "2026-04-18T00:38:40.629Z",
+  "count": 1048,
+  "translations": [
+    {
+      "id": "TamasheqBible",
+      "name": "© 2003, Wycliffe Bible Translators, Inc",
+      "filename": "TamasheqBible.xml"
+    },
+    {
+      "id": "GaelicABGBible",
+      "name": "© Comann Bhìoball na h-Alba 1992, 2017 © Scottish Bible Society 1992, 2017",
+      "filename": "GaelicABGBible.xml"
+    },
+    {
+      "id": "Karakalpak2004Bible",
+      "name": "© Библия аўдарыў институты, 2004",
+      "filename": "Karakalpak2004Bible.xml"
+    },
+    {
+      "id": "KarakalpakK2022Bible",
+      "name": "© Институт перевода Библии, 2022",
+      "filename": "KarakalpakK2022Bible.xml"
+    },
+    {
+      "id": "AcehBible",
+      "name": "Aceh Language (Alkitab HABA GET)",
+      "filename": "AcehBible.xml"
+    },
+    {
+      "id": "AdilabadGondiBible",
+      "name": "Adilabad Gondi (ఆదిలాబాద్ గోండి పూన నియమ్) - No Year",
+      "filename": "AdilabadGondiBible.xml"
+    },
+    {
+      "id": "Afrikaans2023Bible",
+      "name": "Afrikaans (Contemporary Afrikaans Bible 2023)",
+      "filename": "Afrikaans2023Bible.xml"
+    },
+    {
+      "id": "AfrikaansNLVBible",
+      "name": "Afrikaans (NLV) 2011",
+      "filename": "AfrikaansNLVBible.xml"
+    },
+    {
+      "id": "AfrikaansBible",
+      "name": "Afrikaans 1933/1953",
+      "filename": "AfrikaansBible.xml"
+    },
+    {
+      "id": "Afrikaans1983Bible",
+      "name": "Afrikaans 1983",
+      "filename": "Afrikaans1983Bible.xml"
+    },
+    {
+      "id": "Afrikaans2020Bible",
+      "name": "Afrikaans 2020 (Die Bybel 2020-vertaling)",
+      "filename": "Afrikaans2020Bible.xml"
+    },
+    {
+      "id": "AfrikaansABABible",
+      "name": "Afrikaans Bible (ABA) 2007 (Bybel vir almal)",
+      "filename": "AfrikaansABABible.xml"
+    },
+    {
+      "id": "AfrikaansDBBible",
+      "name": "Afrikaans DB 2006 (Die Boodskap)",
+      "filename": "AfrikaansDBBible.xml"
+    },
+    {
+      "id": "AhiraniBible",
+      "name": "Ahirani (आहिराणी नवा करार) - No Year",
+      "filename": "AhiraniBible.xml"
+    },
+    {
+      "id": "Albanian2018Bible",
+      "name": "Albania (Shqip Së Bashku 2020)",
+      "filename": "Albanian2018Bible.xml"
+    },
+    {
+      "id": "AlbanianBible",
+      "name": "Albanian (Bibla Shqip 1994)",
+      "filename": "AlbanianBible.xml"
+    },
+    {
+      "id": "AlbanianALTMK27Bible",
+      "name": "Albanian (Dhjata e Re 1827)",
+      "filename": "AlbanianALTMK27Bible.xml"
+    },
+    {
+      "id": "Albanian1872Bible",
+      "name": "Albanian 1872 (Dhiata e Re Gegnisht Konstandin Kristoforidhi 1872)",
+      "filename": "Albanian1872Bible.xml"
+    },
+    {
+      "id": "Albanian1879Bible",
+      "name": "Albanian DERKK79 (Dhiata e Re Konstantin Kristoferidhi 1879)",
+      "filename": "Albanian1879Bible.xml"
+    },
+    {
+      "id": "AmharicTigrinya2024Bible",
+      "name": "Amharic (Tigrigna: Contemporary Tigrinya Bible 2024)",
+      "filename": "AmharicTigrinya2024Bible.xml"
+    },
+    {
+      "id": "Amharic2000Bible",
+      "name": "Amharic 2000 (የአማርኛ መጽሐፍ ቅዱስ (ሰማንያ አሃዱ))",
+      "filename": "Amharic2000Bible.xml"
+    },
+    {
+      "id": "AmharicBible",
+      "name": "Amharic Bible (መጽሐፍ ቅዱስ (የብሉይና የሐዲስ ኪዳን መጻሕፍት))",
+      "filename": "AmharicBible.xml"
+    },
+    {
+      "id": "AmharicCatholicBible",
+      "name": "Amharic Catholic Version (መጽሐፍ ቅዱስ - (ካቶሊካዊ እትም - ኤማሁስ)) No Year",
+      "filename": "AmharicCatholicBible.xml"
+    },
+    {
+      "id": "AmharicDawroBible",
+      "name": "Amharic Dawro (Ooratha Caaquwaa)",
+      "filename": "AmharicDawroBible.xml"
+    },
+    {
+      "id": "AmharicDawroDFBEBible",
+      "name": "Amharic Dawro DFBE (ጌሻ ማጻፋ) No Year",
+      "filename": "AmharicDawroDFBEBible.xml"
+    },
+    {
+      "id": "AmharicDawroDFBLVLBible",
+      "name": "Amharic Dawro DFBLVL (Geeshsha Mas'aafaa)",
+      "filename": "AmharicDawroDFBLVLBible.xml"
+    },
+    {
+      "id": "AmharicDawroDWRNTBible",
+      "name": "Amharic Dawro DWRNT (Ooratha Caaquwaa)",
+      "filename": "AmharicDawroDWRNTBible.xml"
+    },
+    {
+      "id": "AmharicDawroWWIBible",
+      "name": "Amharic Dawro New Testament (The Word for the World International)",
+      "filename": "AmharicDawroWWIBible.xml"
+    },
+    {
+      "id": "AmharicGamoGMBible",
+      "name": "Amharic Gamo (Geeshsha Maxaafa)",
+      "filename": "AmharicGamoGMBible.xml"
+    },
+    {
+      "id": "AmharicGamoWordBible",
+      "name": "Amharic Gamo (ጋሞ ማጻፋ)",
+      "filename": "AmharicGamoWordBible.xml"
+    },
+    {
+      "id": "AmharicGamoBible",
+      "name": "Amharic Gamo 2011 New Testament",
+      "filename": "AmharicGamoBible.xml"
+    },
+    {
+      "id": "AmharicGamo2017Bible",
+      "name": "Amharic Gamo 2017 (Gamo Geesha Maxxafa New Testamen)",
+      "filename": "AmharicGamo2017Bible.xml"
+    },
+    {
+      "id": "AmharicGofaWWIBible",
+      "name": "Amharic Gofa 2011 (The Word For The World International) (Gofa New Testament)",
+      "filename": "AmharicGofaWWIBible.xml"
+    },
+    {
+      "id": "AmharicGofaBible",
+      "name": "Amharic Gofa 2011 (ኦራ ጫቁዋ ጎፋ)",
+      "filename": "AmharicGofaBible.xml"
+    },
+    {
+      "id": "AmharicGofaGFBEVFBible",
+      "name": "Amharic Gofa GFBEVF (ጌሻ ማፃፋ)",
+      "filename": "AmharicGofaGFBEVFBible.xml"
+    },
+    {
+      "id": "AmharicGofaGFBLVFBible",
+      "name": "Amharic Gofa GFBLVF (Geeshsha Maxaafa)",
+      "filename": "AmharicGofaGFBLVFBible.xml"
+    },
+    {
+      "id": "AmharicGofaRNTBible",
+      "name": "Amharic Gofa RNT 2011 (Ooratha Caaquwa Goofatho)",
+      "filename": "AmharicGofaRNTBible.xml"
+    },
+    {
+      "id": "AmharicNASVBible",
+      "name": "Amharic NASV (አዲሱ መደበኛ ትርጒም)",
+      "filename": "AmharicNASVBible.xml"
+    },
+    {
+      "id": "AmharicNSTBible",
+      "name": "Amharic New Standard Translation (አማርኛ አዲሱ መደበኛ ትርጉም) 2005",
+      "filename": "AmharicNSTBible.xml"
+    },
+    {
+      "id": "AmharicTigrinya15Bible",
+      "name": "Amharic Tigrinya (መፅሓፍ ቅዱስ) No Year",
+      "filename": "AmharicTigrinya15Bible.xml"
+    },
+    {
+      "id": "AmharicTigrinyaBible",
+      "name": "Amharic Tigrinya 2011",
+      "filename": "AmharicTigrinyaBible.xml"
+    },
+    {
+      "id": "Arabic1978Bible",
+      "name": "Arabic 1978 (APD) (Kitaab al Vahd aj Jadid 1978)",
+      "filename": "Arabic1978Bible.xml"
+    },
+    {
+      "id": "Arabic2016Bible",
+      "name": "Arabic 2016 (الكِتاب المُقَدَّس: التَّرْجَمَةُ العَرَبِيَّةُ المُبَسَّطَةُ)",
+      "filename": "Arabic2016Bible.xml"
+    },
+    {
+      "id": "Arabic2018Bible",
+      "name": "Arabic 2018 (الترجمة الكاثوليكيّة (اليسوعيّة))",
+      "filename": "Arabic2018Bible.xml"
+    },
+    {
+      "id": "Arabic2023Bible",
+      "name": "Arabic 2023 (SAB) (الكتاب الشريف)",
+      "filename": "Arabic2023Bible.xml"
+    },
+    {
+      "id": "ArabicAlgeriaBible",
+      "name": "Arabic Algerian (العهد الجديد باللهجة الجزائرية)",
+      "filename": "ArabicAlgeriaBible.xml"
+    },
+    {
+      "id": "ArabicAPDBible",
+      "name": "Arabic APD 2024 (كِتاب العَهد الجَّديد مِن الكِتاب المُقَدَّس)",
+      "filename": "ArabicAPDBible.xml"
+    },
+    {
+      "id": "ArabicGNABible",
+      "name": "Arabic Bible (GNA) Good News Arabic - 1993 (الترجمة العربية المشتركة)",
+      "filename": "ArabicGNABible.xml"
+    },
+    {
+      "id": "ArabicTunisianBible",
+      "name": "Arabic Bible (Tunisian) (Tunisian Arabic Version) 2018",
+      "filename": "ArabicTunisianBible.xml"
+    },
+    {
+      "id": "ArabicAVDBible",
+      "name": "Arabic Bible AVD 1999",
+      "filename": "ArabicAVDBible.xml"
+    },
+    {
+      "id": "ArabicAVDDVBible",
+      "name": "Arabic Bible AVDDV 1999",
+      "filename": "ArabicAVDDVBible.xml"
+    },
+    {
+      "id": "ArabicERVBible",
+      "name": "Arabic Bible ERV 2009",
+      "filename": "ArabicERVBible.xml"
+    },
+    {
+      "id": "ArabicLABible",
+      "name": "Arabic Bible Live (Targamet El Hayah) (LA)",
+      "filename": "ArabicLABible.xml"
+    },
+    {
+      "id": "ArabicMoroccoBible",
+      "name": "Arabic Bible Morocco Version - 2012",
+      "filename": "ArabicMoroccoBible.xml"
+    },
+    {
+      "id": "ArabicGOVBible",
+      "name": "Arabic GOV (الكتاب المقدس العهد الجديد، النسخة الارثوذكسية/ القدس)",
+      "filename": "ArabicGOVBible.xml"
+    },
+    {
+      "id": "ArabicBible",
+      "name": "Arabic KEH Ketab El Hayat (كتاب الحياة)",
+      "filename": "ArabicBible.xml"
+    },
+    {
+      "id": "ArabicLebaneseBible",
+      "name": "Arabic Lebanese (bil 3arabe App)",
+      "filename": "ArabicLebaneseBible.xml"
+    },
+    {
+      "id": "ArabicMorocco2023Bible",
+      "name": "Arabic Moroccan (Northern Mor NT)",
+      "filename": "ArabicMorocco2023Bible.xml"
+    },
+    {
+      "id": "ArabicSABBible",
+      "name": "Arabic SAB (الكتاب الشريف)",
+      "filename": "ArabicSABBible.xml"
+    },
+    {
+      "id": "ArabicSABible",
+      "name": "Arabic Simplified (الكِتاب المُقَدَّس: التَّرْجَمَةُ العَرَبِيَّةُ المُبَسَّطَةُ)",
+      "filename": "ArabicSABible.xml"
+    },
+    {
+      "id": "ArabicSVDBible",
+      "name": "Arabic SVD 1865 Version: Public Domain",
+      "filename": "ArabicSVDBible.xml"
+    },
+    {
+      "id": "ArabicTMABible",
+      "name": "Arabic TMA 2021 (المعنى الصحيح لإنجيل المسيح)",
+      "filename": "ArabicTMABible.xml"
+    },
+    {
+      "id": "ArabicTU2022Bible",
+      "name": "Arabic TU2022 (العهد الجديد بالدارجة التونسية)",
+      "filename": "ArabicTU2022Bible.xml"
+    },
+    {
+      "id": "AramaicBible",
+      "name": "Aramaic Peshitta - No Data",
+      "filename": "AramaicBible.xml"
+    },
+    {
+      "id": "Armenian1853Bible",
+      "name": "Armenian 1853 (Western Armenian Bible 1853)",
+      "filename": "Armenian1853Bible.xml"
+    },
+    {
+      "id": "Armenian2017Bible",
+      "name": "Armenian 2017 (Արեւմտահայերէն Նոր Կտակարան, հարմարցուած․ 2017)",
+      "filename": "Armenian2017Bible.xml"
+    },
+    {
+      "id": "Armenian2018Bible",
+      "name": "Armenian 2018 (Նոր վերանայված Արարատ Աստվածաշունչ)",
+      "filename": "Armenian2018Bible.xml"
+    },
+    {
+      "id": "Armenian2019Bible",
+      "name": "Armenian 2019 (Western Armenian New Translation - Armenian Catholicosate of Cilicia - New Testament)",
+      "filename": "Armenian2019Bible.xml"
+    },
+    {
+      "id": "ArmenianAraratBible",
+      "name": "Armenian Ararat 1896 (Արարատ Թարգմանություն)",
+      "filename": "ArmenianAraratBible.xml"
+    },
+    {
+      "id": "ArmenianEasternBible",
+      "name": "Armenian Eastern Bible 1994",
+      "filename": "ArmenianEasternBible.xml"
+    },
+    {
+      "id": "ArmenianNEABible",
+      "name": "Armenian NEA (Նոր Էջմիածին Աստվածաշունչ)",
+      "filename": "ArmenianNEABible.xml"
+    },
+    {
+      "id": "ArmenianBible",
+      "name": "Armenian Western NT 1994?",
+      "filename": "ArmenianBible.xml"
+    },
+    {
+      "id": "AssameseBible",
+      "name": "Assamese - 2019 (ইণ্ডিয়ান ৰিভাইচ ভাৰচন (IRV) আচামিচ - 2019)",
+      "filename": "AssameseBible.xml"
+    },
+    {
+      "id": "AvarBible",
+      "name": "Avar Инжил Магӏарул [Avaric]",
+      "filename": "AvarBible.xml"
+    },
+    {
+      "id": "AwadhiBible",
+      "name": "Awadhi ERV (पवित्तर बाइबिल)",
+      "filename": "AwadhiBible.xml"
+    },
+    {
+      "id": "AymaraBible",
+      "name": "Ayamar Bible (Qullan Arunaca)",
+      "filename": "AymaraBible.xml"
+    },
+    {
+      "id": "Aymara1997Bible",
+      "name": "Aymara 1997 (Qullan Arunaka DC)",
+      "filename": "Aymara1997Bible.xml"
+    },
+    {
+      "id": "Aymara1986Bible",
+      "name": "Aymara Bible 1986 (Aymar Bibliia 1986)",
+      "filename": "Aymara1986Bible.xml"
+    },
+    {
+      "id": "Azerbaijan2013Bible",
+      "name": "Azerbaijan 2013 (موقدس کتاب)",
+      "filename": "Azerbaijan2013Bible.xml"
+    },
+    {
+      "id": "AzerbaijanBible",
+      "name": "Azerbajani (Azərbaycan Bibliyası 2008)",
+      "filename": "AzerbaijanBible.xml"
+    },
+    {
+      "id": "AzerbaijanSouthBible",
+      "name": "Azerbajani Bible (South) Used in Both Iran and Azerbaijan 2008",
+      "filename": "AzerbaijanSouthBible.xml"
+    },
+    {
+      "id": "BagriBible",
+      "name": "Bagri Bible",
+      "filename": "BagriBible.xml"
+    },
+    {
+      "id": "BalineseBible",
+      "name": "Balinese (Cakepan Suci)",
+      "filename": "BalineseBible.xml"
+    },
+    {
+      "id": "BalochiBible",
+      "name": "Balochi (Hodáay Pákén Ketáb, Balochi zobáná)",
+      "filename": "BalochiBible.xml"
+    },
+    {
+      "id": "BalochiArabicBible",
+      "name": "Balochi Arabic (هُدائے پاکێن کتاب، بلۆچی زبانا)",
+      "filename": "BalochiArabicBible.xml"
+    },
+    {
+      "id": "BalochiSoutherenBible",
+      "name": "Balochi Southern (هُدائے پاکێن کتاب، بلۆچی زبانا)",
+      "filename": "BalochiSoutherenBible.xml"
+    },
+    {
+      "id": "BalochiSoutherenLatinBible",
+      "name": "Balochi, Southern: Latin (Hodáay Pákén Ketáb, Balochi zobáná)",
+      "filename": "BalochiSoutherenLatinBible.xml"
+    },
+    {
+      "id": "Baoule1974Bible",
+      "name": "Baoule (Nyanmien nde Ufle) 1974",
+      "filename": "Baoule1974Bible.xml"
+    },
+    {
+      "id": "Baoule1998Bible",
+      "name": "Baoule (NYANMIƐN NDƐ'N 1998)",
+      "filename": "Baoule1998Bible.xml"
+    },
+    {
+      "id": "BaouleBible",
+      "name": "Baoule Bible 1996 (Kuo :Dele')",
+      "filename": "BaouleBible.xml"
+    },
+    {
+      "id": "BashkirBible",
+      "name": "Bashkir 2014 - Инжил Башҡортча",
+      "filename": "BashkirBible.xml"
+    },
+    {
+      "id": "Bashkir2023Bible",
+      "name": "Bashkir 2023 (Изге Яҙма)",
+      "filename": "Bashkir2023Bible.xml"
+    },
+    {
+      "id": "Basque2008Bible",
+      "name": "Basque (EAB) 2008 (Elizen Arteko Biblia (Biblia en Euskara, Traducción Interconfesional))",
+      "filename": "Basque2008Bible.xml"
+    },
+    {
+      "id": "BasqueBible",
+      "name": "Basque (Navarro-Labourdin Basque) - No Year",
+      "filename": "BasqueBible.xml"
+    },
+    {
+      "id": "BavarianBible",
+      "name": "Bavarian Bible 1998 (De Bibl auf Bairisch)",
+      "filename": "BavarianBible.xml"
+    },
+    {
+      "id": "BelarusianBible",
+      "name": "Belarusian (Пераклад В. Сёмухі)",
+      "filename": "BelarusianBible.xml"
+    },
+    {
+      "id": "Belarusian2017Bible",
+      "name": "Belarusian 2017 (Біблія — пераклад Чарняўскага (Выданне 2017 Года))",
+      "filename": "Belarusian2017Bible.xml"
+    },
+    {
+      "id": "BelarusianCHNTBible",
+      "name": "Belarusian Bible (CHNT) 1999",
+      "filename": "BelarusianCHNTBible.xml"
+    },
+    {
+      "id": "BelarusianNTJSBible",
+      "name": "Belarusian Bible Maley (© 1931, 1948; у 1985, 1991 унесены праўкі)",
+      "filename": "BelarusianNTJSBible.xml"
+    },
+    {
+      "id": "BelarusianBokunBible",
+      "name": "Belarusian Bokun (Пераклад А.Бокуна)",
+      "filename": "BelarusianBokunBible.xml"
+    },
+    {
+      "id": "BembaBible",
+      "name": "Bemba (Ishiwi Lyakwa Lesa 2015)",
+      "filename": "BembaBible.xml"
+    },
+    {
+      "id": "BengaliBACIBBible",
+      "name": "Bengali (BACIB) 2013 (কিতাবুল মোকাদ্দস)",
+      "filename": "BengaliBACIBBible.xml"
+    },
+    {
+      "id": "BengaliBCVBible",
+      "name": "Bengali (BCV) (বাংলা সমকালীন সংস্করণ)",
+      "filename": "BengaliBCVBible.xml"
+    },
+    {
+      "id": "BengaliBSIBible",
+      "name": "Bengali (BSI) 2016 O.V. Bible, পবিএ বাইবেল O.V",
+      "filename": "BengaliBSIBible.xml"
+    },
+    {
+      "id": "BengaliBible",
+      "name": "Bengali (World Bible Translation Center) (WBTC) Easy to Read Version = 2001",
+      "filename": "BengaliBible.xml"
+    },
+    {
+      "id": "Bengali2017Bible",
+      "name": "Bengali 2017 (বাঙালি বাইবেল)",
+      "filename": "Bengali2017Bible.xml"
+    },
+    {
+      "id": "Bengali2023Bible",
+      "name": "Bengali 2023 (পবিত্র বাইবেল (কেরী ভার্সন))",
+      "filename": "Bengali2023Bible.xml"
+    },
+    {
+      "id": "BengaliSBCLBible",
+      "name": "Bengali Bangladesh 2000 SBCL (Pobitro Baibel)",
+      "filename": "BengaliSBCLBible.xml"
+    },
+    {
+      "id": "BengaliMBCLBible",
+      "name": "Bengali Bangladesh MBCL (Kitabul Mukkadas)",
+      "filename": "BengaliMBCLBible.xml"
+    },
+    {
+      "id": "BengaliCLBSIBible",
+      "name": "Bengali CL BSI 2016 (পবিএ বাইবেল CL Bible (BSI))",
+      "filename": "BengaliCLBSIBible.xml"
+    },
+    {
+      "id": "BengaliERVBible",
+      "name": "Bengali ERV 2001 (পবিত্র বাইবেল)",
+      "filename": "BengaliERVBible.xml"
+    },
+    {
+      "id": "BengaliIRVBENBible",
+      "name": "Bengali IRV (ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী)",
+      "filename": "BengaliIRVBENBible.xml"
+    },
+    {
+      "id": "BerberBible",
+      "name": "Berber = Morocco and Algeria - Tachelheit Bible (RBD) (aåaras n-tudrt - injil l-lmasiæ - løhd l-ljdid lli-iskr rbbi å-gras d-bnadm)",
+      "filename": "BerberBible.xml"
+    },
+    {
+      "id": "BhilaliBible",
+      "name": "Bhilali (भगवानेन छाचला बुल)",
+      "filename": "BhilaliBible.xml"
+    },
+    {
+      "id": "BodoBible",
+      "name": "Bodo BDVNT (ବ୍‌ଡ଼୍ ହ୍‌ର୍‌ଜା ବାଇବଲ)",
+      "filename": "BodoBible.xml"
+    },
+    {
+      "id": "BodoNTBPL20Bible",
+      "name": "Bodo NTBPL20 (ସଃର୍ଗାର୍‌ ବାଟ୍‌ ନଃଉଁଆ ନିଅମ୍‌)",
+      "filename": "BodoNTBPL20Bible.xml"
+    },
+    {
+      "id": "BosnianBible",
+      "name": "Bosnian (Biblija, Stari i Novi Zavjet)",
+      "filename": "BosnianBible.xml"
+    },
+    {
+      "id": "BrajBible",
+      "name": "Braj (बृज भासा)",
+      "filename": "BrajBible.xml"
+    },
+    {
+      "id": "BugisBible",
+      "name": "Bugis (KITTA KAREBA MADECENG)",
+      "filename": "BugisBible.xml"
+    },
+    {
+      "id": "BulgarianSPBBible",
+      "name": "Bulgarian (SPB) 2000 (Новият Завет: Съвременен Превод)",
+      "filename": "BulgarianSPBBible.xml"
+    },
+    {
+      "id": "BulgarianTZABible",
+      "name": "Bulgarian (TZA) (Цариградски)",
+      "filename": "BulgarianTZABible.xml"
+    },
+    {
+      "id": "BulgarianBPBBible",
+      "name": "Bulgarian (Библейска лига - Ревизия 2001)",
+      "filename": "BulgarianBPBBible.xml"
+    },
+    {
+      "id": "BulgarianBOBBible",
+      "name": "Bulgarian (Библия, Синодално Издание (1982 г.))",
+      "filename": "BulgarianBOBBible.xml"
+    },
+    {
+      "id": "BulgarianBible",
+      "name": "Bulgarian 1940 (Ревизиран)",
+      "filename": "BulgarianBible.xml"
+    },
+    {
+      "id": "Bulgarian2015Bible",
+      "name": "Bulgarian 2015 (Библия, Ревизирано Издание)",
+      "filename": "Bulgarian2015Bible.xml"
+    },
+    {
+      "id": "BulgarianCBTBible",
+      "name": "Bulgarian CBT (Съвременен български превод (с DC books) 2013)",
+      "filename": "BulgarianCBTBible.xml"
+    },
+    {
+      "id": "BulgarianVerensBible",
+      "name": "Bulgarian Veren's (Верен) Contemporary 1871",
+      "filename": "BulgarianVerensBible.xml"
+    },
+    {
+      "id": "BundeliBible",
+      "name": "Bundeli 2018 (Bundeli Holy Bible)",
+      "filename": "BundeliBible.xml"
+    },
+    {
+      "id": "BurmeseBCLBible",
+      "name": "Burmese (BCL) (Common Language Bible)",
+      "filename": "BurmeseBCLBible.xml"
+    },
+    {
+      "id": "BurmeseBible",
+      "name": "Burmese 1835 Version Judson",
+      "filename": "BurmeseBible.xml"
+    },
+    {
+      "id": "BurmeseMSBUBible",
+      "name": "Burmese MSBU Myanmar (မြန်​​​မာ့​​​စံ​​​မီ​​​သမ္မာ​​​ကျမ်း​​)",
+      "filename": "BurmeseMSBUBible.xml"
+    },
+    {
+      "id": "BurmeseJBZVBible",
+      "name": "Burmese Myanmar (Judson Bible in Zawgyi Version)",
+      "filename": "BurmeseJBZVBible.xml"
+    },
+    {
+      "id": "Burmese2021Bible",
+      "name": "Burmese Myanmar (Judson Bible)",
+      "filename": "Burmese2021Bible.xml"
+    },
+    {
+      "id": "Burmese1928Bible",
+      "name": "Burmese Myanmar 1928 (Garrad Bible)",
+      "filename": "Burmese1928Bible.xml"
+    },
+    {
+      "id": "BurmeseMCLZVBible",
+      "name": "Burmese Myanmar MCLZV (Myanmar Common Language Zawgyi Version)",
+      "filename": "BurmeseMCLZVBible.xml"
+    },
+    {
+      "id": "BurmeseMSBZBible",
+      "name": "Burmese Myanmar MSBZ (ျမန္​မာ့​စံ​မီ​သမၼာ​က်မ္)",
+      "filename": "BurmeseMSBZBible.xml"
+    },
+    {
+      "id": "CatalanBCIBible",
+      "name": "Catalan (BCI) 2008 - (Bíblia Catalana, Traducción Interconfesional)",
+      "filename": "CatalanBCIBible.xml"
+    },
+    {
+      "id": "CatalanBECBible",
+      "name": "Catalan (BEC) 2000 (Bíblia Evangèlica Catalana)",
+      "filename": "CatalanBECBible.xml"
+    },
+    {
+      "id": "Cebuano1999Bible",
+      "name": "Cebuano 1999 (Maayong Balita Biblia)",
+      "filename": "Cebuano1999Bible.xml"
+    },
+    {
+      "id": "Cebuano2011Bible",
+      "name": "Cebuano 2011 (Ang Biblia, 2011)",
+      "filename": "Cebuano2011Bible.xml"
+    },
+    {
+      "id": "CebuanoAPSDBible",
+      "name": "Cebuano APSD (Ang Pulong sa Dios)",
+      "filename": "CebuanoAPSDBible.xml"
+    },
+    {
+      "id": "CebuanoBible",
+      "name": "Cebuano CBV - Unknown",
+      "filename": "CebuanoBible.xml"
+    },
+    {
+      "id": "CebuanoRCPVBible",
+      "name": "Cebuano RCPV 1999 (Ang Bag-ong Maayong Balita Biblia)",
+      "filename": "CebuanoRCPVBible.xml"
+    },
+    {
+      "id": "ChechenBible",
+      "name": "Chechen 2012 (Делан Йозанаш)",
+      "filename": "ChechenBible.xml"
+    },
+    {
+      "id": "ChewaBLYDCBible",
+      "name": "Chewa (Buku Loyera Catholic Edition - Chichewa)",
+      "filename": "ChewaBLYDCBible.xml"
+    },
+    {
+      "id": "Chewa2014Bible",
+      "name": "Chewa 1922 (Buku Lopatulika)",
+      "filename": "Chewa2014Bible.xml"
+    },
+    {
+      "id": "Chewa2016Bible",
+      "name": "Chewa 2002 (Mawu a Mulungu mu Chichewa Chalero)",
+      "filename": "Chewa2016Bible.xml"
+    },
+    {
+      "id": "Chewa1992Bible",
+      "name": "Chewa Bible (BL) 1992 - Buku Lopatulika",
+      "filename": "Chewa1992Bible.xml"
+    },
+    {
+      "id": "ChhattisgarhiBible",
+      "name": "Chhattisgarhi (नवां नियम छत्तीसगढ़ी) 2012",
+      "filename": "ChhattisgarhiBible.xml"
+    },
+    {
+      "id": "ChibembaBible",
+      "name": "Chibemba (Ishiwi Lyakwa Lesa 2015)",
+      "filename": "ChibembaBible.xml"
+    },
+    {
+      "id": "ChinDNTBible",
+      "name": "Chin (Dai Cangcim Kthai)",
+      "filename": "ChinDNTBible.xml"
+    },
+    {
+      "id": "ChinCSHBible",
+      "name": "Chin (Khyang NT)",
+      "filename": "ChinCSHBible.xml"
+    },
+    {
+      "id": "ChinBSIBible",
+      "name": "Chin (Mara Bible RV (BSI))",
+      "filename": "ChinBSIBible.xml"
+    },
+    {
+      "id": "ChinMatupiBible",
+      "name": "Chin (Matu Bible)",
+      "filename": "ChinMatupiBible.xml"
+    },
+    {
+      "id": "ChinTedimBible",
+      "name": "Chin 1977 (Tedim Bible)",
+      "filename": "ChinTedimBible.xml"
+    },
+    {
+      "id": "Chin2010Bible",
+      "name": "Chin 2010 ??",
+      "filename": "Chin2010Bible.xml"
+    },
+    {
+      "id": "ChinTedim2011Bible",
+      "name": "Chin 2011 (Tedim Bible)",
+      "filename": "ChinTedim2011Bible.xml"
+    },
+    {
+      "id": "ChinKNTPBible",
+      "name": "Chin KNTP (Khongso New Testament Printed)",
+      "filename": "ChinKNTPBible.xml"
+    },
+    {
+      "id": "ChinMatupi2006Bible",
+      "name": "Chin Matupi (Matu Chin New Testament 2006)",
+      "filename": "ChinMatupi2006Bible.xml"
+    },
+    {
+      "id": "ChinSCB2Bible",
+      "name": "Chin SCB2 (Syin Chin Bible)",
+      "filename": "ChinSCB2Bible.xml"
+    },
+    {
+      "id": "ChinTB77Bible",
+      "name": "Chin TB77 (Tedim Bible)",
+      "filename": "ChinTB77Bible.xml"
+    },
+    {
+      "id": "ChinTDBBible",
+      "name": "Chin TBD (Tedim Bible Revision 2017)",
+      "filename": "ChinTDBBible.xml"
+    },
+    {
+      "id": "ChinTBR17Bible",
+      "name": "Chin TBR17 (Tedim Bible Revision 2017)",
+      "filename": "ChinTBR17Bible.xml"
+    },
+    {
+      "id": "ChineseCCBSBible",
+      "name": "Chinese (Simplified) Contemporary Bible (CCB Bible) (圣经当代译本修订版)",
+      "filename": "ChineseCCBSBible.xml"
+    },
+    {
+      "id": "ChineseSimplifiedNewBible",
+      "name": "Chinese Bible - (Simplified) (新译本) CNVS",
+      "filename": "ChineseSimplifiedNewBible.xml"
+    },
+    {
+      "id": "ChineseWenliEasyBible",
+      "name": "Chinese Bible (Easy Wenli) (Traditional)",
+      "filename": "ChineseWenliEasyBible.xml"
+    },
+    {
+      "id": "ChinesePekingBible",
+      "name": "Chinese Bible (Peking) (Traditional) (北京官話譯本)",
+      "filename": "ChinesePekingBible.xml"
+    },
+    {
+      "id": "ChineseCUNPSTBible",
+      "name": "Chinese Bible (Traditional) (CUNPST)",
+      "filename": "ChineseCUNPSTBible.xml"
+    },
+    {
+      "id": "ChineseWenliBible",
+      "name": "Chinese Bible (Wenli) (Traditional) (包爾騰－柏漢理淺文理《新約聖經》)",
+      "filename": "ChineseWenliBible.xml"
+    },
+    {
+      "id": "Chinese1886Bible",
+      "name": "Chinese Bible 1886 (Traditional) (楊格非官話《新約全書》)",
+      "filename": "Chinese1886Bible.xml"
+    },
+    {
+      "id": "Chinese1919Bible",
+      "name": "Chinese Bible 1919 (Traditional) (文理和合譯本《新舊約全書》)",
+      "filename": "Chinese1919Bible.xml"
+    },
+    {
+      "id": "Chinese1927Bible",
+      "name": "Chinese Bible 1927 (Traditional) (文理《委辦譯本》)",
+      "filename": "Chinese1927Bible.xml"
+    },
+    {
+      "id": "Chinese1933Bible",
+      "name": "Chinese Bible 1933 (Traditional) (王元德《新式標點新約全書》)",
+      "filename": "Chinese1933Bible.xml"
+    },
+    {
+      "id": "Chinese1941Bible",
+      "name": "Chinese Bible 1941 (Traditional) (亨理－鄭壽麟《國語新舊庫譯本－新約全書》)",
+      "filename": "Chinese1941Bible.xml"
+    },
+    {
+      "id": "Chinese1967Bible",
+      "name": "Chinese Bible 1967 (Traditional) (蕭鐵笛《新譯新約全書》)",
+      "filename": "Chinese1967Bible.xml"
+    },
+    {
+      "id": "ChineseCCBTBible",
+      "name": "Chinese Bible CCB (Traditional)",
+      "filename": "ChineseCCBTBible.xml"
+    },
+    {
+      "id": "ChineseTraditionalNewBible",
+      "name": "Chinese Bible CNVT (Traditional) - (新譯本)",
+      "filename": "ChineseTraditionalNewBible.xml"
+    },
+    {
+      "id": "ChineseCSBSBible",
+      "name": "Chinese Bible CSBS (Simplified) - (中文标准译本)",
+      "filename": "ChineseCSBSBible.xml"
+    },
+    {
+      "id": "ChineseCSBTBible",
+      "name": "Chinese Bible CSBT (Traditional) - (中文標準譯本)",
+      "filename": "ChineseCSBTBible.xml"
+    },
+    {
+      "id": "ChineseCUNPSSBible",
+      "name": "Chinese Bible CUNPSS (Simplified) (新标点和合本, 上帝版)",
+      "filename": "ChineseCUNPSSBible.xml"
+    },
+    {
+      "id": "ChineseNankingBible",
+      "name": "Chinese Bible Nanking (Traditional) (南京官話《新約全書》)",
+      "filename": "ChineseNankingBible.xml"
+    },
+    {
+      "id": "ChineseRCUVTBible",
+      "name": "Chinese Bible RCUV (Traditional) (和合本修訂版)",
+      "filename": "ChineseRCUVTBible.xml"
+    },
+    {
+      "id": "ChineseRCUVSSBible",
+      "name": "Chinese Bible RCUVSS (Simplified) (和合本修订版)",
+      "filename": "ChineseRCUVSSBible.xml"
+    },
+    {
+      "id": "ChineseTCV2019TBible",
+      "name": "Chinese Bible TCV2019T (Traditional) (《現代中文譯本2019－－繁體版》)",
+      "filename": "ChineseTCV2019TBible.xml"
+    },
+    {
+      "id": "ChineseTHV2012Bible",
+      "name": "Chinese Bible TNV 2012 (Traditional) (客語聖經 – 現代臺灣客語譯本，新舊約全書客語聖經 – 漢字版)",
+      "filename": "ChineseTHV2012Bible.xml"
+    },
+    {
+      "id": "ChineseUnion2010Bible",
+      "name": "Chinese Bible Union Version 2010 (Traditional) (（和合本修訂版） （繁體字） 神版)",
+      "filename": "ChineseUnion2010Bible.xml"
+    },
+    {
+      "id": "ChineseWenli1823Bible",
+      "name": "Chinese Bible Wenli 1823 (Traditional) (米憐文理《神天聖書》)",
+      "filename": "ChineseWenli1823Bible.xml"
+    },
+    {
+      "id": "ChineseWenli1885Bible",
+      "name": "Chinese Bible Wenli 1885 (Traditional)",
+      "filename": "ChineseWenli1885Bible.xml"
+    },
+    {
+      "id": "ChineseWenli1897Bible",
+      "name": "Chinese Bible Wenli 1897 (Traditional) (湛約翰－韶瑪亭文理《新約全書》)",
+      "filename": "ChineseWenli1897Bible.xml"
+    },
+    {
+      "id": "ChineseSimplifiedBible",
+      "name": "Chinese Simplified CUNPSS Script Union (新标点和合本, 神版)",
+      "filename": "ChineseSimplifiedBible.xml"
+    },
+    {
+      "id": "ChineseTraditionalERVBible",
+      "name": "Chinese Traditional ERV 2006",
+      "filename": "ChineseTraditionalERVBible.xml"
+    },
+    {
+      "id": "ChineseTTVHBible",
+      "name": "Chinese TTVH 2021 (現代台語譯本漢字版)",
+      "filename": "ChineseTTVHBible.xml"
+    },
+    {
+      "id": "ChineseTTVRBible",
+      "name": "Chinese TTVR (現代台語譯本羅馬字版)",
+      "filename": "ChineseTTVRBible.xml"
+    },
+    {
+      "id": "ChineseTraditionalBible",
+      "name": "Chinese Union Traditional 1919",
+      "filename": "ChineseTraditionalBible.xml"
+    },
+    {
+      "id": "ChuvashBible",
+      "name": "Chuvash (CHB) (БИБЛИ) 2009",
+      "filename": "ChuvashBible.xml"
+    },
+    {
+      "id": "ChuvashRSOBible",
+      "name": "Chuvash RSO (Синодальный НЗ)",
+      "filename": "ChuvashRSOBible.xml"
+    },
+    {
+      "id": "CopticCNTVBible",
+      "name": "Coptic 2018 (العهد الجديد)",
+      "filename": "CopticCNTVBible.xml"
+    },
+    {
+      "id": "CopticBible",
+      "name": "Coptic Bohairic NT 2006",
+      "filename": "CopticBible.xml"
+    },
+    {
+      "id": "CopticSahidicBible",
+      "name": "Coptic Sahidic 2006",
+      "filename": "CopticSahidicBible.xml"
+    },
+    {
+      "id": "CroatianCNTBible",
+      "name": "Croatian (Knjiga O Kristu)",
+      "filename": "CroatianCNTBible.xml"
+    },
+    {
+      "id": "CroatianSHPBible",
+      "name": "Croatian (SHP) 2019 (Biblija: Suvremeni Hrvatski Prijevod)",
+      "filename": "CroatianSHPBible.xml"
+    },
+    {
+      "id": "CroatianBible",
+      "name": "Croatian Bible 1988",
+      "filename": "CroatianBible.xml"
+    },
+    {
+      "id": "CroatianGKSBible",
+      "name": "Croatian Bible GKS 2010 - (Šarić) Version",
+      "filename": "CroatianGKSBible.xml"
+    },
+    {
+      "id": "CroatianBKJBible",
+      "name": "Croatian BKJ 2011 (Biblija Kralja Jakova)",
+      "filename": "CroatianBKJBible.xml"
+    },
+    {
+      "id": "CzechBible",
+      "name": "Czech (Bible 21)",
+      "filename": "CzechBible.xml"
+    },
+    {
+      "id": "CzechKralichka1613Bible",
+      "name": "Czech (Kralická 1613)",
+      "filename": "CzechKralichka1613Bible.xml"
+    },
+    {
+      "id": "CzechPrekladBible",
+      "name": "Czech 2009 (Český studijní překlad)",
+      "filename": "CzechPrekladBible.xml"
+    },
+    {
+      "id": "CzechSNCBible",
+      "name": "Czech 2012 (Slovo na cestu)",
+      "filename": "CzechSNCBible.xml"
+    },
+    {
+      "id": "Czech1947Bible",
+      "name": "Czech Bible (COL) Dr. Rudolf Col (1947)",
+      "filename": "Czech1947Bible.xml"
+    },
+    {
+      "id": "CzechPMPZBible",
+      "name": "Czech Bible (PMPZ) 2014 (Český studijní překlad Miloše Pavlíka - Miloš Pavlík)",
+      "filename": "CzechPMPZBible.xml"
+    },
+    {
+      "id": "Czech1951Bible",
+      "name": "Czech Bible (SKRABAL) 1951 - Dr Pavel Škrabal",
+      "filename": "Czech1951Bible.xml"
+    },
+    {
+      "id": "Czech1922Bible",
+      "name": "Czech Bible (SYK) 1922 Dr. Jan Ladislav Sýkora",
+      "filename": "Czech1922Bible.xml"
+    },
+    {
+      "id": "CzechEkumenickyBible",
+      "name": "Czech Bible Ekumenicky 2001",
+      "filename": "CzechEkumenickyBible.xml"
+    },
+    {
+      "id": "CzechKralichka1998Bible",
+      "name": "Czech Kralichka 1998 (Czech Nova karlica Bible (NBK) Nova Bible Kralicka)",
+      "filename": "CzechKralichka1998Bible.xml"
+    },
+    {
+      "id": "DagbaniBible",
+      "name": "Dagbani Bible (Naawuni Kundi Kasi)",
+      "filename": "DagbaniBible.xml"
+    },
+    {
+      "id": "Danish1819Bible",
+      "name": "Danish 1819-1871",
+      "filename": "Danish1819Bible.xml"
+    },
+    {
+      "id": "DanishBible",
+      "name": "Danish 1871 (Danske Bibel 1871/1907)",
+      "filename": "DanishBible.xml"
+    },
+    {
+      "id": "Danish2015Bible",
+      "name": "Danish 2015 (Bibelen på Hverdagsdansk)",
+      "filename": "Danish2015Bible.xml"
+    },
+    {
+      "id": "DanishLBBible",
+      "name": "Danish Bible (LB) 1866 ??",
+      "filename": "DanishLBBible.xml"
+    },
+    {
+      "id": "DanishWIEBible",
+      "name": "Danish Bible (WIE) 1997 - Det Nye Testamente",
+      "filename": "DanishWIEBible.xml"
+    },
+    {
+      "id": "DinkaBible",
+      "name": "Dinka DIPBSS 2009",
+      "filename": "DinkaBible.xml"
+    },
+    {
+      "id": "DinkaLEKJOTBible",
+      "name": "Dinka Southeastern LEKJOT (Lek Jot de Jecu Kritho 1940)",
+      "filename": "DinkaLEKJOTBible.xml"
+    },
+    {
+      "id": "Dinka2006Bible",
+      "name": "Dinka Southwestern (Lëk yam)",
+      "filename": "Dinka2006Bible.xml"
+    },
+    {
+      "id": "DogriBible",
+      "name": "Dogri (डोगरी नवां नियम)",
+      "filename": "DogriBible.xml"
+    },
+    {
+      "id": "DutchBBBible",
+      "name": "Dutch (BB) 2016 BasisBijbel",
+      "filename": "DutchBBBible.xml"
+    },
+    {
+      "id": "DutchHSVBible",
+      "name": "Dutch (HSV) 2017 (Herziene Statenvertaling)",
+      "filename": "DutchHSVBible.xml"
+    },
+    {
+      "id": "DutchNBGBible",
+      "name": "Dutch (NBG) Nederlands Bijbel Genootschap 1951",
+      "filename": "DutchNBGBible.xml"
+    },
+    {
+      "id": "DutchBible",
+      "name": "Dutch (Statenvertaling Jongbloed-editie)",
+      "filename": "DutchBible.xml"
+    },
+    {
+      "id": "Dutch1939Bible",
+      "name": "Dutch 1939 (De Heilige Schrift, Petrus Canisiusvertaling, 1939)",
+      "filename": "Dutch1939Bible.xml"
+    },
+    {
+      "id": "Dutch2007Bible",
+      "name": "Dutch 2007 (HTB)",
+      "filename": "Dutch2007Bible.xml"
+    },
+    {
+      "id": "DutchVBBible",
+      "name": "Dutch 2023 (Venster Bijbel)",
+      "filename": "DutchVBBible.xml"
+    },
+    {
+      "id": "DutchEBV24Bible",
+      "name": "Dutch 2024 (EBV24 een Eigentijdse Bijbelvertaling)",
+      "filename": "DutchEBV24Bible.xml"
+    },
+    {
+      "id": "DutchFrisianBible",
+      "name": "Dutch Frisian",
+      "filename": "DutchFrisianBible.xml"
+    },
+    {
+      "id": "DutchGBVNTBible",
+      "name": "Dutch GBVNT (Gods Boek - het Nieuwe Testament)",
+      "filename": "DutchGBVNTBible.xml"
+    },
+    {
+      "id": "DutchHTBBible",
+      "name": "Dutch HTB 2007 (Het Boek)",
+      "filename": "DutchHTBBible.xml"
+    },
+    {
+      "id": "DutchReimerBible",
+      "name": "Dutch Reimer 2001",
+      "filename": "DutchReimerBible.xml"
+    },
+    {
+      "id": "DutchSVVBible",
+      "name": "Dutch SVV 2018 (Statenvertaling Jongbloed-editie)",
+      "filename": "DutchSVVBible.xml"
+    },
+    {
+      "id": "DyulaKumaBible",
+      "name": "Dyula Bible (ALA KA KUMA)",
+      "filename": "DyulaKumaBible.xml"
+    },
+    {
+      "id": "DyulaJulaBible",
+      "name": "Dyula Bible (Jula NT of Côte d’Ivoire)",
+      "filename": "DyulaJulaBible.xml"
+    },
+    {
+      "id": "DyulaLayidukuraBible",
+      "name": "Dyula Bible (LAYIDUKURA)",
+      "filename": "DyulaLayidukuraBible.xml"
+    },
+    {
+      "id": "EdoBible",
+      "name": "Edo ((E Baibol Ẹdo) Version 1996)",
+      "filename": "EdoBible.xml"
+    },
+    {
+      "id": "EnglishYLTBible",
+      "name": "English (YLT) 1898 Young's Literal Translation by Robert Young",
+      "filename": "EnglishYLTBible.xml"
+    },
+    {
+      "id": "EnglishAmplifiedBible",
+      "name": "English Amplified - Copyright © 2015 by The Lockman Foundation, La Habra, CA 90631. All rights reserved.",
+      "filename": "EnglishAmplifiedBible.xml"
+    },
+    {
+      "id": "EnglishAmplifiedClassicBible",
+      "name": "English Amplified Classic Bible 1987",
+      "filename": "EnglishAmplifiedClassicBible.xml"
+    },
+    {
+      "id": "EnglishASVBible",
+      "name": "English ASV",
+      "filename": "EnglishASVBible.xml"
+    },
+    {
+      "id": "EnglishBereanBible",
+      "name": "English Berean Standard Bible (BSB)",
+      "filename": "EnglishBereanBible.xml"
+    },
+    {
+      "id": "EnglishCSBBible",
+      "name": "English CSB 2017 - Christian Standard Bible",
+      "filename": "EnglishCSBBible.xml"
+    },
+    {
+      "id": "EnglishDarbyBible",
+      "name": "English Darby 1890 : Public Domain",
+      "filename": "EnglishDarbyBible.xml"
+    },
+    {
+      "id": "EnglishEASYBible",
+      "name": "English EASY 2024",
+      "filename": "EnglishEASYBible.xml"
+    },
+    {
+      "id": "EnglishERVBible",
+      "name": "English ERV 2006 - Only For Website",
+      "filename": "EnglishERVBible.xml"
+    },
+    {
+      "id": "EnglishESVBible",
+      "name": "English ESV 2016 == The Holy Bible, English Standard Version. ESV® Text Edition: 2016. Copyright © 2001 by Crossway Bibles",
+      "filename": "EnglishESVBible.xml"
+    },
+    {
+      "id": "EnglishGNTBible",
+      "name": "English GNT (Good News Translation)",
+      "filename": "EnglishGNTBible.xml"
+    },
+    {
+      "id": "EnglishGWBible",
+      "name": "English God's Word - GW 1995",
+      "filename": "EnglishGWBible.xml"
+    },
+    {
+      "id": "EnglishHCSBBible",
+      "name": "English HCSB 2004 - Copyrighted Only For Website",
+      "filename": "EnglishHCSBBible.xml"
+    },
+    {
+      "id": "EnglishKJBible",
+      "name": "English KJV",
+      "filename": "EnglishKJBible.xml"
+    },
+    {
+      "id": "EnglishMEVBible",
+      "name": "English MEV 2014 (Modern English Version)",
+      "filename": "EnglishMEVBible.xml"
+    },
+    {
+      "id": "EnglishNASBBible",
+      "name": "English NASB (New American Standard Bible - NASB 1995)",
+      "filename": "EnglishNASBBible.xml"
+    },
+    {
+      "id": "EnglishNASUBible",
+      "name": "English NASU 1989 - New American Standard Update - Only for Website",
+      "filename": "EnglishNASUBible.xml"
+    },
+    {
+      "id": "EnglishNETBible",
+      "name": "English NET Bible - 2005 (New English Translation)",
+      "filename": "EnglishNETBible.xml"
+    },
+    {
+      "id": "EnglishNIRVBible",
+      "name": "English NIRV 1996 - Copyrighted only for Website",
+      "filename": "EnglishNIRVBible.xml"
+    },
+    {
+      "id": "EnglishNIVBible",
+      "name": "English NIV",
+      "filename": "EnglishNIVBible.xml"
+    },
+    {
+      "id": "EnglishNKJBible",
+      "name": "English NKJ 1982",
+      "filename": "EnglishNKJBible.xml"
+    },
+    {
+      "id": "EnglishNLTBible",
+      "name": "English NLT",
+      "filename": "EnglishNLTBible.xml"
+    },
+    {
+      "id": "EnglishNRSVBible",
+      "name": "English NRSV 1989 - Only for website",
+      "filename": "EnglishNRSVBible.xml"
+    },
+    {
+      "id": "EnglishPassionBible",
+      "name": "English Passion Translation Bible 2020",
+      "filename": "EnglishPassionBible.xml"
+    },
+    {
+      "id": "EnglishRSVBible",
+      "name": "English RSV (Revised Standard Version)",
+      "filename": "EnglishRSVBible.xml"
+    },
+    {
+      "id": "EnglishTLBible",
+      "name": "English TL (The Living Bible) (1971)",
+      "filename": "EnglishTLBible.xml"
+    },
+    {
+      "id": "EnglishTyndale1537Bible",
+      "name": "English Tyndale 1537",
+      "filename": "EnglishTyndale1537Bible.xml"
+    },
+    {
+      "id": "EsperantoBible",
+      "name": "Esperanto ESP (La Sankta Biblio 1926 (Esperanto Londona Biblio))",
+      "filename": "EsperantoBible.xml"
+    },
+    {
+      "id": "Estonian2022Bible",
+      "name": "Estonian 2022 (Pühakiri Kaasaegses Eesti Keeles)",
+      "filename": "Estonian2022Bible.xml"
+    },
+    {
+      "id": "EstonianBible",
+      "name": "Estonian Bible (Eestikeelne Piibel 1997)",
+      "filename": "EstonianBible.xml"
+    },
+    {
+      "id": "EstonianEEPBible",
+      "name": "Estonian EEP (Eesti Piibel)",
+      "filename": "EstonianEEPBible.xml"
+    },
+    {
+      "id": "Ewe2020Bible",
+      "name": "Ewe (Agbenya La) 2020",
+      "filename": "Ewe2020Bible.xml"
+    },
+    {
+      "id": "Ewe1913Bible",
+      "name": "Ewe 1913 (Biblia alo Ŋɔŋlɔ Kɔkɔe La Le Eʋegbe Me 1913)",
+      "filename": "Ewe1913Bible.xml"
+    },
+    {
+      "id": "Ewe2014Bible",
+      "name": "Ewe 2014 (EƲEGBE BIBLIA)",
+      "filename": "Ewe2014Bible.xml"
+    },
+    {
+      "id": "EweBible",
+      "name": "Ewe BEV (Agbenya La) 2006",
+      "filename": "EweBible.xml"
+    },
+    {
+      "id": "FinnishBible",
+      "name": "Finnish (Kirkkoraamattu 1933/38)",
+      "filename": "FinnishBible.xml"
+    },
+    {
+      "id": "Finnish1776Bible",
+      "name": "Finnish 1776",
+      "filename": "Finnish1776Bible.xml"
+    },
+    {
+      "id": "Finnish1992Bible",
+      "name": "Finnish 1992 (Kirkkoraamattu 1992)",
+      "filename": "Finnish1992Bible.xml"
+    },
+    {
+      "id": "FinnishFINRKBible",
+      "name": "Finnish FINRK 2012 (Raamattu Kansalle)",
+      "filename": "FinnishFINRKBible.xml"
+    },
+    {
+      "id": "FinnishSTLKBible",
+      "name": "Finnish STLK 2017 = Pyhä Raamattu (STLK 2017)",
+      "filename": "FinnishSTLKBible.xml"
+    },
+    {
+      "id": "FonBible",
+      "name": "Fon (MAWUXÓWÉMA)",
+      "filename": "FonBible.xml"
+    },
+    {
+      "id": "FrenchBDSBible",
+      "name": "French (BDS) 2015 (La Bible du Semeur 2015)",
+      "filename": "FrenchBDSBible.xml"
+    },
+    {
+      "id": "FrenchBFCBible",
+      "name": "French (BFC) 1997 (Bible en Français Courant)",
+      "filename": "FrenchBFCBible.xml"
+    },
+    {
+      "id": "FrenchCramponBible",
+      "name": "French (Catholique Crampon 1923)",
+      "filename": "FrenchCramponBible.xml"
+    },
+    {
+      "id": "FrenchDarbyBible",
+      "name": "French (J.N. Darby) 1885",
+      "filename": "FrenchDarbyBible.xml"
+    },
+    {
+      "id": "French2004Bible",
+      "name": "French (La Bible expliquée)",
+      "filename": "French2004Bible.xml"
+    },
+    {
+      "id": "FrenchBible",
+      "name": "French (La Sainte Bible par Louis Segond 1910)",
+      "filename": "FrenchBible.xml"
+    },
+    {
+      "id": "FrenchNBSBible",
+      "name": "French (NBS) 2002 (Nouvelle Bible Segond)",
+      "filename": "FrenchNBSBible.xml"
+    },
+    {
+      "id": "FrenchLeonBible",
+      "name": "French (Zoque, Francisco León)",
+      "filename": "FrenchLeonBible.xml"
+    },
+    {
+      "id": "FrenchBBBBible",
+      "name": "French Bible (BBB) Bible Bovet Bonnet (1900)",
+      "filename": "FrenchBBBBible.xml"
+    },
+    {
+      "id": "FrenchJerusalemBible",
+      "name": "French Jerusalem 1998",
+      "filename": "FrenchJerusalemBible.xml"
+    },
+    {
+      "id": "FrenchMachairaBible",
+      "name": "French Machaira 2012",
+      "filename": "FrenchMachairaBible.xml"
+    },
+    {
+      "id": "FrenchMartinBible",
+      "name": "French Martin 1744",
+      "filename": "FrenchMartinBible.xml"
+    },
+    {
+      "id": "FrenchNEG79Bible",
+      "name": "French NEG79 1979 (Segond Nouvelle Edition de Genève 1979)",
+      "filename": "FrenchNEG79Bible.xml"
+    },
+    {
+      "id": "FrenchNFCBible",
+      "name": "French NFC 2019 (Nouvelle Français courant)",
+      "filename": "FrenchNFCBible.xml"
+    },
+    {
+      "id": "FrenchNVS78Bible",
+      "name": "French NVS78P 1978 (Nouvelle Segond Révisée)",
+      "filename": "FrenchNVS78Bible.xml"
+    },
+    {
+      "id": "FrenchOstervaldBible",
+      "name": "French OST - Osterwald",
+      "filename": "FrenchOstervaldBible.xml"
+    },
+    {
+      "id": "FrenchOSTBible",
+      "name": "French OST (Ostervald)",
+      "filename": "FrenchOSTBible.xml"
+    },
+    {
+      "id": "FrenchPDV2017Bible",
+      "name": "French PDV2017 (Parole de Vie 2017)",
+      "filename": "FrenchPDV2017Bible.xml"
+    },
+    {
+      "id": "FrenchPerretBible",
+      "name": "French Perret-Gentil et Rilliet 1847",
+      "filename": "FrenchPerretBible.xml"
+    },
+    {
+      "id": "FrenchS21Bible",
+      "name": "French S21 2007 (Bible Segond 21)",
+      "filename": "FrenchS21Bible.xml"
+    },
+    {
+      "id": "FrenchVigourouxBible",
+      "name": "French Vigouroux 1902 Bible",
+      "filename": "FrenchVigourouxBible.xml"
+    },
+    {
+      "id": "FulfuldeAdamawaBible",
+      "name": "Fulfulde Adamawa Bible",
+      "filename": "FulfuldeAdamawaBible.xml"
+    },
+    {
+      "id": "FulfuldeAadiBible",
+      "name": "Fulfulde Bible (Aadi keyri: linjiila iisaa almasiihu)",
+      "filename": "FulfuldeAadiBible.xml"
+    },
+    {
+      "id": "FulfuldeAlkawalBible",
+      "name": "Fulfulde Bible (Alkawal Kesal) Central Eastern Niger",
+      "filename": "FulfuldeAlkawalBible.xml"
+    },
+    {
+      "id": "FulfuldeBeninBible",
+      "name": "Fulfulde Bible (Borgu Benin)",
+      "filename": "FulfuldeBeninBible.xml"
+    },
+    {
+      "id": "FulfuldeArabicBible",
+      "name": "Fulfulde Bible (Caka Nigeria Arabic Script) (اَلْکَوَلْ کٜسَلْ ندٜرْ فُلْفُلْدٜ شَکَ نَاجٜىٰرِيَ)",
+      "filename": "FulfuldeArabicBible.xml"
+    },
+    {
+      "id": "Fulfulde2010Bible",
+      "name": "Fulfulde Bible (Caka Nigeria) 2010",
+      "filename": "Fulfulde2010Bible.xml"
+    },
+    {
+      "id": "FulfuldeBurkinaFasoBible",
+      "name": "Fulfulde Bible (Dewtere Laamɗo Amaana Keso) (Burkina Faso)",
+      "filename": "FulfuldeBurkinaFasoBible.xml"
+    },
+    {
+      "id": "FulfuldeDewtereBible",
+      "name": "Fulfulde Bible (Dewtere Laamɗo Fulfulde Burkina Faso)",
+      "filename": "FulfuldeDewtereBible.xml"
+    },
+    {
+      "id": "FulfuldeWestNigerBible",
+      "name": "Fulfulde Bible (Western Niger)",
+      "filename": "FulfuldeWestNigerBible.xml"
+    },
+    {
+      "id": "GaelicATNBible",
+      "name": "Gaelic (Scottish) (An Tiomnadh Nuadh anns an Eadar-Theangachadh Ùr Gàidhlig 2017\r\n)",
+      "filename": "GaelicATNBible.xml"
+    },
+    {
+      "id": "GaelicABIGBible",
+      "name": "Gaelic ABIG (Scottish) (Am Bìoball Iomraidh Gàidhlig 1880, 1992)",
+      "filename": "GaelicABIGBible.xml"
+    },
+    {
+      "id": "Gaelic1875Bible",
+      "name": "Gaelic Scottish (Tiomnadh Nuadh (MacEachen) 1875)",
+      "filename": "Gaelic1875Bible.xml"
+    },
+    {
+      "id": "GalacianSEPTBible",
+      "name": "Galacian 1989 (Biblia SEPT)",
+      "filename": "GalacianSEPTBible.xml"
+    },
+    {
+      "id": "GarhwaliBible",
+      "name": "Garhwali (GHMNT) (गढवली नयो नियम) 2020",
+      "filename": "GarhwaliBible.xml"
+    },
+    {
+      "id": "GarhwaliGBMBible",
+      "name": "Garhwali GBM (Garhwali)",
+      "filename": "GarhwaliGBMBible.xml"
+    },
+    {
+      "id": "GeorgianBible",
+      "name": "Georgian (OGB) Old Georgian - No Year",
+      "filename": "GeorgianBible.xml"
+    },
+    {
+      "id": "Georgian2012Bible",
+      "name": "Georgian 2013 (ბიბლია)",
+      "filename": "Georgian2012Bible.xml"
+    },
+    {
+      "id": "Georgian2002Bible",
+      "name": "Georgian GEO02 (ბიბლია)",
+      "filename": "Georgian2002Bible.xml"
+    },
+    {
+      "id": "GermanAlbrecht1926Bible",
+      "name": "German (Albrecht NT und Psalmen)",
+      "filename": "GermanAlbrecht1926Bible.xml"
+    },
+    {
+      "id": "GermanBible",
+      "name": "German (Die Heilige Schrift (Schlachter 1951))",
+      "filename": "GermanBible.xml"
+    },
+    {
+      "id": "German2011Bible",
+      "name": "German 2011 (Neue Genfer Übersetzung)",
+      "filename": "German2011Bible.xml"
+    },
+    {
+      "id": "GermanTafelBible",
+      "name": "German Bible Tafel (Tafelbibel) 1911",
+      "filename": "GermanTafelBible.xml"
+    },
+    {
+      "id": "GermanElber1905Bible",
+      "name": "German Elber 1905 (Darby Unrevidierte Elberfelder)",
+      "filename": "GermanElber1905Bible.xml"
+    },
+    {
+      "id": "GermanGruenewaldBible",
+      "name": "German Gruenewald (Grünewald) 1924",
+      "filename": "GermanGruenewaldBible.xml"
+    },
+    {
+      "id": "GermanHeuteBible",
+      "name": "German HEUTE (Bibel Heute)",
+      "filename": "GermanHeuteBible.xml"
+    },
+    {
+      "id": "GermanHFABible",
+      "name": "German HFA (Hoffnung für Alle)",
+      "filename": "GermanHFABible.xml"
+    },
+    {
+      "id": "GermanInterlinearBible",
+      "name": "German Interlinear 1979 (Interlinearübersetzung)",
+      "filename": "GermanInterlinearBible.xml"
+    },
+    {
+      "id": "GermanLUT17Bible",
+      "name": "German LUT17 Lutherbibel 2017",
+      "filename": "GermanLUT17Bible.xml"
+    },
+    {
+      "id": "GermanLuther1912Bible",
+      "name": "German Luther (Lutherbibel 1912)",
+      "filename": "GermanLuther1912Bible.xml"
+    },
+    {
+      "id": "German1545Bible",
+      "name": "German Luther 1545",
+      "filename": "German1545Bible.xml"
+    },
+    {
+      "id": "GermanLutherHeuteBible",
+      "name": "German Luther Heute 2021",
+      "filename": "GermanLutherHeuteBible.xml"
+    },
+    {
+      "id": "GermanSchlachter2000Bible",
+      "name": "German SCH2000 Schlachter 2000 (Die Bibel (Schlachter 2000))",
+      "filename": "GermanSchlachter2000Bible.xml"
+    },
+    {
+      "id": "GermanTKWBible",
+      "name": "German TKW (Textbibel von Kautzsch und Weizsäcker)",
+      "filename": "GermanTKWBible.xml"
+    },
+    {
+      "id": "GermanUbersetzung2014Bible",
+      "name": "German Ubersetzung 2014",
+      "filename": "GermanUbersetzung2014Bible.xml"
+    },
+    {
+      "id": "GhomalaBible",
+      "name": "Ghomala New Testament (GNT02)",
+      "filename": "GhomalaBible.xml"
+    },
+    {
+      "id": "GreekBible",
+      "name": "Greek Bible - Neophytos Vamvas Translation 1770",
+      "filename": "GreekBible.xml"
+    },
+    {
+      "id": "GreekBYZ04Bible",
+      "name": "Greek BYZ04 (Πατριαρχικό Κείμενο (Έκδοση Αντωνιάδη, 1904))",
+      "filename": "GreekBYZ04Bible.xml"
+    },
+    {
+      "id": "GreekBYZ18Bible",
+      "name": "Greek BYZ18 (Byzantine Textform 2018)",
+      "filename": "GreekBYZ18Bible.xml"
+    },
+    {
+      "id": "GreekF35Bible",
+      "name": "Greek F35 (Η Ελληνική Καινή Διαθήκη Σύμφωνα με την Οικογένεια 35)",
+      "filename": "GreekF35Bible.xml"
+    },
+    {
+      "id": "GreekFPBBible",
+      "name": "Greek FPB (H Αγία Γραφή στη Δημοτική (Filos Pergamos))",
+      "filename": "GreekFPBBible.xml"
+    },
+    {
+      "id": "GreekGNTBible",
+      "name": "Greek GNT 1904",
+      "filename": "GreekGNTBible.xml"
+    },
+    {
+      "id": "GreekLMGNTBible",
+      "name": "Greek LMGNT (Νεοελληνική Μετάφραση Λόγου)",
+      "filename": "GreekLMGNTBible.xml"
+    },
+    {
+      "id": "GreekModernFPBBible",
+      "name": "Greek Modern Bible : FPB 1994",
+      "filename": "GreekModernFPBBible.xml"
+    },
+    {
+      "id": "GreekModern1904Bible",
+      "name": "Greek Modern Bible 1904",
+      "filename": "GreekModern1904Bible.xml"
+    },
+    {
+      "id": "OriginalGreekBible",
+      "name": "Greek New Testament",
+      "filename": "OriginalGreekBible.xml"
+    },
+    {
+      "id": "GreekNTVBible",
+      "name": "Greek NTV (Η Καινή Διαθήκη του Κυρίου και Σωτήρος ημών Ιησού Χριστού κατά νεοελληνικήν απόδοσιν)",
+      "filename": "GreekNTVBible.xml"
+    },
+    {
+      "id": "GreekSBLGNTBible",
+      "name": "Greek SBLG (SBL Greek New Testament)",
+      "filename": "GreekSBLGNTBible.xml"
+    },
+    {
+      "id": "Greek1550Bible",
+      "name": "Greek Stephanus NT 1550",
+      "filename": "Greek1550Bible.xml"
+    },
+    {
+      "id": "GreekTCGNTBible",
+      "name": "Greek TCGNT (Text-Critical Greek New Testament)",
+      "filename": "GreekTCGNTBible.xml"
+    },
+    {
+      "id": "GreekTGVBible",
+      "name": "Greek TGV (Η Αγία Γραφή (Παλαιά και Καινή Διαθήκη))",
+      "filename": "GreekTGVBible.xml"
+    },
+    {
+      "id": "GreekTHGNTBible",
+      "name": "Greek THGNT (The Greek New Testament)",
+      "filename": "GreekTHGNTBible.xml"
+    },
+    {
+      "id": "GreekElzevirBible",
+      "name": "Greek TR1624 (Elzevir Textus Receptus 1624)",
+      "filename": "GreekElzevirBible.xml"
+    },
+    {
+      "id": "GreekTR1894Bible",
+      "name": "Greek TR1894 (Scrivener’s Textus Receptus 1894)",
+      "filename": "GreekTR1894Bible.xml"
+    },
+    {
+      "id": "Guarani2017Bible",
+      "name": "Guarani (Biblia) 2017",
+      "filename": "Guarani2017Bible.xml"
+    },
+    {
+      "id": "GuaraniSIMBABible",
+      "name": "Guarani (Guaraní Pe (Western): Simba)",
+      "filename": "GuaraniSIMBABible.xml"
+    },
+    {
+      "id": "GuaraniBible",
+      "name": "Guarani (Nuevo Testamento Guaraní Pe)",
+      "filename": "GuaraniBible.xml"
+    },
+    {
+      "id": "Guarani1913Bible",
+      "name": "Guarani (Tûpâ Ñandeyára 1913)",
+      "filename": "Guarani1913Bible.xml"
+    },
+    {
+      "id": "Guarani1970Bible",
+      "name": "Guarani 1970 (Ñandeyara Ñe'ẽ)",
+      "filename": "Guarani1970Bible.xml"
+    },
+    {
+      "id": "Guarani1996Bible",
+      "name": "Guarani 1996 (Ñandejara Ñe’ẽ ✟)",
+      "filename": "Guarani1996Bible.xml"
+    },
+    {
+      "id": "Guarani2001Bible",
+      "name": "Guarani 2001 (Biblia Guarani, Tumpa Iñee)",
+      "filename": "Guarani2001Bible.xml"
+    },
+    {
+      "id": "Guarani2015Bible",
+      "name": "Guarani 2015 (Ñanderuete Ñe’ẽ Porã 2015)",
+      "filename": "Guarani2015Bible.xml"
+    },
+    {
+      "id": "GuaraniMBYABible",
+      "name": "Guarani MBYA (Nhanderuete ayvu iky'a e'ỹ va'e)",
+      "filename": "GuaraniMBYABible.xml"
+    },
+    {
+      "id": "Gujarati2017Bible",
+      "name": "Gujarati (IRVGUJ) (ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન ગુજરાતી - 2019)",
+      "filename": "Gujarati2017Bible.xml"
+    },
+    {
+      "id": "Gujarati2016Bible",
+      "name": "Gujarati 2016 BSI (GUCL) (પવિત્ર બાઇબલ C.L.)",
+      "filename": "Gujarati2016Bible.xml"
+    },
+    {
+      "id": "GujaratiGUOVBible",
+      "name": "Gujarati BSI (GUOV) (પવિત્ર બાઇબલ OV Reference Bible (BSI))",
+      "filename": "GujaratiGUOVBible.xml"
+    },
+    {
+      "id": "GujaratiBible",
+      "name": "Gujarati ERV 2003 (પવિત્ર બાઈબલ)",
+      "filename": "GujaratiBible.xml"
+    },
+    {
+      "id": "GussiBible",
+      "name": "Gussi (EBIBILIA ENCHENU) 2020",
+      "filename": "GussiBible.xml"
+    },
+    {
+      "id": "HadiyyaBible",
+      "name": "Hadiyya (KEESAMMI KITAABA) - No Year",
+      "filename": "HadiyyaBible.xml"
+    },
+    {
+      "id": "HaitianBSABible",
+      "name": "Haitian BSA (Bib Sen An: Kreyòl Ayisyen) 2023",
+      "filename": "HaitianBSABible.xml"
+    },
+    {
+      "id": "IbanBible",
+      "name": "Hakcipta © 2011, The Bible Society of Malaysia",
+      "filename": "IbanBible.xml"
+    },
+    {
+      "id": "HaryanviBible",
+      "name": "Haryanvi Bible (हरियाणवी)",
+      "filename": "HaryanviBible.xml"
+    },
+    {
+      "id": "HaitianBible",
+      "name": "Hatian (1998 Haïtienne)",
+      "filename": "HaitianBible.xml"
+    },
+    {
+      "id": "HaitianHWPBible",
+      "name": "Hatian Creole (HWP) 2000",
+      "filename": "HaitianHWPBible.xml"
+    },
+    {
+      "id": "HaitianVFKBible",
+      "name": "Hatian VFK (Nouvo Testaman: Vèsyon Kreyòl Fasil)",
+      "filename": "HaitianVFKBible.xml"
+    },
+    {
+      "id": "Hausa2013Bible",
+      "name": "Hausa (Sabon Rai Don Kowa 2020)",
+      "filename": "Hausa2013Bible.xml"
+    },
+    {
+      "id": "HausaARBible",
+      "name": "Hausa Arabic 2020 (أَتَّوْرَتْ دَ أَنَّبَاوَا)",
+      "filename": "HausaARBible.xml"
+    },
+    {
+      "id": "Hausa2010Bible",
+      "name": "Hausa Bible 1979 (Littafi Mai Tsarki)",
+      "filename": "Hausa2010Bible.xml"
+    },
+    {
+      "id": "OriginalHebrewBible",
+      "name": "Hebrew",
+      "filename": "OriginalHebrewBible.xml"
+    },
+    {
+      "id": "HebrewHHHBible",
+      "name": "Hebrew (HHH) 2009 (Habrit Hakhadasha/Haderekh)",
+      "filename": "HebrewHHHBible.xml"
+    },
+    {
+      "id": "HebrewAleppoCodexBible",
+      "name": "Hebrew Aleppo Codex Bible",
+      "filename": "HebrewAleppoCodexBible.xml"
+    },
+    {
+      "id": "Hebrew1885Bible",
+      "name": "Hebrew Bible (DHNT) 1885 - Delitzsch's Hebrew New Testament",
+      "filename": "Hebrew1885Bible.xml"
+    },
+    {
+      "id": "HebrewMHBBible",
+      "name": "Hebrew Bible (MHB) 2010",
+      "filename": "HebrewMHBBible.xml"
+    },
+    {
+      "id": "HebrewBible",
+      "name": "Hebrew Bible Modern 1977",
+      "filename": "HebrewBible.xml"
+    },
+    {
+      "id": "HebrewBSIBible",
+      "name": "Hebrew BSI 2017 (שעתוק אלקטרוני נאמן לכתב יד לנינגרד)",
+      "filename": "HebrewBSIBible.xml"
+    },
+    {
+      "id": "HebrewLeningradCodexBible",
+      "name": "Hebrew Leningrad Codex",
+      "filename": "HebrewLeningradCodexBible.xml"
+    },
+    {
+      "id": "HebrewMHNT2020Bible",
+      "name": "Hebrew MHNT 2020 (הברית החדשה בעברית מודרנית)",
+      "filename": "HebrewMHNT2020Bible.xml"
+    },
+    {
+      "id": "HebrewTDBible",
+      "name": "Hebrew TD 2018 (תנ'ך וברית חדשה בתרגום דליטש)",
+      "filename": "HebrewTDBible.xml"
+    },
+    {
+      "id": "HindiRomanBible",
+      "name": "Hindi (Roman Script)",
+      "filename": "HindiRomanBible.xml"
+    },
+    {
+      "id": "Hindi2017Bible",
+      "name": "Hindi 2017 (नया नियम)",
+      "filename": "Hindi2017Bible.xml"
+    },
+    {
+      "id": "HindiERVBible",
+      "name": "Hindi Bible (ERV) (पवित्र बाइबल)",
+      "filename": "HindiERVBible.xml"
+    },
+    {
+      "id": "HindiCLBSIBible",
+      "name": "Hindi Bible CLBSI 2015 (पवित्र बाइबिल CL Bible (BSI))",
+      "filename": "HindiCLBSIBible.xml"
+    },
+    {
+      "id": "HindiBible",
+      "name": "Hindi Bible HHBD = (BSI)",
+      "filename": "HindiBible.xml"
+    },
+    {
+      "id": "HindiFijiBible",
+      "name": "Hindi Fiji (Nawa Haup)",
+      "filename": "HindiFijiBible.xml"
+    },
+    {
+      "id": "HindiOVBSIBible",
+      "name": "Hindi HINOVBSI (पवित्र बाइबिल OV (Re-edited) Bible (BSI))",
+      "filename": "HindiOVBSIBible.xml"
+    },
+    {
+      "id": "HindiHSBBible",
+      "name": "Hindi HSB 2023 (नवीन हिंदी बाइबल)",
+      "filename": "HindiHSBBible.xml"
+    },
+    {
+      "id": "HindiHSSBible",
+      "name": "Hindi HSS 2019 (सरल हिन्दी बाइबल)",
+      "filename": "HindiHSSBible.xml"
+    },
+    {
+      "id": "HindiIRVBible",
+      "name": "Hindi IRVHIN (इंडियन रिवाइज्ड वर्जन (IRV) हिंदी - 2019)",
+      "filename": "HindiIRVBible.xml"
+    },
+    {
+      "id": "Hmong2000Bible",
+      "name": "Hmong Bible (Vajtswv Txojlus 2000)",
+      "filename": "Hmong2000Bible.xml"
+    },
+    {
+      "id": "Hmong2004Bible",
+      "name": "Hmong Bible 2004",
+      "filename": "Hmong2004Bible.xml"
+    },
+    {
+      "id": "HungarianCSUZBible",
+      "name": "Hungarian (CSUZ) 1924 - Czeglédy Sándor Újszövetség fordítása",
+      "filename": "HungarianCSUZBible.xml"
+    },
+    {
+      "id": "HungarianEIVBible",
+      "name": "Hungarian (EIV) (Újszövetség: élet, igazság és világosság)",
+      "filename": "HungarianEIVBible.xml"
+    },
+    {
+      "id": "HungarianKaroliBible",
+      "name": "Hungarian (Karoli Bible 1908)",
+      "filename": "HungarianKaroliBible.xml"
+    },
+    {
+      "id": "HungarianKSZEBible",
+      "name": "Hungarian Bible - (KSZE) 2011 - Revideált Károli Biblia",
+      "filename": "HungarianKSZEBible.xml"
+    },
+    {
+      "id": "HungarianKIBBible",
+      "name": "Hungarian Bible - KIB 1935 - Kecskeméthy István",
+      "filename": "HungarianKIBBible.xml"
+    },
+    {
+      "id": "HungarianBDUZBible",
+      "name": "Hungarian Bible (BDUZ) 1951 - Hungarian Bekes — Dalos NT",
+      "filename": "HungarianBDUZBible.xml"
+    },
+    {
+      "id": "HungarianBUZBible",
+      "name": "Hungarian Bible (BUZ) 1967 - Dr. Budai Gergely Ujszovetseg forditasa",
+      "filename": "HungarianBUZBible.xml"
+    },
+    {
+      "id": "HungarianERVBible",
+      "name": "Hungarian Bible (ERV) 2012 - Easy-to-Read Version",
+      "filename": "HungarianERVBible.xml"
+    },
+    {
+      "id": "HungarianKNBBible",
+      "name": "Hungarian Bible (KNB) 1997 - Káldi Neovulgata Bible",
+      "filename": "HungarianKNBBible.xml"
+    },
+    {
+      "id": "HungarianMRUZBible",
+      "name": "Hungarian Bible (MRUZ) 1925 - Dr. Masznyik Endre Újszövetség fordítása",
+      "filename": "HungarianMRUZBible.xml"
+    },
+    {
+      "id": "HungarianRLUZBible",
+      "name": "Hungarian Bible (RLUZ) 1971 - Ravasz László Újszövetség fordítása",
+      "filename": "HungarianRLUZBible.xml"
+    },
+    {
+      "id": "HungarianSIUZBible",
+      "name": "Hungarian Bible (SIUZ) - P. Soós István,karmelita szerzetes, Újszövetség fordítása",
+      "filename": "HungarianSIUZBible.xml"
+    },
+    {
+      "id": "HungarianVSUZBible",
+      "name": "Hungarian Bible 1971 (VSUZ) - Vida Sándor Újszövetség fordítása",
+      "filename": "HungarianVSUZBible.xml"
+    },
+    {
+      "id": "HungarianCSIABible",
+      "name": "Hungarian Bible by Lajos Csia",
+      "filename": "HungarianCSIABible.xml"
+    },
+    {
+      "id": "HungarianEFOBible",
+      "name": "Hungarian EFO (BIBLIA: Egyszerű Fordítás)",
+      "filename": "HungarianEFOBible.xml"
+    },
+    {
+      "id": "HungarianBible",
+      "name": "Hungarian HUNB (Magyar Bibliatársulat új fordítású Bibliája)",
+      "filename": "HungarianBible.xml"
+    },
+    {
+      "id": "HungarianRUFBible",
+      "name": "Hungarian RUF (Revised Hungarian Bible)",
+      "filename": "HungarianRUFBible.xml"
+    },
+    {
+      "id": "IbibioBible",
+      "name": "Ibibio (Ñwed Abasi Ke Ikọ Ibibio Ayo Mfịn)",
+      "filename": "IbibioBible.xml"
+    },
+    {
+      "id": "Icelandic1981Bible",
+      "name": "Icelandic 1981 (Biblían (1981))",
+      "filename": "Icelandic1981Bible.xml"
+    },
+    {
+      "id": "IcelandicBible",
+      "name": "Icelandic 2007 (Biblían (2007))",
+      "filename": "IcelandicBible.xml"
+    },
+    {
+      "id": "Igbo2006Bible",
+      "name": "Igbo (Bible Nso)",
+      "filename": "Igbo2006Bible.xml"
+    },
+    {
+      "id": "Igbo2020Bible",
+      "name": "Igbo 2020 (Baịbụlụ Nsọ nʼIgbo Ndị Ugbu a)",
+      "filename": "Igbo2020Bible.xml"
+    },
+    {
+      "id": "Igbo1988Bible",
+      "name": "Igbo Bible 1988",
+      "filename": "Igbo1988Bible.xml"
+    },
+    {
+      "id": "IkaBible",
+      "name": "Ika 2018 Bible",
+      "filename": "IkaBible.xml"
+    },
+    {
+      "id": "IlokanoBible",
+      "name": "Ilokano (Ti Baro a Naimbag a Damag Biblia) 1996",
+      "filename": "IlokanoBible.xml"
+    },
+    {
+      "id": "Ilokano1973Bible",
+      "name": "Ilokano (Ti Biblia (1973))",
+      "filename": "Ilokano1973Bible.xml"
+    },
+    {
+      "id": "IlonggoBible",
+      "name": "Ilonggo (Ang Biblia (1982))",
+      "filename": "IlonggoBible.xml"
+    },
+    {
+      "id": "Ilonggo2012Bible",
+      "name": "Ilonggo (Maayong Balita nga Biblia (2012))",
+      "filename": "Ilonggo2012Bible.xml"
+    },
+    {
+      "id": "IlonggoAPDBible",
+      "name": "Ilonggo APD 2022 (Ang Pulong Sang Dios)",
+      "filename": "IlonggoAPDBible.xml"
+    },
+    {
+      "id": "IndonesianBible",
+      "name": "Indonesian (Alkitab Terjemahan Baru)",
+      "filename": "IndonesianBible.xml"
+    },
+    {
+      "id": "IndonesianAGSBible",
+      "name": "Indonesian AGS (Alkitab Gratis untuk Semua)",
+      "filename": "IndonesianAGSBible.xml"
+    },
+    {
+      "id": "IndonesianAMD2021Bible",
+      "name": "Indonesian AMD 2021 (Perjanjian Baru: Alkitab Mudah Dibaca)",
+      "filename": "IndonesianAMD2021Bible.xml"
+    },
+    {
+      "id": "IndonesianBPJBible",
+      "name": "Indonesian Bible (BPJ) - Kitab Perjanjian Baru - Year No Data",
+      "filename": "IndonesianBPJBible.xml"
+    },
+    {
+      "id": "IndonesianTSIBible",
+      "name": "Indonesian Bible (TSI) 2013 - (Terjemahan Sederhana Indonesia)",
+      "filename": "IndonesianTSIBible.xml"
+    },
+    {
+      "id": "IndonesianBISBible",
+      "name": "Indonesian BIS 1985 (Alkitab dalam Bahasa Indonesia Masa Kini)",
+      "filename": "IndonesianBISBible.xml"
+    },
+    {
+      "id": "IndonesianFAYHBible",
+      "name": "Indonesian FAYH (Firman Allah Yang Hidup)",
+      "filename": "IndonesianFAYHBible.xml"
+    },
+    {
+      "id": "IndonesianINOTAZIBible",
+      "name": "Indonesian INOTAZI (Indonesian Tazi NT)",
+      "filename": "IndonesianINOTAZIBible.xml"
+    },
+    {
+      "id": "IndonesianPBTB2Bible",
+      "name": "Indonesian PBTB2 (Perjanjian Baru Terjemahan Baru Edisi 2)",
+      "filename": "IndonesianPBTB2Bible.xml"
+    },
+    {
+      "id": "IndonesianTLBible",
+      "name": "Indonesian TL 1954 (Alkitab Terjemahan Lama)",
+      "filename": "IndonesianTLBible.xml"
+    },
+    {
+      "id": "IndonesianVMDBible",
+      "name": "Indonesian VMD 2005",
+      "filename": "IndonesianVMDBible.xml"
+    },
+    {
+      "id": "Irish1817Bible",
+      "name": "Irish 1817 (An Bíobla Naomhtha 1817 (Bedell))",
+      "filename": "Irish1817Bible.xml"
+    },
+    {
+      "id": "Irish1951Bible",
+      "name": "Irish 1951 (Tiomna Nua 1951 (de Siúnta))",
+      "filename": "Irish1951Bible.xml"
+    },
+    {
+      "id": "Irish1970Bible",
+      "name": "Irish 1970 (An Tiomna Nua 1970 (Ó Cuinn))",
+      "filename": "Irish1970Bible.xml"
+    },
+    {
+      "id": "IrishBible",
+      "name": "Irish 1981 - (An Bíobla Naofa 1981)",
+      "filename": "IrishBible.xml"
+    },
+    {
+      "id": "Irish2012Bible",
+      "name": "Irish 2012 (An Tiomna Nua Agus Leabhar na Salm 2012)",
+      "filename": "Irish2012Bible.xml"
+    },
+    {
+      "id": "ItalianNR1994Bible",
+      "name": "Italian (Nuova Riveduta 1994)",
+      "filename": "ItalianNR1994Bible.xml"
+    },
+    {
+      "id": "ItalianRivedutaBible",
+      "name": "Italian (Versione Diodati Riveduta)",
+      "filename": "ItalianRivedutaBible.xml"
+    },
+    {
+      "id": "Italian1649Bible",
+      "name": "Italian 1885 (Diodati Bibbia 1885)",
+      "filename": "Italian1649Bible.xml"
+    },
+    {
+      "id": "Italian2020Bible",
+      "name": "Italian 2020 (La Sacra Bibbia Versione Riveduta 2020 (R2))",
+      "filename": "Italian2020Bible.xml"
+    },
+    {
+      "id": "ItalianCEI2008Bible",
+      "name": "Italian Bible (CEI) 2008",
+      "filename": "ItalianCEI2008Bible.xml"
+    },
+    {
+      "id": "Italian2014Bible",
+      "name": "Italian Bible (ICL00D) (Traduzione Interconfessionale in Lingua Corrente)",
+      "filename": "Italian2014Bible.xml"
+    },
+    {
+      "id": "ItalianIPNBible",
+      "name": "Italian Bible (IPN) 1996 San Paolo",
+      "filename": "ItalianIPNBible.xml"
+    },
+    {
+      "id": "ItalianLaNuovaDiodatiBible",
+      "name": "Italian Bible (LND) 1991",
+      "filename": "ItalianLaNuovaDiodatiBible.xml"
+    },
+    {
+      "id": "ItalianBible",
+      "name": "Italian CEI 1974",
+      "filename": "ItalianBible.xml"
+    },
+    {
+      "id": "JamaicanBible",
+      "name": "Jamaican 2012 (Di Jamiekan Nyuu Testiment)",
+      "filename": "JamaicanBible.xml"
+    },
+    {
+      "id": "JapaneseCO1955Bible",
+      "name": "Japanese (CO1955) (聖書　口語訳)",
+      "filename": "JapaneseCO1955Bible.xml"
+    },
+    {
+      "id": "JapaneseBible",
+      "name": "Japanese (Colloquial version (1955))",
+      "filename": "JapaneseBible.xml"
+    },
+    {
+      "id": "Japanese1965Bible",
+      "name": "Japanese 1965",
+      "filename": "Japanese1965Bible.xml"
+    },
+    {
+      "id": "Japanese1987Bible",
+      "name": "Japanese 1988 (Seisho Shinkyoudoyaku 聖書 新共同訳)",
+      "filename": "Japanese1987Bible.xml"
+    },
+    {
+      "id": "Japanese2017Bible",
+      "name": "Japanese 2017 (バイブル: 新約聖書)",
+      "filename": "Japanese2017Bible.xml"
+    },
+    {
+      "id": "JapaneseJCBBible",
+      "name": "Japanese Contemporary (リビングバイブル)",
+      "filename": "JapaneseJCBBible.xml"
+    },
+    {
+      "id": "JapaneseERVBible",
+      "name": "Japanese ERV (訳 ー 読みやすい聖書 ー（新約聖書）)",
+      "filename": "JapaneseERVBible.xml"
+    },
+    {
+      "id": "JavaneseBible",
+      "name": "Javanese Bible 1981",
+      "filename": "JavaneseBible.xml"
+    },
+    {
+      "id": "JavaneseJVNBible",
+      "name": "Javanese JVN (Javanese, Caribbean)",
+      "filename": "JavaneseJVNBible.xml"
+    },
+    {
+      "id": "JavaneseKJS17Bible",
+      "name": "Javanese KJS17 (Kitab Jawa Suriname)",
+      "filename": "JavaneseKJS17Bible.xml"
+    },
+    {
+      "id": "KachinJCLBBible",
+      "name": "Jinghpaw Common Language Bible © Bible Society of Myanmar, 2009",
+      "filename": "KachinJCLBBible.xml"
+    },
+    {
+      "id": "KachinJHVT3Bible",
+      "name": "Jinghpaw Hanson Version Bible © Bible Society of Myanmar, 2009",
+      "filename": "KachinJHVT3Bible.xml"
+    },
+    {
+      "id": "KabardianBible",
+      "name": "Kabardian 1993 (ХъыбарыфӀыр. ЩӀэдзапӀэр. Уэрэд ЛъапӀэхэр)",
+      "filename": "KabardianBible.xml"
+    },
+    {
+      "id": "KabyleBible",
+      "name": "Kabyle Maybe is 2001??",
+      "filename": "KabyleBible.xml"
+    },
+    {
+      "id": "Kalenjin2019Bible",
+      "name": "Kalenjin 2019 (Bukuit Ne Tilil)",
+      "filename": "Kalenjin2019Bible.xml"
+    },
+    {
+      "id": "KalenjinBible",
+      "name": "Kalenjin Bible (BUKUIT NE TILIL)",
+      "filename": "KalenjinBible.xml"
+    },
+    {
+      "id": "KalenjinRevisedBible",
+      "name": "Kalenjin Bible Revised (BUKUIT NE TILIIL Sireet ne Dutero Kanon)",
+      "filename": "KalenjinRevisedBible.xml"
+    },
+    {
+      "id": "KambaBible",
+      "name": "Kamba (MBIVILIA ŨVOO MŨSEO)",
+      "filename": "KambaBible.xml"
+    },
+    {
+      "id": "KambaMBIVLIABible",
+      "name": "Kamba (Mbivilia) 1956",
+      "filename": "KambaMBIVLIABible.xml"
+    },
+    {
+      "id": "KangriBible",
+      "name": "Kangri (काँगड़ी)",
+      "filename": "KangriBible.xml"
+    },
+    {
+      "id": "KannadaBible",
+      "name": "Kannada (ERV) 1997 (ಪರಿಶುದ್ದ ಬೈಬಲ್‌)",
+      "filename": "KannadaBible.xml"
+    },
+    {
+      "id": "KannadaIRVBible",
+      "name": "Kannada 2019 (ಇಂಡಿಯನ್ ರಿವೈಜ್ಡ್ ವರ್ಸನ್ (IRV) - ಕನ್ನಡ - 2019)",
+      "filename": "KannadaIRVBible.xml"
+    },
+    {
+      "id": "KannadaKNCLBible",
+      "name": "Kannada Bible (KNCL) BSI 2016",
+      "filename": "KannadaKNCLBible.xml"
+    },
+    {
+      "id": "KannadaBSIBible",
+      "name": "Kannada BSI Bible 2016",
+      "filename": "KannadaBSIBible.xml"
+    },
+    {
+      "id": "KannadaBSIJVBible",
+      "name": "Kannada BSI JV (ಕನ್ನಡ ಸತ್ಯವೇದವು J.V. (BSI))",
+      "filename": "KannadaBSIJVBible.xml"
+    },
+    {
+      "id": "Kannada2022Bible",
+      "name": "Kannada KSB 2022 (ಕನ್ನಡ ಸಮಕಾಲಿಕ ಅನುವಾದ)",
+      "filename": "Kannada2022Bible.xml"
+    },
+    {
+      "id": "Karakalpak2022Bible",
+      "name": "Karakalpak 2022 (Мухаддес Китап)",
+      "filename": "Karakalpak2022Bible.xml"
+    },
+    {
+      "id": "KazakhstanBible",
+      "name": "Kazakhstan 1993 (Киелі Кітап)",
+      "filename": "KazakhstanBible.xml"
+    },
+    {
+      "id": "Kazakhstan2023Bible",
+      "name": "Kazakhstan 2023 (Zhana Osiet)",
+      "filename": "Kazakhstan2023Bible.xml"
+    },
+    {
+      "id": "Khmer2016Bible",
+      "name": "Khmer (ព្រះគម្ពីរបរិសុទ្ធកែសម្រួល ២០១៦)",
+      "filename": "Khmer2016Bible.xml"
+    },
+    {
+      "id": "Khmer2005Bible",
+      "name": "Khmer 2005 (ព្រះគម្ពីរភាសាខ្មែរបច្ចុប្បន្ន ២០០៥)",
+      "filename": "Khmer2005Bible.xml"
+    },
+    {
+      "id": "Khmer2012Bible",
+      "name": "Khmer 2012 (Khmer Christian Bible)",
+      "filename": "Khmer2012Bible.xml"
+    },
+    {
+      "id": "Khmer2014Bible",
+      "name": "Khmer 2014 (អាល់គីតាប)",
+      "filename": "Khmer2014Bible.xml"
+    },
+    {
+      "id": "Khmer2019Bible",
+      "name": "Khmer 2023 (ព្រះគម្ពីរខ្មែរសាកល)",
+      "filename": "Khmer2019Bible.xml"
+    },
+    {
+      "id": "KhmerBFBSBible",
+      "name": "Khmer BFBS (ព្រះគម្ពីរបរិសុទ្ធ ១៩៥៤)",
+      "filename": "KhmerBFBSBible.xml"
+    },
+    {
+      "id": "KhmerBible",
+      "name": "Khmer Standard Version 1954 = Hammond Version",
+      "filename": "KhmerBible.xml"
+    },
+    {
+      "id": "Kiche2022Bible",
+      "name": "Kiche (RI KꞌAKꞌ TESTAMENTO PA TZIJOBꞌAL KꞌICHEꞌ)",
+      "filename": "Kiche2022Bible.xml"
+    },
+    {
+      "id": "Kiche1995Bible",
+      "name": "Kiche 1995 (Quiché Bible)",
+      "filename": "Kiche1995Bible.xml"
+    },
+    {
+      "id": "KicheQUCNBible",
+      "name": "Kiche QUCN (New Orthography)",
+      "filename": "KicheQUCNBible.xml"
+    },
+    {
+      "id": "KicheBible",
+      "name": "Kiche QUCT",
+      "filename": "KicheBible.xml"
+    },
+    {
+      "id": "Kikuyu2014Bible",
+      "name": "Kikuyu (Kĩrĩkanĩro Gĩa Gĩkũyũ)",
+      "filename": "Kikuyu2014Bible.xml"
+    },
+    {
+      "id": "Kikuyu2013Bible",
+      "name": "Kikuyu 2013 (Kiugo Gĩtheru Kĩa Ngai, Kĩrĩkanĩro Kĩrĩa Gĩkũrũ Na Kĩrĩa Kĩerũ)",
+      "filename": "Kikuyu2013Bible.xml"
+    },
+    {
+      "id": "Kikuyu2019Bible",
+      "name": "Kikuyu Bible (IBUKU RĨRĨA ITHERU RĨA NGAI)",
+      "filename": "Kikuyu2019Bible.xml"
+    },
+    {
+      "id": "KenyaGIKCLBible",
+      "name": "Kikuyu Bible 2008 (Kenya) - IBUKU RĨA ŨHORO ŨRĨA MWEGA (GIKCL)",
+      "filename": "KenyaGIKCLBible.xml"
+    },
+    {
+      "id": "KikwangoBible",
+      "name": "Kikwango Bible (Le Nouveau Testament en Kikwango 1950)",
+      "filename": "KikwangoBible.xml"
+    },
+    {
+      "id": "KimbunduBible",
+      "name": "Kimbundu (O Mikanda Ikola)",
+      "filename": "KimbunduBible.xml"
+    },
+    {
+      "id": "KimiiruBible",
+      "name": "Kimiiru (NTETO INJEGA CIA MURUNGU KIRI ANTU BONTHE CATHOLIC EDITION)",
+      "filename": "KimiiruBible.xml"
+    },
+    {
+      "id": "KinyarwandaBIRBible",
+      "name": "Kinyarwanda 2001 (BIR) (Bibiliya Ijambo ry'imana)",
+      "filename": "KinyarwandaBIRBible.xml"
+    },
+    {
+      "id": "Kinyarwanda2012Bible",
+      "name": "Kinyarwanda 2012 (Bibiliya Ntagatifu)",
+      "filename": "Kinyarwanda2012Bible.xml"
+    },
+    {
+      "id": "KirundiCorosheBible",
+      "name": "Kirundi (Bibiliya mu Kirundi Coroshe) Uburenganzira © 2021 bwa Biblica, Inc",
+      "filename": "KirundiCorosheBible.xml"
+    },
+    {
+      "id": "KirundiRishaBible",
+      "name": "Kirundi (Bibliya Yera 1951, 1967 (Burundi))",
+      "filename": "KirundiRishaBible.xml"
+    },
+    {
+      "id": "KitubaBible",
+      "name": "Kituba (BIBILIYA NA KITUBA)",
+      "filename": "KitubaBible.xml"
+    },
+    {
+      "id": "KonkaniBible",
+      "name": "Konkani Bible (Novo Korar NT (BSI))",
+      "filename": "KonkaniBible.xml"
+    },
+    {
+      "id": "KoreanTKVBible",
+      "name": "Korean",
+      "filename": "KoreanTKVBible.xml"
+    },
+    {
+      "id": "KoreanBible",
+      "name": "Korean 1961 (개역한글)",
+      "filename": "KoreanBible.xml"
+    },
+    {
+      "id": "Korean2021Bible",
+      "name": "Korean 2021 (읽기 쉬운 성경)",
+      "filename": "Korean2021Bible.xml"
+    },
+    {
+      "id": "KoreanAEBBible",
+      "name": "Korean AEB",
+      "filename": "KoreanAEBBible.xml"
+    },
+    {
+      "id": "KoreanCatholicBible",
+      "name": "Korean Catholic 2005",
+      "filename": "KoreanCatholicBible.xml"
+    },
+    {
+      "id": "KoreanKLBBible",
+      "name": "Korean KLB (현대인의 성경)",
+      "filename": "KoreanKLBBible.xml"
+    },
+    {
+      "id": "KoreanNKRVBible",
+      "name": "Korean NKRV Bible 1998",
+      "filename": "KoreanNKRVBible.xml"
+    },
+    {
+      "id": "KoreanNLTNKBible",
+      "name": "Korean NLTNK (God’s Promises: New Testament in North Korean)",
+      "filename": "KoreanNLTNKBible.xml"
+    },
+    {
+      "id": "KoreanRentierBible",
+      "name": "Korean Rentier Bible",
+      "filename": "KoreanRentierBible.xml"
+    },
+    {
+      "id": "KoreanRNKSVBible",
+      "name": "Korean RNKSV (새번역)",
+      "filename": "KoreanRNKSVBible.xml"
+    },
+    {
+      "id": "KoreanWoorimalBible",
+      "name": "Korean Woorimal 2004",
+      "filename": "KoreanWoorimalBible.xml"
+    },
+    {
+      "id": "KrioBible",
+      "name": "Krio (Krio Fɔs Oli Baybul)",
+      "filename": "KrioBible.xml"
+    },
+    {
+      "id": "KumaoniBible",
+      "name": "Kumaoni (सोरियाली नय्या नियम) 2020",
+      "filename": "KumaoniBible.xml"
+    },
+    {
+      "id": "KurdishBHDBible",
+      "name": "Kurdish - Behdini Kurdish (ئنجیلا پیرۆز)",
+      "filename": "KurdishBHDBible.xml"
+    },
+    {
+      "id": "Kurdish2005Bible",
+      "name": "Kurdish (Kurmanji Încîl)",
+      "filename": "Kurdish2005Bible.xml"
+    },
+    {
+      "id": "Kurdish2017Bible",
+      "name": "Kurdish Bible (PNU) 2016 - Peymana Nû (Încîl)",
+      "filename": "Kurdish2017Bible.xml"
+    },
+    {
+      "id": "KurdishSKBBible",
+      "name": "Kurdish Kurmanji 2024 SKB (کتاب مقدس به زبان کردی شیکاکی)",
+      "filename": "KurdishSKBBible.xml"
+    },
+    {
+      "id": "KurdishKMRNTCBible",
+      "name": "Kurdish Kurmanji Cyrillic (KMRNTC) (Пәймана Ну (Инщил)) 2000",
+      "filename": "KurdishKMRNTCBible.xml"
+    },
+    {
+      "id": "KurdishKMRNTLBible",
+      "name": "Kurdish Kurmanji Latin (Peymana Nû (Încîl))",
+      "filename": "KurdishKMRNTLBible.xml"
+    },
+    {
+      "id": "KurdishBible",
+      "name": "Kurdish Sorani KSS 2020 (كوردی سۆرانی ستانده‌رد)",
+      "filename": "KurdishBible.xml"
+    },
+    {
+      "id": "KurdishSKVBible",
+      "name": "Kurdish Southern SKV (Kalhori) (کتاب مقدس به زبان کردی جنوبی - گویش کلهوری)",
+      "filename": "KurdishSKVBible.xml"
+    },
+    {
+      "id": "KurdishPNTZSBible",
+      "name": "Kuridsh Sorani (پەیمانی نوێ و زەبوورەکان بە سۆرانی)",
+      "filename": "KurdishPNTZSBible.xml"
+    },
+    {
+      "id": "KurukhBible",
+      "name": "Kurukh (पुना गच्छरना NT (BSI))",
+      "filename": "KurukhBible.xml"
+    },
+    {
+      "id": "Kurukh2025Bible",
+      "name": "Kurukh NT 2025",
+      "filename": "Kurukh2025Bible.xml"
+    },
+    {
+      "id": "Kyrgyz2004Bible",
+      "name": "Kyrgyz 2004 - Кыргыз тилиндеги Библия - Kyrgyz Tilindegi Bible",
+      "filename": "Kyrgyz2004Bible.xml"
+    },
+    {
+      "id": "Kyrgyz2005Bible",
+      "name": "Kyrgyz 2005 - (Инжил ЛС (2005))",
+      "filename": "Kyrgyz2005Bible.xml"
+    },
+    {
+      "id": "LahuBible",
+      "name": "Lahu Bible Edited © Thailand Bible Society and Bible Society of Myanmar, 2010, 2020.",
+      "filename": "LahuBible.xml"
+    },
+    {
+      "id": "LahuLHINTBible",
+      "name": "Lahu LHINT (Lahu Shi)",
+      "filename": "LahuLHINTBible.xml"
+    },
+    {
+      "id": "LambadiBible",
+      "name": "Lambadi 2025 (పవిత్తర్ బైబిల్ (బంజారా/లంబాడి/గోర్బోలి))",
+      "filename": "LambadiBible.xml"
+    },
+    {
+      "id": "LangoBible",
+      "name": "Lango (BUK OBAŊA ACIL AME OLWOŊO NI BAIBUL AME OGEO LOKO I LEB LAŊO)",
+      "filename": "LangoBible.xml"
+    },
+    {
+      "id": "Lango1979Bible",
+      "name": "Lango New Testament",
+      "filename": "Lango1979Bible.xml"
+    },
+    {
+      "id": "LaoLCVBible",
+      "name": "Lao 2023 (ພຣະຄຳພີລາວສະບັບສະໄໝໃໝ່)",
+      "filename": "LaoLCVBible.xml"
+    },
+    {
+      "id": "LaoBible",
+      "name": "Lao Bible (ฉบับอักษรลาว)",
+      "filename": "LaoBible.xml"
+    },
+    {
+      "id": "Lao2012Bible",
+      "name": "Lao Bible 2012 (ພຣະຄຳພີສັກສິ)",
+      "filename": "Lao2012Bible.xml"
+    },
+    {
+      "id": "LatinClementineBible",
+      "name": "Latin - Clementine Vulgata 1598",
+      "filename": "LatinClementineBible.xml"
+    },
+    {
+      "id": "LatinNovaVulgataBible",
+      "name": "Latin - Nova Vulgata 1979",
+      "filename": "LatinNovaVulgataBible.xml"
+    },
+    {
+      "id": "LatinClementina1914Bible",
+      "name": "Latin - Vulgata Clementina Hetzenauer Editore 1914",
+      "filename": "LatinClementina1914Bible.xml"
+    },
+    {
+      "id": "LatinSistinaBible",
+      "name": "Latin - Vulgata Sistina",
+      "filename": "LatinSistinaBible.xml"
+    },
+    {
+      "id": "LatinBible",
+      "name": "Latin - Vulgate Version",
+      "filename": "LatinBible.xml"
+    },
+    {
+      "id": "Latvian1965Bible",
+      "name": "Latvian (RT65) 1965 (1965. Gada Bībeles Izdevuma Revidētais Teksts)",
+      "filename": "Latvian1965Bible.xml"
+    },
+    {
+      "id": "Latvian2024Bible",
+      "name": "Latvian 2024 (Jauna Pārstrādāta latviešu Bībele 2024)",
+      "filename": "Latvian2024Bible.xml"
+    },
+    {
+      "id": "LatvianGluckBible",
+      "name": "Latvian Gluck 1685 (LvGluck8) : Glika Bībele 8. Izdevums",
+      "filename": "LatvianGluckBible.xml"
+    },
+    {
+      "id": "LatvianLG8Bible",
+      "name": "Latvian LG8 (Glika Bībele 8. Izdevums) - No Year",
+      "filename": "LatvianLG8Bible.xml"
+    },
+    {
+      "id": "LatvianBible",
+      "name": "Latvian LJD (Latviešu Jaunā Derība)",
+      "filename": "LatvianBible.xml"
+    },
+    {
+      "id": "LatvianLTV1965Bible",
+      "name": "Latvian LTV 1965 (LATVIJAS BĪBELES BIEDRĪBA)",
+      "filename": "LatvianLTV1965Bible.xml"
+    },
+    {
+      "id": "Latvian2012Bible",
+      "name": "Latvian NLB (New Latvian Inter-Confessional Bible)",
+      "filename": "Latvian2012Bible.xml"
+    },
+    {
+      "id": "LatvianNLBDCBible",
+      "name": "Latvian NLBDC (New Latvian Inter-Confessional Bible with Deuterocanonicals)",
+      "filename": "LatvianNLBDCBible.xml"
+    },
+    {
+      "id": "EnglishLSBBible",
+      "name": "Legacy Standard Bible (LSB)",
+      "filename": "EnglishLSBBible.xml"
+    },
+    {
+      "id": "LiberianKreyolBible",
+      "name": "Liberian Kreyol (ꕢꕌꔳ ꕺꖃ ꕯꕮꕊ)",
+      "filename": "LiberianKreyolBible.xml"
+    },
+    {
+      "id": "Lingala2020Bible",
+      "name": "Lingala 2020 (Mokanda na Bomoi)",
+      "filename": "Lingala2020Bible.xml"
+    },
+    {
+      "id": "Lingala2002Bible",
+      "name": "Lingala Bible 2002 (Mokanda na Bomoi)",
+      "filename": "Lingala2002Bible.xml"
+    },
+    {
+      "id": "LithuanianBible",
+      "name": "Lithuanian (KBV) (Biblija. Senasis Testamentas. Naujasis Testamentas)",
+      "filename": "LithuanianBible.xml"
+    },
+    {
+      "id": "LithuanianLBDBible",
+      "name": "Lithuanian (LBD) 2012 (Biblija arba Šventasis Raštas)",
+      "filename": "LithuanianLBDBible.xml"
+    },
+    {
+      "id": "Lithuanian2012EKUBible",
+      "name": "Lithuanian 2012 EKU (A. Rubšio ir Č. Kavaliausko Vertimas su Antrojo Kanono Knygomis)",
+      "filename": "Lithuanian2012EKUBible.xml"
+    },
+    {
+      "id": "Lithuanian2012Bible",
+      "name": "Lithuanian 2012 LBDC (Biblija arba Šventasis Raštas)",
+      "filename": "Lithuanian2012Bible.xml"
+    },
+    {
+      "id": "LithuanianKJBible",
+      "name": "Lithuanian Bible (Karaliaus Jokūbo Versija Lietuviškai 2012 Edition) 2012 - KJV",
+      "filename": "LithuanianKJBible.xml"
+    },
+    {
+      "id": "Lithuanian2012KANBible",
+      "name": "Lithuanian LBD-KAN (A. Rubšio ir Č. Kavaliausko Vertimas be Antrojo Kanono Knygų)",
+      "filename": "Lithuanian2012KANBible.xml"
+    },
+    {
+      "id": "LomweBible",
+      "name": "Lomwe (Nlakano Nahihano ni Masalmo 1930)",
+      "filename": "LomweBible.xml"
+    },
+    {
+      "id": "LugandaBIBU1Bible",
+      "name": "Luganda (BIBU1) (BIBULIYA ENTUKUVU)",
+      "filename": "LugandaBIBU1Bible.xml"
+    },
+    {
+      "id": "LugandaEEEEBible",
+      "name": "Luganda (EEEE) (Endagaano Enkadde n’Endagaano Empya)",
+      "filename": "LugandaEEEEBible.xml"
+    },
+    {
+      "id": "LugandaLBRBible",
+      "name": "Luganda (LBR) (EKITABO EKITUKUVU, BAIBULI)",
+      "filename": "LugandaLBRBible.xml"
+    },
+    {
+      "id": "Luganda2003Bible",
+      "name": "Luganda (Luganda Bible 2003) (LB03)",
+      "filename": "Luganda2003Bible.xml"
+    },
+    {
+      "id": "LugandaBible",
+      "name": "Luganda 1968 (Ekitabo Ekitukuvu ekiyitibwa Baibuli Endagaano Enkadde n'Empya)",
+      "filename": "LugandaBible.xml"
+    },
+    {
+      "id": "LugbaraBible",
+      "name": "Lugbara (E’yo Siza Alatararu Munguniri BIBLIA)",
+      "filename": "LugbaraBible.xml"
+    },
+    {
+      "id": "LuguruBible",
+      "name": "Luguru - Laghano - Ikiruguru - Chilughuru - (Laghano Lya Sambi Kwe Iwanu Wose)",
+      "filename": "LuguruBible.xml"
+    },
+    {
+      "id": "Luo1985Bible",
+      "name": "Luo (Acoli Baibul) 1985",
+      "filename": "Luo1985Bible.xml"
+    },
+    {
+      "id": "Luo2015Bible",
+      "name": "Luo (MUMA MALER 1976)",
+      "filename": "Luo2015Bible.xml"
+    },
+    {
+      "id": "Luo2020Bible",
+      "name": "Luo 1980 (Motingʼo Loko Manyien)",
+      "filename": "Luo2020Bible.xml"
+    },
+    {
+      "id": "MaasaiMBSBible",
+      "name": "Maasai (Biblia Sinyati)",
+      "filename": "MaasaiMBSBible.xml"
+    },
+    {
+      "id": "Maasai1970Bible",
+      "name": "Maasai 1964 (Osotua Ng'ejuk)",
+      "filename": "Maasai1970Bible.xml"
+    },
+    {
+      "id": "MaasaiBible",
+      "name": "Maasai 2018 (BIBLIA SINYATI TE NKUTUK OO LMAASAI NATISIRAKI ENG'EJUK NAATA MBUKUI E DITROKANONI)",
+      "filename": "MaasaiBible.xml"
+    },
+    {
+      "id": "Maasai2020Bible",
+      "name": "Maasai 2020 (BIBLIA SINYATI)",
+      "filename": "Maasai2020Bible.xml"
+    },
+    {
+      "id": "Macedonian1990Bible",
+      "name": "Macedonian (Свето Писмо (Гаврилова) 1990)",
+      "filename": "Macedonian1990Bible.xml"
+    },
+    {
+      "id": "Macedonian2006Bible",
+      "name": "Macedonian (Свето Писмо: Стандардна Библија 2006 (66 книги))",
+      "filename": "Macedonian2006Bible.xml"
+    },
+    {
+      "id": "MacedonianMKB1999Bible",
+      "name": "Macedonian 1999 (MKB) - (Библија: Стариот и Новиот Завет, Константинов)",
+      "filename": "MacedonianMKB1999Bible.xml"
+    },
+    {
+      "id": "MacedonianMNT1999Bible",
+      "name": "Macedonian 1999 (MNT) (Динамичен Превод на Новиот завет на Македонски Јазик)",
+      "filename": "MacedonianMNT1999Bible.xml"
+    },
+    {
+      "id": "Macedonian2006DBible",
+      "name": "Macedonian 2006 D - (Свето Писмо: Стандардна Библија 2006 (со Девтероканонски Книги))",
+      "filename": "Macedonian2006DBible.xml"
+    },
+    {
+      "id": "Macedonian2023Bible",
+      "name": "Macedonian 2023 (Нов Превод на Новиот Завет 2023)",
+      "filename": "Macedonian2023Bible.xml"
+    },
+    {
+      "id": "MadureseBible",
+      "name": "Madurese Bible 1994 (ALKETAB E DHALEM BASA MADURA)",
+      "filename": "MadureseBible.xml"
+    },
+    {
+      "id": "MaithiliBible",
+      "name": "Maithili - 2010 (Jivən Səndesh)",
+      "filename": "MaithiliBible.xml"
+    },
+    {
+      "id": "MakhuwaBible",
+      "name": "Makhuwa (Makua New Testament)",
+      "filename": "MakhuwaBible.xml"
+    },
+    {
+      "id": "Makhuwa2021Bible",
+      "name": "Makhuwa 2021 (Nleehano Nonaanano Imeetto; Moçambique)",
+      "filename": "Makhuwa2021Bible.xml"
+    },
+    {
+      "id": "MakhuwaVMKBible",
+      "name": "Makhuwa VMK (Emakhuwa Bible)",
+      "filename": "MakhuwaVMKBible.xml"
+    },
+    {
+      "id": "MakondeBible",
+      "name": "Makonde (Bibiliya ya Chimakonde)",
+      "filename": "MakondeBible.xml"
+    },
+    {
+      "id": "MakondeShiBible",
+      "name": "Makonde Shimakonde (Ibibiliya mu Shimakonde Imbodi Yaambi na dimbande dya Imbodi Yakala)",
+      "filename": "MakondeShiBible.xml"
+    },
+    {
+      "id": "Malagasy2011Bible",
+      "name": "Malagasy (Baiboly Protestanta Malagasy 2011)",
+      "filename": "Malagasy2011Bible.xml"
+    },
+    {
+      "id": "Malagasy2003Bible",
+      "name": "Malagasy 2003 (Baiboly Katolika)",
+      "filename": "Malagasy2003Bible.xml"
+    },
+    {
+      "id": "Malagasy2004Bible",
+      "name": "Malagasy 2004 (DIEM PROTESTANTA)",
+      "filename": "Malagasy2004Bible.xml"
+    },
+    {
+      "id": "MalagasyBible",
+      "name": "Malagasy 2019 (Baiboly Protestanta Malagasy)",
+      "filename": "MalagasyBible.xml"
+    },
+    {
+      "id": "Malagasy1865Bible",
+      "name": "Malagasy Bible 1865",
+      "filename": "Malagasy1865Bible.xml"
+    },
+    {
+      "id": "MalagasyMRVBible",
+      "name": "Malagasy MRV 2011 (La Bible en Malgache)",
+      "filename": "MalagasyMRVBible.xml"
+    },
+    {
+      "id": "MalayalamBSIBible",
+      "name": "Malayalam (BSI) 2016 (സത്യവേദപുസ്തകം C.L. (BSI))",
+      "filename": "MalayalamBSIBible.xml"
+    },
+    {
+      "id": "MalayalamWBTCBible",
+      "name": "Malayalam (ERV) WBTC Bible",
+      "filename": "MalayalamWBTCBible.xml"
+    },
+    {
+      "id": "Malayalam1910Bible",
+      "name": "Malayalam (മലയാളം സത്യവേദപുസ്തകം 1910 പതിപ്പ് (പരിഷ്കരിച്ച ലിപിയിൽ))",
+      "filename": "Malayalam1910Bible.xml"
+    },
+    {
+      "id": "MalayalamBible",
+      "name": "Malayalam 1992 MBSI",
+      "filename": "MalayalamBible.xml"
+    },
+    {
+      "id": "MalayalamBCSBible",
+      "name": "Malayalam Bible (IRV) 2019 (ഇന്ത്യൻ റിവൈസ്ഡ് വേർഷൻ - മലയാളം)",
+      "filename": "MalayalamBCSBible.xml"
+    },
+    {
+      "id": "MalayalamMalovBible",
+      "name": "Malayalam Bible (OV-BSI) 2016 (സത്യവേദപുസ്തകം OV Bible (BSI))",
+      "filename": "MalayalamMalovBible.xml"
+    },
+    {
+      "id": "Malayalam2013Bible",
+      "name": "Malayalam Bible POC-ML 2013",
+      "filename": "Malayalam2013Bible.xml"
+    },
+    {
+      "id": "MalayalamCVBible",
+      "name": "Malayalam Contemporary Version (സമകാലിക മലയാളവിവർത്തനം)",
+      "filename": "MalayalamCVBible.xml"
+    },
+    {
+      "id": "Malaysian1996Bible",
+      "name": "Malaysian (BM) 1996 (Alkitab Berita Baik Protestant Bible)",
+      "filename": "Malaysian1996Bible.xml"
+    },
+    {
+      "id": "Malaysian2017Bible",
+      "name": "Malaysian 2017 (Perjanjian Baru Bahasa Manado)",
+      "filename": "Malaysian2017Bible.xml"
+    },
+    {
+      "id": "Malaysian2020Bible",
+      "name": "Malaysian 2020 (Perjanjian Baru Bahasa Melayu Maluku Utara)",
+      "filename": "Malaysian2020Bible.xml"
+    },
+    {
+      "id": "MalaysianBible",
+      "name": "Malaysian Version 2008",
+      "filename": "MalaysianBible.xml"
+    },
+    {
+      "id": "Maori2012Bible",
+      "name": "Maori (Paipera Tapu 2012)",
+      "filename": "Maori2012Bible.xml"
+    },
+    {
+      "id": "MaoriBible",
+      "name": "Maori MRI1952 (Te Paipera Tapu 1952)",
+      "filename": "MaoriBible.xml"
+    },
+    {
+      "id": "MarathiBible",
+      "name": "Marathi 2006 ERV WBTC",
+      "filename": "MarathiBible.xml"
+    },
+    {
+      "id": "MarathiBSIBible",
+      "name": "Marathi MACLBSI (पवित्र शास्त्र CL New Testament (BSI))",
+      "filename": "MarathiBSIBible.xml"
+    },
+    {
+      "id": "Marathi2015Bible",
+      "name": "Marathi MARVBSI (पवित्र शास्त्र RV (Re-edited) Bible (BSI))",
+      "filename": "Marathi2015Bible.xml"
+    },
+    {
+      "id": "MarathiMRCVBible",
+      "name": "Marathi MRCV (पवित्रशास्त्र, मराठी समकालीन आवृत्ती)",
+      "filename": "MarathiMRCVBible.xml"
+    },
+    {
+      "id": "MarathiIRVMARBible",
+      "name": "Marathı IRV (इंडियन रीवाइज्ड वर्जन (IRV) - मराठी)",
+      "filename": "MarathiIRVMARBible.xml"
+    },
+    {
+      "id": "MarwariBible",
+      "name": "Marwari Bible",
+      "filename": "MarwariBible.xml"
+    },
+    {
+      "id": "MazanderaniBible",
+      "name": "Mazanderani EMB (کتاب مقدس به زبان مازندرانی - گویش شرقی)",
+      "filename": "MazanderaniBible.xml"
+    },
+    {
+      "id": "MazanderaniGMBBible",
+      "name": "Mazanderani GMB (گیله ماز)",
+      "filename": "MazanderaniGMBBible.xml"
+    },
+    {
+      "id": "MazanderaniWMBBible",
+      "name": "Mazanderani WMB (کتاب مقدس به زبان مازندرانی - گویش غربی)",
+      "filename": "MazanderaniWMBBible.xml"
+    },
+    {
+      "id": "MeiteiBible",
+      "name": "Meitei Bible (Anouba Warepnaba (Roman Script)) 2022",
+      "filename": "MeiteiBible.xml"
+    },
+    {
+      "id": "MendeBible",
+      "name": "Mende (Nupela Testamen long tokples Mende long Niugini)",
+      "filename": "MendeBible.xml"
+    },
+    {
+      "id": "MewariBible",
+      "name": "Mewari (नुवो नेम (मेवड़ी नया नियम))",
+      "filename": "MewariBible.xml"
+    },
+    {
+      "id": "IuMienThaiBible",
+      "name": "Mien Bible (Thai Script) © Thailand Bible Society, 2007",
+      "filename": "IuMienThaiBible.xml"
+    },
+    {
+      "id": "MizoBible",
+      "name": "Mizo Bible",
+      "filename": "MizoBible.xml"
+    },
+    {
+      "id": "MizoCLBSIBible",
+      "name": "Mizo CL BSI (Common Language)",
+      "filename": "MizoCLBSIBible.xml"
+    },
+    {
+      "id": "MizoOVBSIBible",
+      "name": "Mizo OV BSI (THUTHLUNG HLUI (Re-edited) Bible (BSI))",
+      "filename": "MizoOVBSIBible.xml"
+    },
+    {
+      "id": "MobaBible",
+      "name": "Moba-Lok New Testament © Bible Society of Togo, 2007",
+      "filename": "MobaBible.xml"
+    },
+    {
+      "id": "MoldovianCyrillicBible",
+      "name": "Moldovian Bible Cyrillic - (Ени Бааланты) (GAGNTC) 2006",
+      "filename": "MoldovianCyrillicBible.xml"
+    },
+    {
+      "id": "MoldovianLatinBible",
+      "name": "Moldovian Bible Latin - 2006 (Enі Baalantı)",
+      "filename": "MoldovianLatinBible.xml"
+    },
+    {
+      "id": "Mongolian2013Bible",
+      "name": "Mongolian (Ариун Библи 2013)",
+      "filename": "Mongolian2013Bible.xml"
+    },
+    {
+      "id": "Mongolian2004Bible",
+      "name": "Mongolian (Ариун Библи, 2004)",
+      "filename": "Mongolian2004Bible.xml"
+    },
+    {
+      "id": "MorisyenBible",
+      "name": "Morisyen (Nouvo Testaman dan Kreol Morisien)",
+      "filename": "MorisyenBible.xml"
+    },
+    {
+      "id": "Morisyen2021Bible",
+      "name": "Morisyen (Nouvo Testaman Kreol Morisien Harmonisation NTPS KM)",
+      "filename": "Morisyen2021Bible.xml"
+    },
+    {
+      "id": "MossiSSDCBible",
+      "name": "Mossi (SEBR SÕNGO) 1998",
+      "filename": "MossiSSDCBible.xml"
+    },
+    {
+      "id": "MossiSBBible",
+      "name": "Mossi Moore (KÃAB-PAALGÃ KOE-NOOGO)",
+      "filename": "MossiSBBible.xml"
+    },
+    {
+      "id": "Mossi2014Bible",
+      "name": "Mossi MPBU (WẼNNAAM SEBRE 2014)",
+      "filename": "Mossi2014Bible.xml"
+    },
+    {
+      "id": "MundaBible",
+      "name": "Munda (ମୁଣ୍ଡା ନାୱା ନିୟାମ୍)",
+      "filename": "MundaBible.xml"
+    },
+    {
+      "id": "Munda2020Bible",
+      "name": "Munda 2020 (ପାର୍‌ମେଶ୍ୱାର୍‌ଆଃ ଜୀନିଦ୍‌ ବାଚାନ୍‌, ନାୱା ନିୟାମ୍‌)",
+      "filename": "Munda2020Bible.xml"
+    },
+    {
+      "id": "Nahuatl2012Bible",
+      "name": "Nahuatl (Zacatlán, Ahuacatlán, Tepetzintla)",
+      "filename": "Nahuatl2012Bible.xml"
+    },
+    {
+      "id": "NahuatlBible",
+      "name": "Nahuatl 1987 (In yencuic iyectlajtoltzin Dios itech ica toTeco Jesucristo)",
+      "filename": "NahuatlBible.xml"
+    },
+    {
+      "id": "Nahuatl2017Bible",
+      "name": "Nahuatl 2017 (El Nuevo Testamento)",
+      "filename": "Nahuatl2017Bible.xml"
+    },
+    {
+      "id": "NahuatlGUBible",
+      "name": "Nahuatl GU (El Nuevo Testamento)",
+      "filename": "NahuatlGUBible.xml"
+    },
+    {
+      "id": "NahuatlNHEBible",
+      "name": "Nahuatl NHE (Ya ni nopa yancuic tlajtoli tlen toteco toca mocajtoc)",
+      "filename": "NahuatlNHEBible.xml"
+    },
+    {
+      "id": "NdauBible",
+      "name": "Ndau (Bhaibheri Rakachena muChindau) - No Year",
+      "filename": "NdauBible.xml"
+    },
+    {
+      "id": "Ndau2023Bible",
+      "name": "Ndau 2023 (NOVO TESTAMENTO EM NDAU)",
+      "filename": "Ndau2023Bible.xml"
+    },
+    {
+      "id": "Ndebele2003Bible",
+      "name": "Ndebele 2003 BEN (IBhayibhili Elingcwele LesiNdebele)",
+      "filename": "Ndebele2003Bible.xml"
+    },
+    {
+      "id": "NdebeleBible",
+      "name": "Ndebele Bible - 2010",
+      "filename": "NdebeleBible.xml"
+    },
+    {
+      "id": "Ndebele2012Bible",
+      "name": "Ndebele Bible (SND) 2012 (IsiNdebele 2012 Translation)",
+      "filename": "Ndebele2012Bible.xml"
+    },
+    {
+      "id": "Ndebele2002Bible",
+      "name": "Ndebele Bible 1978 (iBhayibhili Elingcwele 1978)",
+      "filename": "Ndebele2002Bible.xml"
+    },
+    {
+      "id": "Nepali2008Bible",
+      "name": "Nepali 2008 - (सरल नेपाली पवित्र बाइबल)",
+      "filename": "Nepali2008Bible.xml"
+    },
+    {
+      "id": "Nepali2012Bible",
+      "name": "Nepali 2012 (NNRV) New Revised Version (नेपाली नयाँ संशोधित संस्करण)",
+      "filename": "Nepali2012Bible.xml"
+    },
+    {
+      "id": "Nepali2021Bible",
+      "name": "Nepali Contemporary Version 2021 (पवित्र बाइबल, नेपाली समकालीन संस्करण)",
+      "filename": "Nepali2021Bible.xml"
+    },
+    {
+      "id": "NepaliBible",
+      "name": "Nepali ERV (पवित्र बाइबल)",
+      "filename": "NepaliBible.xml"
+    },
+    {
+      "id": "NepaliTamangBible",
+      "name": "Nepali Tamang 2011",
+      "filename": "NepaliTamangBible.xml"
+    },
+    {
+      "id": "NigerianPidginBible",
+      "name": "Nigerian Pidgin Bible",
+      "filename": "NigerianPidginBible.xml"
+    },
+    {
+      "id": "NorwegianBGOBible",
+      "name": "Norwegian (Bibelen – Guds Ord 2017)",
+      "filename": "NorwegianBGOBible.xml"
+    },
+    {
+      "id": "Norwegian1978Bible",
+      "name": "Norwegian (Bibelen 2011 Bokmål)",
+      "filename": "Norwegian1978Bible.xml"
+    },
+    {
+      "id": "NorwegianN78BMBible",
+      "name": "Norwegian (N78BM) (The Bible in Norwegian 1978/85 bokmål)",
+      "filename": "NorwegianN78BMBible.xml"
+    },
+    {
+      "id": "NorwegianN78NNBible",
+      "name": "Norwegian (N78NN) (Bibelen 1978/85 Nynorsk)",
+      "filename": "NorwegianN78NNBible.xml"
+    },
+    {
+      "id": "Norwegian1921Bible",
+      "name": "Norwegian 1921 (Studentmållagsbibelen) (SMB)",
+      "filename": "Norwegian1921Bible.xml"
+    },
+    {
+      "id": "NorwegianBible",
+      "name": "Norwegian 1930 (Det Norsk Bibelselskap 1930)",
+      "filename": "NorwegianBible.xml"
+    },
+    {
+      "id": "Norwegian1938Bible",
+      "name": "Norwegian 1938 (Norsk Oversettelse 1938 Nynorsk)",
+      "filename": "Norwegian1938Bible.xml"
+    },
+    {
+      "id": "NorwegianBIBEL1978Bible",
+      "name": "Norwegian 1978 (Bibel1978/1985 - Bibelselskapet)",
+      "filename": "NorwegianBIBEL1978Bible.xml"
+    },
+    {
+      "id": "NorwegianNY2011Bible",
+      "name": "Norwegian 2011 (Bibelen 2011 Nynorsk)",
+      "filename": "NorwegianNY2011Bible.xml"
+    },
+    {
+      "id": "Norwegian2018Bible",
+      "name": "Norwegian 2018 (Bibelen - Guds Ord Hverdagsbibelen (Hermon Forlag))",
+      "filename": "Norwegian2018Bible.xml"
+    },
+    {
+      "id": "Norwegian2011Bible",
+      "name": "Norwegian Brød Nye Testamente 2011 ?",
+      "filename": "Norwegian2011Bible.xml"
+    },
+    {
+      "id": "NorwegianELBBible",
+      "name": "Norwegian ELB (En Levende Bok)",
+      "filename": "NorwegianELBBible.xml"
+    },
+    {
+      "id": "Norwegian2007Bible",
+      "name": "Norwegian NB (Norsk Bibel 88/07)",
+      "filename": "Norwegian2007Bible.xml"
+    },
+    {
+      "id": "NuerBible",
+      "name": "Nuer Bible © Bible Society in South Sudan 1998,2012",
+      "filename": "NuerBible.xml"
+    },
+    {
+      "id": "NyankoleBible",
+      "name": "Nyankole (EKITABO EKIRIKWERA BAIBULI N'EBITABO EBY'OMUBONANO APOKURUFA/DYUTROKANONIKO)",
+      "filename": "NyankoleBible.xml"
+    },
+    {
+      "id": "Nyankole1964Bible",
+      "name": "Nyankole 1964 (Baibuli Erikwera)",
+      "filename": "Nyankole1964Bible.xml"
+    },
+    {
+      "id": "OdiaBible",
+      "name": "Odia - 1840 - No Data",
+      "filename": "OdiaBible.xml"
+    },
+    {
+      "id": "OdiaOROVBible",
+      "name": "Odia 2014 (Re-edited) (ପବିତ୍ର ବାଇବଲ (Re-edited) - (BSI))",
+      "filename": "OdiaOROVBible.xml"
+    },
+    {
+      "id": "OdiaERVBible",
+      "name": "Odia Bible ERV 2004 (ପବିତ୍ର ବାଇବଲ)",
+      "filename": "OdiaERVBible.xml"
+    },
+    {
+      "id": "OdiaBSIBible",
+      "name": "Odia BSI (ପବିତ୍ର ବାଇବଲ (CL) NT (BSI))",
+      "filename": "OdiaBSIBible.xml"
+    },
+    {
+      "id": "OdiaIRVBible",
+      "name": "Odia IRV (ଇଣ୍ଡିୟାନ ରିୱାଇସ୍ଡ୍ ୱରସନ୍ ଓଡିଆ -NT)",
+      "filename": "OdiaIRVBible.xml"
+    },
+    {
+      "id": "OdiaIRV2017Bible",
+      "name": "Odia IRV 2017 (ଓଡିଆ ବାଇବେଲ)",
+      "filename": "OdiaIRV2017Bible.xml"
+    },
+    {
+      "id": "Odia2024Bible",
+      "name": "Odia NTS2024 2024 (ದೆವಾಚಿ ಖರಿ ಖಬರ್)",
+      "filename": "Odia2024Bible.xml"
+    },
+    {
+      "id": "OromoGujiBible",
+      "name": "Oromo Bible (Guji) 2007",
+      "filename": "OromoGujiBible.xml"
+    },
+    {
+      "id": "OromoKakuuHaaraakaBible",
+      "name": "Oromo Bible (Kakuu Haaraaka) - No Year",
+      "filename": "OromoKakuuHaaraakaBible.xml"
+    },
+    {
+      "id": "OromoKitaabaWaaqaBible",
+      "name": "Oromo Bible (KITAABA WAAQA) 2019",
+      "filename": "OromoKitaabaWaaqaBible.xml"
+    },
+    {
+      "id": "OromoKitaabaWoyyuuBible",
+      "name": "Oromo Bible (Kitaaba Woyyuu) - No Year",
+      "filename": "OromoKitaabaWoyyuuBible.xml"
+    },
+    {
+      "id": "OromoWaadaaHaarawaBible",
+      "name": "Oromo Bible (Waadaa Haarawa) - No Year",
+      "filename": "OromoWaadaaHaarawaBible.xml"
+    },
+    {
+      "id": "OromoWaadaaLammataaBible",
+      "name": "Oromo Bible (WAADAA LAMMATAA) 2013",
+      "filename": "OromoWaadaaLammataaBible.xml"
+    },
+    {
+      "id": "OromoGUJBible",
+      "name": "Oromo Gujiii (KITAABA WOYYICHA) - No Year",
+      "filename": "OromoGUJBible.xml"
+    },
+    {
+      "id": "PampangaBible",
+      "name": "Pampanga (Ing Mayap a Balita Biblia)",
+      "filename": "PampangaBible.xml"
+    },
+    {
+      "id": "PapuaNewGuineaBible",
+      "name": "Papua New Guinea 1997",
+      "filename": "PapuaNewGuineaBible.xml"
+    },
+    {
+      "id": "PapuaNewGuineaTokPisinBible",
+      "name": "Papua New Guinea Tok Pisin (Buk Baibel Long Tok Pisin 2008 + DC)",
+      "filename": "PapuaNewGuineaTokPisinBible.xml"
+    },
+    {
+      "id": "Pashto2019Bible",
+      "name": "Pashto 2019 (Pakistani Yousafzai Pashto)",
+      "filename": "Pashto2019Bible.xml"
+    },
+    {
+      "id": "Pashto2023Bible",
+      "name": "Pashto 2023 (Afghan Pashto Bible)",
+      "filename": "Pashto2023Bible.xml"
+    },
+    {
+      "id": "PashtoBible",
+      "name": "Pashto Bible 1996 (Nangahari) - (د پښتو مقدس کتاب)",
+      "filename": "PashtoBible.xml"
+    },
+    {
+      "id": "Persian2005Bible",
+      "name": "Persian Bible (FACB) 2005 - Persian Contemporary Bible",
+      "filename": "Persian2005Bible.xml"
+    },
+    {
+      "id": "Persian2014Bible",
+      "name": "Persian Bible (NMV) 2014 - New Millennium Version",
+      "filename": "Persian2014Bible.xml"
+    },
+    {
+      "id": "PersianBible",
+      "name": "Persian Bible == POV (Persian Old Version) 1895",
+      "filename": "PersianBible.xml"
+    },
+    {
+      "id": "PersianDariBible",
+      "name": "Persian Dari Bible - Afgan Dialect - Version Good News for a New Age (GNN) == 2007",
+      "filename": "PersianDariBible.xml"
+    },
+    {
+      "id": "PersianTPVBible",
+      "name": "Persian TPV (مژده برای عصر جدید)",
+      "filename": "PersianTPVBible.xml"
+    },
+    {
+      "id": "PolishBible",
+      "name": "Polish (Biblia Warszawska 1975)",
+      "filename": "PolishBible.xml"
+    },
+    {
+      "id": "Polish2016Bible",
+      "name": "Polish 2016 (Słowo Życia)",
+      "filename": "Polish2016Bible.xml"
+    },
+    {
+      "id": "Polish2018Bible",
+      "name": "Polish 2018 (Biblia, to jest Pismo Święte Starego i Nowego Przymierza Wydanie pierwsze 2018)",
+      "filename": "Polish2018Bible.xml"
+    },
+    {
+      "id": "PolishGdanskBible",
+      "name": "Polish Gdansk 1881 - 1910 (Biblia Gdańska)",
+      "filename": "PolishGdanskBible.xml"
+    },
+    {
+      "id": "PolishGdansk2017Bible",
+      "name": "Polish Gdansk 2018 (UWSPÓŁCZEŚNIONA BIBLIA GDAŃSKA)",
+      "filename": "PolishGdansk2017Bible.xml"
+    },
+    {
+      "id": "PolishNBGBible",
+      "name": "Polish NBG (Nowa Biblia Gdańska)",
+      "filename": "PolishNBGBible.xml"
+    },
+    {
+      "id": "PolishNPDBible",
+      "name": "Polish NPD (Dobra Wiadomość o ratunku w Chrystusie. Nowy Przekład Dynamiczny Nowego Testamentu)",
+      "filename": "PolishNPDBible.xml"
+    },
+    {
+      "id": "PolishSNPD4Bible",
+      "name": "Polish SNPD4 (Biblia, to jest Pismo Święte Starego i Nowego Przymierza)",
+      "filename": "PolishSNPD4Bible.xml"
+    },
+    {
+      "id": "PortugueseVFLBible",
+      "name": "Portuguese (Bíblia Sagrada: Versão Fácil de Ler) VFL",
+      "filename": "PortugueseVFLBible.xml"
+    },
+    {
+      "id": "PortugueseCAPBible",
+      "name": "Portuguese (CAP) Capuchinhos == Copyrighted probably before 1950",
+      "filename": "PortugueseCAPBible.xml"
+    },
+    {
+      "id": "PortugueseMZNVIBible",
+      "name": "Portuguese (Nova Versão Internacional, Português de Moçambique)",
+      "filename": "PortugueseMZNVIBible.xml"
+    },
+    {
+      "id": "PortugueseA21Bible",
+      "name": "Portuguese A21 (Biblia Almeida Século 21)",
+      "filename": "PortugueseA21Bible.xml"
+    },
+    {
+      "id": "PortugueseAlmeida1628Bible",
+      "name": "Portuguese Almeida 1628 Public Domain",
+      "filename": "PortugueseAlmeida1628Bible.xml"
+    },
+    {
+      "id": "PortugueseAlmeida1753Bible",
+      "name": "Portuguese Almeida 1753 Public Domain",
+      "filename": "PortugueseAlmeida1753Bible.xml"
+    },
+    {
+      "id": "PortugueseBible",
+      "name": "Portuguese Almeida Revista e Atualizada == (ARA) 1993 Revised Version: This is from old Portuguese Version but was revised in 1993 = Public Domain Originaly",
+      "filename": "PortugueseBible.xml"
+    },
+    {
+      "id": "PortugueseARCBible",
+      "name": "Portuguese ARC 2009 (Almeida Revista e Corrigida)",
+      "filename": "PortugueseARCBible.xml"
+    },
+    {
+      "id": "Portuguese1969Bible",
+      "name": "Portuguese Bible Old Orthography",
+      "filename": "Portuguese1969Bible.xml"
+    },
+    {
+      "id": "PortugueseBLTBible",
+      "name": "Portuguese BLT Biblia Livre Para Todos",
+      "filename": "PortugueseBLTBible.xml"
+    },
+    {
+      "id": "PortugueseBPT09Bible",
+      "name": "Portuguese BPT09 (Aprenda Mais Sobre a BÍBLIA para todos Edição Comum)",
+      "filename": "PortugueseBPT09Bible.xml"
+    },
+    {
+      "id": "PortugueseNAABible",
+      "name": "Portuguese NAA 2017 (Nova Almeida Atualizada)",
+      "filename": "PortugueseNAABible.xml"
+    },
+    {
+      "id": "PortugueseNBV2007Bible",
+      "name": "Portuguese NBV-P (Nova Bíblia Viva Português)",
+      "filename": "PortugueseNBV2007Bible.xml"
+    },
+    {
+      "id": "PortugueseNTLHBible",
+      "name": "Portuguese NTLH (Nova Tradução na Linguagem de Hoje)",
+      "filename": "PortugueseNTLHBible.xml"
+    },
+    {
+      "id": "PortugueseNVIBible",
+      "name": "Portuguese NVI 2000",
+      "filename": "PortugueseNVIBible.xml"
+    },
+    {
+      "id": "PortugueseNVI2023Bible",
+      "name": "Portuguese NVI 2023",
+      "filename": "PortugueseNVI2023Bible.xml"
+    },
+    {
+      "id": "PortugueseNVTBible",
+      "name": "Portuguese NVT (Bíblia Sagrada, Nova Versão Transformadora)",
+      "filename": "PortugueseNVTBible.xml"
+    },
+    {
+      "id": "PortugueseOLBible",
+      "name": "Portuguese OL 2017 (O Livro)",
+      "filename": "PortugueseOLBible.xml"
+    },
+    {
+      "id": "PortugueseTBBible",
+      "name": "Portuguese TB (Tradução Brasileira)",
+      "filename": "PortugueseTBBible.xml"
+    },
+    {
+      "id": "PularBible",
+      "name": "Pular (Version Pular Fuuta-Jallon)",
+      "filename": "PularBible.xml"
+    },
+    {
+      "id": "PunjabiERVBible",
+      "name": "Punjabi 2002 ERV (ਪਵਿੱਤਰ ਬਾਈਬਲ)",
+      "filename": "PunjabiERVBible.xml"
+    },
+    {
+      "id": "Punjabi2021Bible",
+      "name": "Punjabi 2021 CL-NA (ਪਵਿੱਤਰ ਬਾਈਬਲ (Revised Common Language North American Edition))",
+      "filename": "Punjabi2021Bible.xml"
+    },
+    {
+      "id": "Punjabi2022Bible",
+      "name": "Punjabi 2022 (ਪੰਜਾਬੀ ਮੌਜੂਦਾ ਤਰਜਮਾ)",
+      "filename": "Punjabi2022Bible.xml"
+    },
+    {
+      "id": "Punjabi2016Bible",
+      "name": "Punjabi Bible 2016 - ਪਵਿੱਤਰ ਬਾਈਬਲ O.V.",
+      "filename": "Punjabi2016Bible.xml"
+    },
+    {
+      "id": "PunjabiBible",
+      "name": "Punjabi ERV",
+      "filename": "PunjabiBible.xml"
+    },
+    {
+      "id": "Punjabi2020Bible",
+      "name": "Punjabi Revised 2020 (Arabic Script) (پنجابی نواں عہد نامہ نظرثانی شدہ چھپائی)",
+      "filename": "Punjabi2020Bible.xml"
+    },
+    {
+      "id": "PunjabiIRVBible",
+      "name": "Punjabi RV (ਇੰਡਿਅਨ ਰਿਵਾਇਜ਼ਡ ਵਰਜ਼ਨ (IRV) - ਪੰਜਾਬੀ)",
+      "filename": "PunjabiIRVBible.xml"
+    },
+    {
+      "id": "Punjabi2023Bible",
+      "name": "Punjabi Standard Bible (Punjabi Standard Bible) 2023",
+      "filename": "Punjabi2023Bible.xml"
+    },
+    {
+      "id": "QeqchiBible",
+      "name": "Qeqchi - No Data",
+      "filename": "QeqchiBible.xml"
+    },
+    {
+      "id": "QuechuanQVWBible",
+      "name": "Quechua (Huaylla Wanca)",
+      "filename": "QuechuanQVWBible.xml"
+    },
+    {
+      "id": "QuechuanBible",
+      "name": "Quechuan - 1972 - No Data ??",
+      "filename": "QuechuanBible.xml"
+    },
+    {
+      "id": "QuechuanQVBMBible",
+      "name": "Quechuan (Tayta Diospa Wilakuynin) 2003",
+      "filename": "QuechuanQVBMBible.xml"
+    },
+    {
+      "id": "Quechuan2010Bible",
+      "name": "Quechuan Bible 2011 (QUB)",
+      "filename": "Quechuan2010Bible.xml"
+    },
+    {
+      "id": "QuechuanQVSBible",
+      "name": "Quechuan QVS 1992 (San Martín)",
+      "filename": "QuechuanQVSBible.xml"
+    },
+    {
+      "id": "QuechuanQXOBible",
+      "name": "Quechuan QXO (Biblia en Quechua del sur de Conchucos)",
+      "filename": "QuechuanQXOBible.xml"
+    },
+    {
+      "id": "Romani2004Bible",
+      "name": "Romani (E Nevi Viasta o Psalmo 2004 (Maximoff - Kalderaš)) Kalderaš/Căldărari",
+      "filename": "Romani2004Bible.xml"
+    },
+    {
+      "id": "RomaniBible",
+      "name": "Romani 1984 -?? American Standard Version",
+      "filename": "RomaniBible.xml"
+    },
+    {
+      "id": "RomaniKALD2004Bible",
+      "name": "Romani 2004 Kalderaš (E Nevi Viasta o Psalmo 2004 (Maximoff - Kalderaš))",
+      "filename": "RomaniKALD2004Bible.xml"
+    },
+    {
+      "id": "RomaniBaltic2019Bible",
+      "name": "Romani Baltic (Библия - Пэ Балтитко Романи чиб (Романэс) 2019)",
+      "filename": "RomaniBaltic2019Bible.xml"
+    },
+    {
+      "id": "RomaniBalticLT2019Bible",
+      "name": "Romani Baltic Latin (Biblija - Pe Baltitko Romani čib (Romanes) 2019)",
+      "filename": "RomaniBalticLT2019Bible.xml"
+    },
+    {
+      "id": "RomaniCHERGASHBible",
+      "name": "Romani Chergash Ursari (Biblija pe Romani Čhib) - No Year",
+      "filename": "RomaniCHERGASHBible.xml"
+    },
+    {
+      "id": "Romani2007Bible",
+      "name": "Romani Chile (Vlax Chileana) (Nuevo Testamento Romané 2007)",
+      "filename": "Romani2007Bible.xml"
+    },
+    {
+      "id": "RomaniROM07Bible",
+      "name": "Romani Chilean (Nuevo Testamento Romané 2007)",
+      "filename": "RomaniROM07Bible.xml"
+    },
+    {
+      "id": "RomaniKALD2020Bible",
+      "name": "Romani from Romanian (E Romaii Biblia 2020 (Kăldărărihko))",
+      "filename": "RomaniKALD2020Bible.xml"
+    },
+    {
+      "id": "RomaniROM6Bible",
+      "name": "Romani German (ROM6) (O Debleskro Drom 2021)",
+      "filename": "RomaniROM6Bible.xml"
+    },
+    {
+      "id": "RomaniSERBible",
+      "name": "Romani Serbian (Romski prevod Novog zaveta - Srbija)",
+      "filename": "RomaniSERBible.xml"
+    },
+    {
+      "id": "RomaniSINT2024Bible",
+      "name": "Romani Sinte 2024 (O Debleskro Lab 2024 (Sinte-Manouche))",
+      "filename": "RomaniSINT2024Bible.xml"
+    },
+    {
+      "id": "RomaniRMCBible",
+      "name": "Romani Slovakian RMC (Le Devleskero Lav Andre Romaňi Čhib Slovensko 2021)",
+      "filename": "RomaniRMCBible.xml"
+    },
+    {
+      "id": "RomaniGSPBible",
+      "name": "Romani Ursari (E Devleso Lafi ko Gurbetsko Dijalekt) - No Date",
+      "filename": "RomaniGSPBible.xml"
+    },
+    {
+      "id": "RomaniBACHROBible",
+      "name": "Romani Ursari 2018 (Biblia ande Chib Romani)",
+      "filename": "RomaniBACHROBible.xml"
+    },
+    {
+      "id": "Romanian2022Bible",
+      "name": "Romanian (Ediția Dumitru Cornilescu revizuită 2022)",
+      "filename": "Romanian2022Bible.xml"
+    },
+    {
+      "id": "Romanian1931Bible",
+      "name": "Romanian 1931 (Traducere Literală Cornilescu 1931)",
+      "filename": "Romanian1931Bible.xml"
+    },
+    {
+      "id": "Romanian2009Bible",
+      "name": "Romanian 2009 (Română Noul Testament Interconfesional 2009)",
+      "filename": "Romanian2009Bible.xml"
+    },
+    {
+      "id": "Romanian2014Bible",
+      "name": "Romanian 2014 (Biblia în Versuri 2014)",
+      "filename": "Romanian2014Bible.xml"
+    },
+    {
+      "id": "Romanian2015Bible",
+      "name": "Romanian 2015 (Biblia Traducerea Fidela 2015)",
+      "filename": "Romanian2015Bible.xml"
+    },
+    {
+      "id": "Romanian2018Bible",
+      "name": "Romanian 2018 (Biblia în Versiune Actualizată 2018)",
+      "filename": "Romanian2018Bible.xml"
+    },
+    {
+      "id": "Romanian2020Bible",
+      "name": "Romanian 2020 (Versiunea Biblia Romano Catolică 2020)",
+      "filename": "Romanian2020Bible.xml"
+    },
+    {
+      "id": "Romanian2021Bible",
+      "name": "Romanian 2021 (Noua Traducere Românească)",
+      "filename": "Romanian2021Bible.xml"
+    },
+    {
+      "id": "Romanian2023Bible",
+      "name": "Romanian 2023 (Noul Testament SBR 2023)",
+      "filename": "Romanian2023Bible.xml"
+    },
+    {
+      "id": "RomanianBDKBible",
+      "name": "Romanian BDK 1924 (Библия Думитру Корнилеску 1924)",
+      "filename": "RomanianBDKBible.xml"
+    },
+    {
+      "id": "Romanian1928Bible",
+      "name": "Romanian Cornilescu 1928",
+      "filename": "Romanian1928Bible.xml"
+    },
+    {
+      "id": "RomanianSBIRBible",
+      "name": "Romanian SBIR (Biblia Dumitru Cornilescu 2024)",
+      "filename": "RomanianSBIRBible.xml"
+    },
+    {
+      "id": "RomanianBible",
+      "name": "Romanian VDC 1924 (Biblia sau Sfânta Scriptură cu Trimiteri 1924, Dumitru Cornilescu)",
+      "filename": "RomanianBible.xml"
+    },
+    {
+      "id": "RussianCARSABible",
+      "name": "Russian (CARSA) (Восточный перевод)",
+      "filename": "RussianCARSABible.xml"
+    },
+    {
+      "id": "RussianRSPBible",
+      "name": "Russian (RSP) (Святая Библия: Современный перевод)",
+      "filename": "RussianRSPBible.xml"
+    },
+    {
+      "id": "Russian2012Bible",
+      "name": "Russian 2012 - Радостная Весть - Современный Русский Перевод",
+      "filename": "Russian2012Bible.xml"
+    },
+    {
+      "id": "RussianReceptusBible",
+      "name": "Russian 2014 - Новый Завет по тексту большинства - Textus Receptus",
+      "filename": "RussianReceptusBible.xml"
+    },
+    {
+      "id": "RussianAGPBible",
+      "name": "Russian Bible 2004 - Agape Bible - Nicholas Olizarevich",
+      "filename": "RussianAGPBible.xml"
+    },
+    {
+      "id": "RussianMengeBible",
+      "name": "Russian Bible Menge - Библия Менге info - Переведено с немецкого перевода Германа Менге - Hermann August Menge",
+      "filename": "RussianMengeBible.xml"
+    },
+    {
+      "id": "RussianBTI2015Bible",
+      "name": "Russian BTI 2015 - Библия под ред. М.П. Кулакова и М.М. Кулакова (BTI)",
+      "filename": "RussianBTI2015Bible.xml"
+    },
+    {
+      "id": "RussianCASBible",
+      "name": "Russian CAS Bible 1970 - Новый Завет, перевод под ред. еп. Кассиана Безобразова",
+      "filename": "RussianCASBible.xml"
+    },
+    {
+      "id": "RussianCSLAVBible",
+      "name": "Russian CSLAV (Библия на Церковнославянском Языке)",
+      "filename": "RussianCSLAVBible.xml"
+    },
+    {
+      "id": "RussianJewishBible",
+      "name": "Russian Jewish Bible 1989 - Еврейский Новый Завет - Перевод с англ. A. Долбин, В. Долбина",
+      "filename": "RussianJewishBible.xml"
+    },
+    {
+      "id": "RussianJubileeBible",
+      "name": "Russian Jubilee Bible 2010 - Библия. Юбилейное издание",
+      "filename": "RussianJubileeBible.xml"
+    },
+    {
+      "id": "RussianSlovoBible",
+      "name": "Russian New Russian Translation (NRT) (IBS) (Slovo Zhizny) Новый Русский Перевод",
+      "filename": "RussianSlovoBible.xml"
+    },
+    {
+      "id": "RussianNRTBible",
+      "name": "Russian NRT (Новый Русский Перевод)",
+      "filename": "RussianNRTBible.xml"
+    },
+    {
+      "id": "RussianRSTBible",
+      "name": "Russian RST Bible - 1900-1907 - Книги Священнаго Писанія Ветхаго и Новаго Завѣта въ русскомъ переводѣ съ параллельными мѣстами.",
+      "filename": "RussianRSTBible.xml"
+    },
+    {
+      "id": "RussianSynodalBible",
+      "name": "Russian Synodal 1876",
+      "filename": "RussianSynodalBible.xml"
+    },
+    {
+      "id": "RussianCARSBible",
+      "name": "Russian Восточный Перевод (CARS)",
+      "filename": "RussianCARSBible.xml"
+    },
+    {
+      "id": "RussianWBTCBible",
+      "name": "Russian Современный Перевод Библии WBTC 1993",
+      "filename": "RussianWBTCBible.xml"
+    },
+    {
+      "id": "Kinyarwanda2001Bible",
+      "name": "Rwandan Kinyarwanda (BYSB) 2001 (Bibiliya Yera)",
+      "filename": "Kinyarwanda2001Bible.xml"
+    },
+    {
+      "id": "SadriBible",
+      "name": "Sadri (सादरी नवाँ नियम)",
+      "filename": "SadriBible.xml"
+    },
+    {
+      "id": "SanskritDevanagariBible",
+      "name": "Sanskrit Bible (NT) in Devanagari Script (सत्यवेद)",
+      "filename": "SanskritDevanagariBible.xml"
+    },
+    {
+      "id": "SantaliCommonBible",
+      "name": "Santali Bible (Common Language New Testament)",
+      "filename": "SantaliCommonBible.xml"
+    },
+    {
+      "id": "SantaliBangladeshBible",
+      "name": "Santali Bible (সান্তালী বাইবেল)",
+      "filename": "SantaliBangladeshBible.xml"
+    },
+    {
+      "id": "SasakBible",
+      "name": "Sasak (KITAB SUCI ZABUR INJIL)",
+      "filename": "SasakBible.xml"
+    },
+    {
+      "id": "SenaBible",
+      "name": "Sena (Cibverano Cipsa Cisena 2013)",
+      "filename": "SenaBible.xml"
+    },
+    {
+      "id": "Sena2014Bible",
+      "name": "Sena 2014 (Cibverano Cipsa)",
+      "filename": "Sena2014Bible.xml"
+    },
+    {
+      "id": "SenaMalawiBible",
+      "name": "Sena Malawi - No Year",
+      "filename": "SenaMalawiBible.xml"
+    },
+    {
+      "id": "SeraikiBible",
+      "name": "Seraiki (کِتاب مُقدّس سرائیکی ترجمہ)",
+      "filename": "SeraikiBible.xml"
+    },
+    {
+      "id": "SerbianERVBible",
+      "name": "Serbian (ERV) (Библија: Савремени Српски Превод)",
+      "filename": "SerbianERVBible.xml"
+    },
+    {
+      "id": "SerbianNSTBible",
+      "name": "Serbian (NST) (Нови Српски Превод)",
+      "filename": "SerbianNSTBible.xml"
+    },
+    {
+      "id": "SerbianNSTLBible",
+      "name": "Serbian (NSTL) 2017 (Novi Srpski Prevod)",
+      "filename": "SerbianNSTLBible.xml"
+    },
+    {
+      "id": "SerbianSDSBible",
+      "name": "Serbian Bible (SDS) 1934",
+      "filename": "SerbianSDSBible.xml"
+    },
+    {
+      "id": "SerbianCNZBible",
+      "name": "Serbian CNZ (Нови српски превод: Стари завет: Проф. др Драган Милин и Нови завет: Проф. др Емилијан Чарнић)",
+      "filename": "SerbianCNZBible.xml"
+    },
+    {
+      "id": "SerbianBible",
+      "name": "Serbian Cyrillic Version == Same Translators as Latin Version",
+      "filename": "SerbianBible.xml"
+    },
+    {
+      "id": "SerbianLatinBible",
+      "name": "Serbian Latin Version : 1865",
+      "filename": "SerbianLatinBible.xml"
+    },
+    {
+      "id": "ShanBible",
+      "name": "Shan (သမ်ႇမႃႇၵျၢမ်းလိၵ်ႈ ထႃႇဝရႃႉၽြႂး)",
+      "filename": "ShanBible.xml"
+    },
+    {
+      "id": "ShanNCLBible",
+      "name": "Shan NCL (သမ်ႇမႃႇၵျၢမ်းလိၵ်ႈ ထႃႇဝရႃႉၽြႃး)",
+      "filename": "ShanNCLBible.xml"
+    },
+    {
+      "id": "ShekhawatiBible",
+      "name": "Shekhawati (जीवन को च्यानणो (सेकावाटी नया नियम की पोथ्या))",
+      "filename": "ShekhawatiBible.xml"
+    },
+    {
+      "id": "ShillukBible",
+      "name": "Shilluk DC Bible © Bible Society in South Sudan, 2011",
+      "filename": "ShillukBible.xml"
+    },
+    {
+      "id": "Shona1949Bible",
+      "name": "Shona (Baiberi Magwaro Matȿene aMŋari 1949 (Doke)",
+      "filename": "Shona1949Bible.xml"
+    },
+    {
+      "id": "ShonaBDSCBible",
+      "name": "Shona (Bhaibheri Dzvene MuChiShona Chanhasi)",
+      "filename": "ShonaBDSCBible.xml"
+    },
+    {
+      "id": "ShonaSCLBBible",
+      "name": "Shona (Bhaibhiri Idzva rechiShona)",
+      "filename": "ShonaSCLBBible.xml"
+    },
+    {
+      "id": "Shona2002Bible",
+      "name": "Shona (Shona Bible 1949, revised 2002)",
+      "filename": "Shona2002Bible.xml"
+    },
+    {
+      "id": "ShonaBible",
+      "name": "Shona 2009?",
+      "filename": "ShonaBible.xml"
+    },
+    {
+      "id": "ShonaSUBBible",
+      "name": "Shona SUB 2002 Bible",
+      "filename": "ShonaSUBBible.xml"
+    },
+    {
+      "id": "SidamoBible",
+      "name": "Sidamo (Qullaawa Maxaafa)",
+      "filename": "SidamoBible.xml"
+    },
+    {
+      "id": "SindhiBible",
+      "name": "Sindhi Bible",
+      "filename": "SindhiBible.xml"
+    },
+    {
+      "id": "SindhiCommonBible",
+      "name": "Sindhi Bible (Common Language New Testament)",
+      "filename": "SindhiCommonBible.xml"
+    },
+    {
+      "id": "SindhiHinduBible",
+      "name": "Sindhi Bible (Hindu) (Hindu Sindhi New Testament © The Pakistan Bible Society, 2022) - پوِتر شاستر يسوع مسيح جي خوشخبري",
+      "filename": "SindhiHinduBible.xml"
+    },
+    {
+      "id": "SindhiMuslimBible",
+      "name": "Sindhi Bible (Muslim) (مقدس ڪلام توريت، زبور ۽ نبين جون ٻيو لکتون ۽ انجيل شريف)",
+      "filename": "SindhiMuslimBible.xml"
+    },
+    {
+      "id": "SinhalaSCVBible",
+      "name": "Sinhala (SCV) 2020 (සිංහල කාලීන පරිවර්තනය)",
+      "filename": "SinhalaSCVBible.xml"
+    },
+    {
+      "id": "SinhalaNRSVBible",
+      "name": "Sinhala Bile - New Revised Version (NRSV)",
+      "filename": "SinhalaNRSVBible.xml"
+    },
+    {
+      "id": "SinhalaSROVBible",
+      "name": "Sinhala Bile - Revised Old Version (SROV)",
+      "filename": "SinhalaSROVBible.xml"
+    },
+    {
+      "id": "SinhalaSNRVBible",
+      "name": "Sinhala SNRV (New Revised Version 2018)",
+      "filename": "SinhalaSNRVBible.xml"
+    },
+    {
+      "id": "SiswatiBible",
+      "name": "Siswati 1996 Bible",
+      "filename": "SiswatiBible.xml"
+    },
+    {
+      "id": "SlovakianSLBBible",
+      "name": "Slovakian (Evanjelický preklad)",
+      "filename": "SlovakianSLBBible.xml"
+    },
+    {
+      "id": "SlovakianNPK2023Bible",
+      "name": "Slovakian (NPK) (Nádej Pre Kazdého) 2023",
+      "filename": "SlovakianNPK2023Bible.xml"
+    },
+    {
+      "id": "SlovakianSSVBible",
+      "name": "Slovakian (Sväté Písmo - Katolícky Preklad)",
+      "filename": "SlovakianSSVBible.xml"
+    },
+    {
+      "id": "SlovakianBible",
+      "name": "Slovakian 1936 (ROH - Roháčkov Preklad)",
+      "filename": "SlovakianBible.xml"
+    },
+    {
+      "id": "Slovakian2017Bible",
+      "name": "Slovakian 2017 (Slovenský Ekumenický Preklad s DT Knihami)",
+      "filename": "Slovakian2017Bible.xml"
+    },
+    {
+      "id": "SlovakianSEBBible",
+      "name": "Slovakian 2017 (Slovenský Ekumenický Preklad)",
+      "filename": "SlovakianSEBBible.xml"
+    },
+    {
+      "id": "Slovakian2015Bible",
+      "name": "Slovakian Bible - Botekov 2015",
+      "filename": "Slovakian2015Bible.xml"
+    },
+    {
+      "id": "SlovakianRomaniBible",
+      "name": "Slovakian Bible - Rómska Nová Zmluva 2014",
+      "filename": "SlovakianRomaniBible.xml"
+    },
+    {
+      "id": "SlovakianNPKBible",
+      "name": "Slovakian Bible (NPK) 1993 - (Nádej Pre Kazdého)",
+      "filename": "SlovakianNPKBible.xml"
+    },
+    {
+      "id": "Slovenian1584Bible",
+      "name": "Slovenian (Dalmatinova Biblija 1584)",
+      "filename": "Slovenian1584Bible.xml"
+    },
+    {
+      "id": "Slovenian1990Bible",
+      "name": "Slovenian (JUB) 1990 (Jubilejni Prevod Nove Zaveze)",
+      "filename": "Slovenian1990Bible.xml"
+    },
+    {
+      "id": "Slovenian1928Bible",
+      "name": "Slovenian (Prekmurska NZ and Psalmi (1928))",
+      "filename": "Slovenian1928Bible.xml"
+    },
+    {
+      "id": "Slovenian2014Bible",
+      "name": "Slovenian (ZNZ) 2014 (Živa Nova Zaveza)",
+      "filename": "Slovenian2014Bible.xml"
+    },
+    {
+      "id": "SlovenianBible",
+      "name": "Slovenian 2014 (Chráskov Prevod)",
+      "filename": "SlovenianBible.xml"
+    },
+    {
+      "id": "SlovenianEKUBible",
+      "name": "Slovenian EKU (Ekumenska izdaja)",
+      "filename": "SlovenianEKUBible.xml"
+    },
+    {
+      "id": "Slovenian1882Bible",
+      "name": "Slovenian Josipa Stritarja (1882) SloStritar",
+      "filename": "Slovenian1882Bible.xml"
+    },
+    {
+      "id": "SlovenianSSPBible",
+      "name": "Slovenian SSP (Slovenski Standardni Prevod)",
+      "filename": "SlovenianSSPBible.xml"
+    },
+    {
+      "id": "SogaBible",
+      "name": "Soga (Baibuli Ekibono kya Katonda 2014)",
+      "filename": "SogaBible.xml"
+    },
+    {
+      "id": "SomalianBible",
+      "name": "Somalian (Kitaabka Quduuska Ah)",
+      "filename": "SomalianBible.xml"
+    },
+    {
+      "id": "Somalian2018Bible",
+      "name": "Somalian 2018 (KITAABKA QUDUUSKA AH)",
+      "filename": "Somalian2018Bible.xml"
+    },
+    {
+      "id": "Somalian2024Bible",
+      "name": "Somalian 2024 (Ereyga Illaahey Axdiga Cusub)",
+      "filename": "Somalian2024Bible.xml"
+    },
+    {
+      "id": "SongeBible",
+      "name": "Songe (NTETO INJEGA CIA MURUNGU KIRI ANTU BONTHE CATHOLIC EDITION)",
+      "filename": "SongeBible.xml"
+    },
+    {
+      "id": "Sotho1951Bible",
+      "name": "Sotho 1951 (BIBELE)",
+      "filename": "Sotho1951Bible.xml"
+    },
+    {
+      "id": "Sotho2000Bible",
+      "name": "Sotho 2000 (BIBELE Taba yea Botse)",
+      "filename": "Sotho2000Bible.xml"
+    },
+    {
+      "id": "SothoBible",
+      "name": "Sotho 2024 (Contemporary Sepedi Nothern Sotho Bible 2024)",
+      "filename": "SothoBible.xml"
+    },
+    {
+      "id": "Sotho1989Bible",
+      "name": "Sotho Bible 1989 (BIBELE)",
+      "filename": "Sotho1989Bible.xml"
+    },
+    {
+      "id": "Spanish1569Bible",
+      "name": "Spanish 1569",
+      "filename": "Spanish1569Bible.xml"
+    },
+    {
+      "id": "Spanish1989Bible",
+      "name": "Spanish 1989",
+      "filename": "Spanish1989Bible.xml"
+    },
+    {
+      "id": "SpanishBDOBible",
+      "name": "Spanish BDO 1973 (Biblia del Oso 1573)",
+      "filename": "SpanishBDOBible.xml"
+    },
+    {
+      "id": "SpanishBHTIBible",
+      "name": "Spanish BHTI (Traducción Interconfesional, versión hispanoamericana)",
+      "filename": "SpanishBHTIBible.xml"
+    },
+    {
+      "id": "SpanishLBLABible",
+      "name": "Spanish Bible LBLB (La Biblia De Las Américas) 1997",
+      "filename": "SpanishLBLABible.xml"
+    },
+    {
+      "id": "SpanishRVGBible",
+      "name": "Spanish Bible RVG - Reina Valera Gómez 2004",
+      "filename": "SpanishRVGBible.xml"
+    },
+    {
+      "id": "SpanishBLPBible",
+      "name": "Spanish BLP (La Palabra (versión española))",
+      "filename": "SpanishBLPBible.xml"
+    },
+    {
+      "id": "SpanishBLPHBible",
+      "name": "Spanish BLPH (La Palabra (versión hispanoamericana))",
+      "filename": "SpanishBLPHBible.xml"
+    },
+    {
+      "id": "SpanishBTIBible",
+      "name": "Spanish BTI (La Biblia, Traducción Interconfesional (versión española))",
+      "filename": "SpanishBTIBible.xml"
+    },
+    {
+      "id": "SpanishDHHBible",
+      "name": "Spanish DHH 1996",
+      "filename": "SpanishDHHBible.xml"
+    },
+    {
+      "id": "SpanishJBSBible",
+      "name": "Spanish JBS (Biblia del Jubileo)",
+      "filename": "SpanishJBSBible.xml"
+    },
+    {
+      "id": "SpanishBTXBible",
+      "name": "Spanish La Biblia Textual (BTX) Biblia Hebraica Stuttgartensia 1999",
+      "filename": "SpanishBTXBible.xml"
+    },
+    {
+      "id": "SpanishNBLABible",
+      "name": "Spanish NBLA (Nueva Biblia de las Américas)",
+      "filename": "SpanishNBLABible.xml"
+    },
+    {
+      "id": "SpanishNBVBible",
+      "name": "Spanish NBV (Nueva Biblia Viva)",
+      "filename": "SpanishNBVBible.xml"
+    },
+    {
+      "id": "SpanishNTBIZBible",
+      "name": "Spanish NTBIZ (Segun el Texto Bizantino 2005)",
+      "filename": "SpanishNTBIZBible.xml"
+    },
+    {
+      "id": "SpanishNTVBible",
+      "name": "Spanish NTV (Nueva Traducción Viviente)",
+      "filename": "SpanishNTVBible.xml"
+    },
+    {
+      "id": "SpanishNVIBible",
+      "name": "Spanish NVI Bible - Nueva Versión Internacional",
+      "filename": "SpanishNVIBible.xml"
+    },
+    {
+      "id": "SpanishNVISBible",
+      "name": "Spanish NVIS (La Santa Biblia, Nueva Versión Internacional Simplificada)",
+      "filename": "SpanishNVISBible.xml"
+    },
+    {
+      "id": "SpanishPDTBible",
+      "name": "Spanish PDT (La Biblia: La Palabra de Dios para todos)",
+      "filename": "SpanishPDTBible.xml"
+    },
+    {
+      "id": "Spanish1858Bible",
+      "name": "Spanish Reina Valera NT 1858",
+      "filename": "Spanish1858Bible.xml"
+    },
+    {
+      "id": "SpanishRevisedRVR1960Bible",
+      "name": "Spanish Reina-Valera RVR 1960 (Revised Reina Valera 1960)",
+      "filename": "SpanishRevisedRVR1960Bible.xml"
+    },
+    {
+      "id": "SpanishRV2020Bible",
+      "name": "Spanish RV2020 (Reina Valera 2020)",
+      "filename": "SpanishRV2020Bible.xml"
+    },
+    {
+      "id": "SpanishRVA2015Bible",
+      "name": "Spanish RVA2015 (Reina Valera Actualizada)",
+      "filename": "SpanishRVA2015Bible.xml"
+    },
+    {
+      "id": "SpanishRVCBible",
+      "name": "Spanish RVC (Reina Valera Contemporánea)",
+      "filename": "SpanishRVCBible.xml"
+    },
+    {
+      "id": "SpanishRVESBible",
+      "name": "Spanish RVES (Reina-Valera Antigua)",
+      "filename": "SpanishRVESBible.xml"
+    },
+    {
+      "id": "SpanishBible",
+      "name": "Spanish RVR 1909 (Más información sobre Biblia Reina Valera 1909)",
+      "filename": "SpanishBible.xml"
+    },
+    {
+      "id": "SpanishRVR1960Bible",
+      "name": "Spanish RVR 1960 (Más información sobre Biblia Reina Valera 1960)",
+      "filename": "SpanishRVR1960Bible.xml"
+    },
+    {
+      "id": "SpanishRVR1995Bible",
+      "name": "Spanish RVR 1995 (Biblia Reina Valera 1995)",
+      "filename": "SpanishRVR1995Bible.xml"
+    },
+    {
+      "id": "SpanishTLABible",
+      "name": "Spanish TLA (Traducción en Lenguaje Actual)",
+      "filename": "SpanishTLABible.xml"
+    },
+    {
+      "id": "SpanishVBL2022Bible",
+      "name": "Spanish VBL 2022 (Versión Biblia Libre)",
+      "filename": "SpanishVBL2022Bible.xml"
+    },
+    {
+      "id": "SpanishVBLBible",
+      "name": "Spanish Version Is Called = Free Bible Version or (Versión Biblia Libre = VBL) - Public Domain - http://www.freebibleversion.org/ - Copyright © 2018 Jonathan Gallagher y Shelly Barrios de Avila",
+      "filename": "SpanishVBLBible.xml"
+    },
+    {
+      "id": "Sukuma1960Bible",
+      "name": "Sukuma (Ilagano Ipya Lya)",
+      "filename": "Sukuma1960Bible.xml"
+    },
+    {
+      "id": "SukumaBible",
+      "name": "Sukuma New Testament 2000",
+      "filename": "SukumaBible.xml"
+    },
+    {
+      "id": "SundaneseBible",
+      "name": "Sundanese Bible (Sunda) - KITAB SUCI (LAISUN) 1991",
+      "filename": "SundaneseBible.xml"
+    },
+    {
+      "id": "Swahili2001Bible",
+      "name": "Swahili (BHN) (Habari Njema) 2001",
+      "filename": "Swahili2001Bible.xml"
+    },
+    {
+      "id": "Swahili2024Bible",
+      "name": "Swahili (Neno: Maandiko Matakatifu 2024)",
+      "filename": "Swahili2024Bible.xml"
+    },
+    {
+      "id": "SwahiliBible",
+      "name": "Swahili (SRUV) (Swahili Revised Union Version)",
+      "filename": "SwahiliBible.xml"
+    },
+    {
+      "id": "Swahili2017Bible",
+      "name": "Swahili (TKU) 2017 (Jipya: Tafsiri ya Kusoma-Kwa-Urahisi)",
+      "filename": "Swahili2017Bible.xml"
+    },
+    {
+      "id": "Swahili1850Bible",
+      "name": "Swahili 1850 - Biblia Takatifu",
+      "filename": "Swahili1850Bible.xml"
+    },
+    {
+      "id": "SwahiliBHNTLKBible",
+      "name": "Swahili BHNTLK (Biblia Habari Njema: Toleo la Kujifunza)",
+      "filename": "SwahiliBHNTLKBible.xml"
+    },
+    {
+      "id": "SwahiliContemporaryBible",
+      "name": "Swahili NEN (Neno: Bibilia Takatifu 2025)",
+      "filename": "SwahiliContemporaryBible.xml"
+    },
+    {
+      "id": "SwahiliNMMBible",
+      "name": "Swahili NMM (Neno: Maandiko Matakatifu) 2018",
+      "filename": "SwahiliNMMBible.xml"
+    },
+    {
+      "id": "SwahiliRSUVDCBible",
+      "name": "Swahili RSUVDC (BIBLIA KISWAHILI)",
+      "filename": "SwahiliRSUVDCBible.xml"
+    },
+    {
+      "id": "SwahiliSCLDC10Bible",
+      "name": "Swahili SCLDC10 (BIBLIA Yenye Vitabu vya Deuterokanoni HABARI NJEMA)",
+      "filename": "SwahiliSCLDC10Bible.xml"
+    },
+    {
+      "id": "SwahiliSRB37Bible",
+      "name": "Swahili SRB37 (Swahili Roehl Bible 1937)",
+      "filename": "SwahiliSRB37Bible.xml"
+    },
+    {
+      "id": "SwahiliSUVBible",
+      "name": "Swahili SUV (Maandiko Matakatifu ya Mungu Yaitwayo Biblia)",
+      "filename": "SwahiliSUVBible.xml"
+    },
+    {
+      "id": "SwahiliSWC02Bible",
+      "name": "Swahili SWC02 (BIBLIA ﻿Maandiko Matakatifu Kwa Watu Wote 2002)",
+      "filename": "SwahiliSWC02Bible.xml"
+    },
+    {
+      "id": "SwahiliSWZZB1921Bible",
+      "name": "Swahili SWZZB1921 (New Testament in Swahili (Zanzibar) Revised Edition 1921)",
+      "filename": "SwahiliSWZZB1921Bible.xml"
+    },
+    {
+      "id": "Swedish2000Bible",
+      "name": "Swedish (B2000) (Bibel 2000)",
+      "filename": "Swedish2000Bible.xml"
+    },
+    {
+      "id": "SwedishNLBBible",
+      "name": "Swedish (New Living Bible) (NLB) 2004 (Nya Levande Bibeln)",
+      "filename": "SwedishNLBBible.xml"
+    },
+    {
+      "id": "Swedish2015Bible",
+      "name": "Swedish (NUB) (nuBibeln) 2015",
+      "filename": "Swedish2015Bible.xml"
+    },
+    {
+      "id": "SwedishSB2016Bible",
+      "name": "Swedish (SB) 2016 (Svenskbibel)",
+      "filename": "SwedishSB2016Bible.xml"
+    },
+    {
+      "id": "SwedishSFBBible",
+      "name": "Swedish (SFB) (Svenska Folkbibeln 2015)",
+      "filename": "SwedishSFBBible.xml"
+    },
+    {
+      "id": "SwedishBible",
+      "name": "Swedish (Svenska 1917)",
+      "filename": "SwedishBible.xml"
+    },
+    {
+      "id": "Swedish2019Bible",
+      "name": "Swedish Bible (RFBNT) (Svenska Reformationsbibeln) - No Year",
+      "filename": "Swedish2019Bible.xml"
+    },
+    {
+      "id": "SwedishFolkBible",
+      "name": "Swedish Folk 1998 (Svenska Folkbibeln)",
+      "filename": "SwedishFolkBible.xml"
+    },
+    {
+      "id": "Swedish1873Bible",
+      "name": "Swedish Karl XII 1873 (Karl XII 1873)",
+      "filename": "Swedish1873Bible.xml"
+    },
+    {
+      "id": "SylhetiBible",
+      "name": "Sylheti (ছিলটি আছমানি কিতাব (বাংলা লিপি)) - No Year",
+      "filename": "SylhetiBible.xml"
+    },
+    {
+      "id": "SylhetiSYLLBible",
+      "name": "Sylheti SYLL (Siloṭi Asmani Kitab (Latin lipi))",
+      "filename": "SylhetiSYLLBible.xml"
+    },
+    {
+      "id": "Tagalog2001Bible",
+      "name": "Tagalog (Ang Biblia 2001)",
+      "filename": "Tagalog2001Bible.xml"
+    },
+    {
+      "id": "Tagalog2015Bible",
+      "name": "Tagalog (Ang Salita ng Dios)",
+      "filename": "Tagalog2015Bible.xml"
+    },
+    {
+      "id": "TagalogBible",
+      "name": "Tagalog (TLAB) 1905 (Ang Biblia (1905/1982))",
+      "filename": "TagalogBible.xml"
+    },
+    {
+      "id": "Tagalog2005Bible",
+      "name": "Tagalog 2005 (Magandang Balita Biblia (2005))",
+      "filename": "Tagalog2005Bible.xml"
+    },
+    {
+      "id": "TagalogRevised2005Bible",
+      "name": "Tagalog 2005 Revised (Magandang Balita Bible (Revised))",
+      "filename": "TagalogRevised2005Bible.xml"
+    },
+    {
+      "id": "Tagalog2012Bible",
+      "name": "Tagalog 2012 (Magandang Balita Biblia)",
+      "filename": "Tagalog2012Bible.xml"
+    },
+    {
+      "id": "TagalogTLBABible",
+      "name": "Tagalog TLBA (Ang Biblia)",
+      "filename": "TagalogTLBABible.xml"
+    },
+    {
+      "id": "TajikKMOBible",
+      "name": "Tajik (KMO) (Китоби Муқаддас Оммафаҳм) - No Year",
+      "filename": "TajikKMOBible.xml"
+    },
+    {
+      "id": "Tajik1992Bible",
+      "name": "Tajik (Китоби Муқаддас 1992, 1999)",
+      "filename": "Tajik1992Bible.xml"
+    },
+    {
+      "id": "TajikNTBible",
+      "name": "Tajik NT 1999",
+      "filename": "TajikNTBible.xml"
+    },
+    {
+      "id": "TamilBible",
+      "name": "Tamil (BSI) (பரிசுத்த வேதாகமம் O.V. (BSI))",
+      "filename": "TamilBible.xml"
+    },
+    {
+      "id": "TamilIRVBible",
+      "name": "Tamil (IRV) (இண்டியன் ரிவைஸ்டு வெர்ஸன் (IRV) - தமிழ்)",
+      "filename": "TamilIRVBible.xml"
+    },
+    {
+      "id": "TamilTCVBible",
+      "name": "Tamil (TCV) (இந்திய சமகால தமிழ் மொழிப்பெயர்ப்பு 2022)",
+      "filename": "TamilTCVBible.xml"
+    },
+    {
+      "id": "TamilTRVBible",
+      "name": "Tamil (TRV) (இலங்கை இலகு தமிழ் மொழிபெயர்ப்பு)",
+      "filename": "TamilTRVBible.xml"
+    },
+    {
+      "id": "Tamil2017Bible",
+      "name": "Tamil Bible - பரிசுத்த வேதாகமம் O.V.",
+      "filename": "Tamil2017Bible.xml"
+    },
+    {
+      "id": "TamilRomanisedBible",
+      "name": "Tamil Bible Romanised 2017",
+      "filename": "TamilRomanisedBible.xml"
+    },
+    {
+      "id": "TamilWBTCBible",
+      "name": "Tamil WBTC (ERV) (பரிசுத்த பைபிள்)",
+      "filename": "TamilWBTCBible.xml"
+    },
+    {
+      "id": "TarifitBible",
+      "name": "Tarifit (Ṯarifiṯ 2020)",
+      "filename": "TarifitBible.xml"
+    },
+    {
+      "id": "TashelhaytMoroccoBible",
+      "name": "Tashelhayt Morocco 1998 (Tashelhayt Arabic Script Morocco) (اغاراس ن-تودرت - ءينجيل لّماسيح - لعهد لّجديد لّي-يسكر ربّي غ-گراس د-بنادم)",
+      "filename": "TashelhaytMoroccoBible.xml"
+    },
+    {
+      "id": "TatarRBBLBible",
+      "name": "Tatar (Изге Язма)",
+      "filename": "TatarRBBLBible.xml"
+    },
+    {
+      "id": "Tatar2001Bible",
+      "name": "Tatar 2001 Bible - Инҗил",
+      "filename": "Tatar2001Bible.xml"
+    },
+    {
+      "id": "Tatar2025Bible",
+      "name": "Tatar 2025 (Инҗил)",
+      "filename": "Tatar2025Bible.xml"
+    },
+    {
+      "id": "Tatar2015Bible",
+      "name": "Tatar Crimean 2016 Bible - Къырымтатарджа [Crimean Tatar] (Мукъаддес Китап)",
+      "filename": "Tatar2015Bible.xml"
+    },
+    {
+      "id": "TeluguBible",
+      "name": "Telugu (BSI) 1880",
+      "filename": "TeluguBible.xml"
+    },
+    {
+      "id": "TeluguWBTCBible",
+      "name": "Telugu 1997 TERV (పవిత్ర బైబిల్)",
+      "filename": "TeluguWBTCBible.xml"
+    },
+    {
+      "id": "Telugu2016Bible",
+      "name": "Telugu Bible (TELOV) (పరిశుద్ధ గ్రంథము O.V. Bible (BSI))",
+      "filename": "Telugu2016Bible.xml"
+    },
+    {
+      "id": "Telugu2019Bible",
+      "name": "Telugu Bible 2019 (ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు -2019)",
+      "filename": "Telugu2019Bible.xml"
+    },
+    {
+      "id": "TeluguTCVBible",
+      "name": "Telugu TCV (తెలుగు సమకాలీన అనువాదం, పవిత్ర గ్రంథం)",
+      "filename": "TeluguTCVBible.xml"
+    },
+    {
+      "id": "TesoBible",
+      "name": "Teso (Ebaibuli)",
+      "filename": "TesoBible.xml"
+    },
+    {
+      "id": "Teso2020Bible",
+      "name": "Teso 2020 (AKITUTUKET NAKITETET (NEPEPEKA ISABULIN KA AWARAGASIA))",
+      "filename": "Teso2020Bible.xml"
+    },
+    {
+      "id": "ThadoBible",
+      "name": "Thadou Kuki CL (Re-edited) Bible - Pathen Thutheng BU Copyright © 2015 by The Bible Society of India Used by permission",
+      "filename": "ThadoBible.xml"
+    },
+    {
+      "id": "Thai1940Bible",
+      "name": "Thai 1940 (พระคริสตธรรมคัมภีร์ ฉบับ 1940)",
+      "filename": "Thai1940Bible.xml"
+    },
+    {
+      "id": "ThaiERVBible",
+      "name": "Thai Bible (ERV) 2001 (พระคริสตธรรมคัมภีร์: ฉบับอ่านเข้าใจง่าย)",
+      "filename": "ThaiERVBible.xml"
+    },
+    {
+      "id": "ThaiTHSBible",
+      "name": "Thai Bible (THS) 2011 (ฉบับมาตรฐาน)",
+      "filename": "ThaiTHSBible.xml"
+    },
+    {
+      "id": "ThaiTNCVBible",
+      "name": "Thai Bible (TNCV) 2007 - New Contemporary Version (พระคริสตธรรมคัมภีร์ไทย ฉบับอมตธรรมร่วมสมัย)",
+      "filename": "ThaiTNCVBible.xml"
+    },
+    {
+      "id": "Thai1971Bible",
+      "name": "Thai Bible 1971 (พระคัมภีร์ไทย ฉบับ 1971)",
+      "filename": "Thai1971Bible.xml"
+    },
+    {
+      "id": "ThaiKJVBible",
+      "name": "Thai KJV 2003",
+      "filename": "ThaiKJVBible.xml"
+    },
+    {
+      "id": "ThaiNTVBible",
+      "name": "Thai NTV (พระคัมภีร์ ฉบับแปลใหม่ (NTV))",
+      "filename": "ThaiNTVBible.xml"
+    },
+    {
+      "id": "ThaiTCVBible",
+      "name": "Thai TCV 2025 (คัมภีร์ ฉบับไทยสามัญ)",
+      "filename": "ThaiTCVBible.xml"
+    },
+    {
+      "id": "KoyaBible",
+      "name": "The New Testament in Koya Language © The Word for the World International and Koya Translation Samithi, Malkangiri, Odisha 2020",
+      "filename": "KoyaBible.xml"
+    },
+    {
+      "id": "ThaiBible",
+      "name": "Thia KJV (พระคัมภีร์ภาษาไทยฉบับ KJV)",
+      "filename": "ThaiBible.xml"
+    },
+    {
+      "id": "TibetianCBTBible",
+      "name": "Tibetian CTB (གསུང་རབ།)",
+      "filename": "TibetianCBTBible.xml"
+    },
+    {
+      "id": "TibetianBible",
+      "name": "Tibetian NTB (བོད་འགྱུར་གསར་མ།)",
+      "filename": "TibetianBible.xml"
+    },
+    {
+      "id": "TivBible",
+      "name": "Tiv (ICIGHAN BIBILO)",
+      "filename": "TivBible.xml"
+    },
+    {
+      "id": "Tshiluba2003Bible",
+      "name": "Tshiluba Bible (Mukanda wa Nzambi Dihungila Dikulukulu ne Dihungila Dihia-dihia 2003)",
+      "filename": "Tshiluba2003Bible.xml"
+    },
+    {
+      "id": "Tshiluba1996Bible",
+      "name": "Tshiluba Bible 1996 (MUKANDA WA MYIDI MUKULU)",
+      "filename": "Tshiluba1996Bible.xml"
+    },
+    {
+      "id": "TshivendaBible",
+      "name": "Tshivenda (BIVHILI KHETHWA Mafhungo Madifha)",
+      "filename": "TshivendaBible.xml"
+    },
+    {
+      "id": "Tsonga1989Bible",
+      "name": "Tsonga (BIBELE Mahungu Lamanene) 1989",
+      "filename": "Tsonga1989Bible.xml"
+    },
+    {
+      "id": "Tsonga2024Bible",
+      "name": "Tsonga (Contemporary Tsonga Bible 2024)",
+      "filename": "Tsonga2024Bible.xml"
+    },
+    {
+      "id": "Tsonga2014Bible",
+      "name": "Tsonga (Testamente Leyimpsha Xichangana)",
+      "filename": "Tsonga2014Bible.xml"
+    },
+    {
+      "id": "TsongaBible",
+      "name": "Tsonga Xitsonga (Bibele) 1929",
+      "filename": "TsongaBible.xml"
+    },
+    {
+      "id": "TswanaBible",
+      "name": "Tswana (BAEBELE e e Boitshepo) 1992",
+      "filename": "TswanaBible.xml"
+    },
+    {
+      "id": "Tswana1890Bible",
+      "name": "Tswana 1890 (Bibela ea Boitsépho 1890 (Sechuana Tlhaping - Moffatt Bible))",
+      "filename": "Tswana1890Bible.xml"
+    },
+    {
+      "id": "Tswana1993Bible",
+      "name": "Tswana 1993 (Lefoko: La Botshelo Kgolagano e Ntsha)",
+      "filename": "Tswana1993Bible.xml"
+    },
+    {
+      "id": "Tswana2024Bible",
+      "name": "Tswana 2024 (Contemporary Tswana Bible 2024)",
+      "filename": "Tswana2024Bible.xml"
+    },
+    {
+      "id": "Tswana1970Bible",
+      "name": "Tswana Setswana 1970",
+      "filename": "Tswana1970Bible.xml"
+    },
+    {
+      "id": "TuluBible",
+      "name": "Tulu (ಪೊಸ ಒಡಂಬಡಿಕೆ)",
+      "filename": "TuluBible.xml"
+    },
+    {
+      "id": "TurkanaBible",
+      "name": "Turkana (ABIBILIA NGAKIRO NAAJOKAK)",
+      "filename": "TurkanaBible.xml"
+    },
+    {
+      "id": "TurkishHADIBible",
+      "name": "Turkish (Halk Dilinde İncil) 2013",
+      "filename": "TurkishHADIBible.xml"
+    },
+    {
+      "id": "TurkishNTBBible",
+      "name": "Turkish (TCL02) NTB (New Turkish Bible) 2009 Version",
+      "filename": "TurkishNTBBible.xml"
+    },
+    {
+      "id": "TurkishTTTBible",
+      "name": "Turkish (TTT) (Türkçe Tercüme)",
+      "filename": "TurkishTTTBible.xml"
+    },
+    {
+      "id": "TurkishBible",
+      "name": "Turkish (Yaşam Yayınları)",
+      "filename": "TurkishBible.xml"
+    },
+    {
+      "id": "Turkish2018Bible",
+      "name": "Turkish 2018 (Kitabı Mukaddes Eski ve Yeni Ahit)",
+      "filename": "Turkish2018Bible.xml"
+    },
+    {
+      "id": "TurkishKKDEUBible",
+      "name": "Turkish KKDEU (Kutsal Kitap ve Deuterokanonik Kitaplar)",
+      "filename": "TurkishKKDEUBible.xml"
+    },
+    {
+      "id": "TurkishKMEYABible",
+      "name": "Turkish KMEYA (Old Translation 1941)",
+      "filename": "TurkishKMEYABible.xml"
+    },
+    {
+      "id": "TurkishTKKBible",
+      "name": "Turkish TKK (Кирил харфлерийле Тюркче Кутсал Китап)",
+      "filename": "TurkishTKKBible.xml"
+    },
+    {
+      "id": "TurkishYTCBible",
+      "name": "Turkish Yorumsuz Türkçe Çeviri (YTC)",
+      "filename": "TurkishYTCBible.xml"
+    },
+    {
+      "id": "TurkmenCyrillic2002Bible",
+      "name": "Turkmen 2002 Инжил ??",
+      "filename": "TurkmenCyrillic2002Bible.xml"
+    },
+    {
+      "id": "Turkmen2016Bible",
+      "name": "Turkmen 2016 (Мукаддес Китап)",
+      "filename": "Turkmen2016Bible.xml"
+    },
+    {
+      "id": "TurkmenLatin2017Bible",
+      "name": "Turkmen 2016 Latin (Mukaddes Kitap)",
+      "filename": "TurkmenLatin2017Bible.xml"
+    },
+    {
+      "id": "TurkmenLatin2002Bible",
+      "name": "Turkmen Latin 2002 ??",
+      "filename": "TurkmenLatin2002Bible.xml"
+    },
+    {
+      "id": "TwiAsanteBible",
+      "name": "Twi Bible (Asante Twi Nkwa Asɛm)",
+      "filename": "TwiAsanteBible.xml"
+    },
+    {
+      "id": "TwiKronkronBible",
+      "name": "Twi Bible (Twerɛ Kronkron)",
+      "filename": "TwiKronkronBible.xml"
+    },
+    {
+      "id": "TwiRevisedBible",
+      "name": "Twi Bible 2012 (New Revised Asante Twi Bible)",
+      "filename": "TwiRevisedBible.xml"
+    },
+    {
+      "id": "TwiDCBible",
+      "name": "Twi Bible 2017 (DC KYERƐW KRONKRON)",
+      "filename": "TwiDCBible.xml"
+    },
+    {
+      "id": "TwiAkuapemBible",
+      "name": "Twi Bible 2020 (Akuapem Twi Nkwa Asɛm)",
+      "filename": "TwiAkuapemBible.xml"
+    },
+    {
+      "id": "UkrainianHOMBible",
+      "name": "Ukrainian (Івана Хоменка) 1963",
+      "filename": "UkrainianHOMBible.xml"
+    },
+    {
+      "id": "Ukrainian1903Bible",
+      "name": "Ukrainian 1871 (Куліша та Пулюя)",
+      "filename": "Ukrainian1903Bible.xml"
+    },
+    {
+      "id": "Ukrainian1905Bible",
+      "name": "Ukrainian 1905 (Біблія в пер. П.Куліша та І.Пулюя, 1905)",
+      "filename": "Ukrainian1905Bible.xml"
+    },
+    {
+      "id": "UkrainianBible",
+      "name": "Ukrainian 1962 (Біблія в пер. Івана Огієнка 1962)",
+      "filename": "UkrainianBible.xml"
+    },
+    {
+      "id": "UkrainianTUBBible",
+      "name": "Ukrainian 1997 (TUB) - (Турконяка)",
+      "filename": "UkrainianTUBBible.xml"
+    },
+    {
+      "id": "Ukrainian2011Bible",
+      "name": "UKrainian 2011 (Переклад Р. Турконяка)",
+      "filename": "Ukrainian2011Bible.xml"
+    },
+    {
+      "id": "Ukrainian2021Bible",
+      "name": "Ukrainian 2021 (Переклад. Ю. Попченка.)",
+      "filename": "Ukrainian2021Bible.xml"
+    },
+    {
+      "id": "Ukrainian2022Bible",
+      "name": "Ukrainian 2022 (Новий Переклад Українською)",
+      "filename": "Ukrainian2022Bible.xml"
+    },
+    {
+      "id": "UkrainianUKDERBible",
+      "name": "Ukrainian Bible (UKDER) 1992 - Велике Відкриття. Новий Завіт з додатком Псалмів і Притч",
+      "filename": "UkrainianUKDERBible.xml"
+    },
+    {
+      "id": "Ukrainian2004Bible",
+      "name": "Ukrainian Bible 2004 (Патріарха Філарета)",
+      "filename": "Ukrainian2004Bible.xml"
+    },
+    {
+      "id": "Ukrainian2006Bible",
+      "name": "Ukrainian Bible 2006 (Oleksandr Gizha)",
+      "filename": "Ukrainian2006Bible.xml"
+    },
+    {
+      "id": "UkrainianUMTBible",
+      "name": "Ukrainian UMT (Свята Біблія: Сучасною Мовою) 2007",
+      "filename": "UkrainianUMTBible.xml"
+    },
+    {
+      "id": "UmbunduBible",
+      "name": "Umbundu Bible (Embimbiliya - Bíblia Sagrada em Umbundu)",
+      "filename": "UmbunduBible.xml"
+    },
+    {
+      "id": "Urdu2017Bible",
+      "name": "Urdu 2017 BCS",
+      "filename": "Urdu2017Bible.xml"
+    },
+    {
+      "id": "UrduUGVBible",
+      "name": "Urdu Bible (UGV) 2019 (ہولی بائبل کا اردو جیو ورژن)",
+      "filename": "UrduUGVBible.xml"
+    },
+    {
+      "id": "UrduDGVBible",
+      "name": "Urdu DGV (किताब-ए मुक़द्दस)",
+      "filename": "UrduDGVBible.xml"
+    },
+    {
+      "id": "UrduBible",
+      "name": "Urdu ERV 2007 (Has Missing Verses, Cant be found on Bible.com)",
+      "filename": "UrduBible.xml"
+    },
+    {
+      "id": "UrduGVRBible",
+      "name": "Urdu GVR (Kitab-i Muqaddas)",
+      "filename": "UrduGVRBible.xml"
+    },
+    {
+      "id": "UrduIRVURDBible",
+      "name": "Urdu IRV (इंडियन रिवाइज्ड वर्जन (IRV) उर्दू - 2019)",
+      "filename": "UrduIRVURDBible.xml"
+    },
+    {
+      "id": "UrduUCVBible",
+      "name": "Urdu UCV - (اُردو ہم عصر ترجُمہ)",
+      "filename": "UrduUCVBible.xml"
+    },
+    {
+      "id": "UrduUCVDBible",
+      "name": "Urdu UCVD (उर्दू हमअस्र तरजुमा)",
+      "filename": "UrduUCVDBible.xml"
+    },
+    {
+      "id": "UrduURDBible",
+      "name": "Urdu URD (کِتابِ مُقادّس)",
+      "filename": "UrduURDBible.xml"
+    },
+    {
+      "id": "UrduURDGVHBible",
+      "name": "Urdu URDGVH (किताबे-मुक़द्दस)",
+      "filename": "UrduURDGVHBible.xml"
+    },
+    {
+      "id": "UrduURDR55Bible",
+      "name": "Urdu URDR55 (Kitáb i Muqaddas 1955 (Tauret, Zabúr, Ambiyá ke Sahífa, aur Injíl))",
+      "filename": "UrduURDR55Bible.xml"
+    },
+    {
+      "id": "UyghurArabicBible",
+      "name": "Uyghur Arabic 2005 (ھازىرقى زامان ئۇيغۇرچە تەرجىمىسى)",
+      "filename": "UyghurArabicBible.xml"
+    },
+    {
+      "id": "UyghurCyrillicBible",
+      "name": "Uyghur Cyrillic 2005 (Һазирқи Заман Уйғурчә Тәрҗимиси)",
+      "filename": "UyghurCyrillicBible.xml"
+    },
+    {
+      "id": "UyghurLatinBible",
+      "name": "Uyghur Latin Bible - (Muqeddes Kalam) 2010",
+      "filename": "UyghurLatinBible.xml"
+    },
+    {
+      "id": "UzbekUZBBible",
+      "name": "Uzbek 2016 (UZB) (Муқаддас Китоб)",
+      "filename": "UzbekUZBBible.xml"
+    },
+    {
+      "id": "UzbekUZCBible",
+      "name": "Uzbek Bible (UZC) 2008 Tavrot in Uzbek",
+      "filename": "UzbekUZCBible.xml"
+    },
+    {
+      "id": "UzbekUZLBCBible",
+      "name": "Uzbek Latin 2016 (UZLBC) (Muqaddas Kitob)",
+      "filename": "UzbekUZLBCBible.xml"
+    },
+    {
+      "id": "VietnameseBible",
+      "name": "Vietnamese (Kinh Thánh Tiếng Việt 1925)",
+      "filename": "VietnameseBible.xml"
+    },
+    {
+      "id": "Vietnamese2011Bible",
+      "name": "Vietnamese (Kinh Thánh Tiếng Việt, Bản Dịch 2011)",
+      "filename": "Vietnamese2011Bible.xml"
+    },
+    {
+      "id": "Vietnamese1994Bible",
+      "name": "Vietnamese 1994 (Lời Chúa Cho Mọi Người) (Translated by 1 Pastor)",
+      "filename": "Vietnamese1994Bible.xml"
+    },
+    {
+      "id": "VietnameseNVBBible",
+      "name": "Vietnamese 2002 (NVB) (Kinh Thánh Bản Dịch Mới)",
+      "filename": "VietnameseNVBBible.xml"
+    },
+    {
+      "id": "VietnameseVIEBible",
+      "name": "Vietnamese 2010 (VIE) (Kinh Thánh Tiếng Việt Bản Hiệu Đính 2010)",
+      "filename": "VietnameseVIEBible.xml"
+    },
+    {
+      "id": "Vietnamese2015Bible",
+      "name": "Vietnamese Contemporary 2015 (Kinh Thánh Hiện Đại)",
+      "filename": "Vietnamese2015Bible.xml"
+    },
+    {
+      "id": "VietnameseERVBible",
+      "name": "Vietnamese ERV (Thánh Kinh: Bản Phổ thông)",
+      "filename": "VietnameseERVBible.xml"
+    },
+    {
+      "id": "WarayBible",
+      "name": "Waray (Samarenyo Meaning-Based Bible (1984))",
+      "filename": "WarayBible.xml"
+    },
+    {
+      "id": "WelshSBYBible",
+      "name": "Welsh 1567 (Testament Newydd a'r Salmau 1567 (William Salesbury))",
+      "filename": "WelshSBYBible.xml"
+    },
+    {
+      "id": "Welsh1894Bible",
+      "name": "Welsh 1894 (Cyfieithiad Briscoe 1853-94 (Test. Newydd a rhannau o'r Hen Dest.))",
+      "filename": "Welsh1894Bible.xml"
+    },
+    {
+      "id": "Welsh1945Bible",
+      "name": "Welsh 1945 (Cyfieithiad Urdd y Graddedigion 1921-45 (T.N., Hosea ac Amos))",
+      "filename": "Welsh1945Bible.xml"
+    },
+    {
+      "id": "WelshBMWBible",
+      "name": "Welsh 1955 (Beibl William Morgan - Argraffiad 1955)",
+      "filename": "WelshBMWBible.xml"
+    },
+    {
+      "id": "Welsh2015Bible",
+      "name": "Welsh 2023 (BNET) (beibl.net 2015, 2024)",
+      "filename": "Welsh2015Bible.xml"
+    },
+    {
+      "id": "WelshBible",
+      "name": "Welsh BCND (Beibl Cymraeg Newydd Diwygiedig 2004)",
+      "filename": "WelshBible.xml"
+    },
+    {
+      "id": "WelshCTEBible",
+      "name": "Welsh CTE 1894 (Testament Newydd gyda Nodiadau 1894-1915 (William Edwards))",
+      "filename": "WelshCTEBible.xml"
+    },
+    {
+      "id": "WolayttaBible",
+      "name": "Wolaytta 2002 (WOB)",
+      "filename": "WolayttaBible.xml"
+    },
+    {
+      "id": "WolofBible",
+      "name": "Wolof 1987",
+      "filename": "WolofBible.xml"
+    },
+    {
+      "id": "WolofKYGBible",
+      "name": "Wolof KYG (Kàddug Yàlla gi)",
+      "filename": "WolofKYGBible.xml"
+    },
+    {
+      "id": "Xhosa1920Bible",
+      "name": "Xhosa 1902 (Incwadi Yeziba̔lo Ezingcwele 1864, 1902 (Xhosa Appleyard))",
+      "filename": "Xhosa1920Bible.xml"
+    },
+    {
+      "id": "XhosaBible",
+      "name": "Xhosa 1975 (IZIBHALO EZINGCWELE)",
+      "filename": "XhosaBible.xml"
+    },
+    {
+      "id": "Xhosa2022Bible",
+      "name": "Xhosa 2024 (ITestamente Entsha)",
+      "filename": "Xhosa2022Bible.xml"
+    },
+    {
+      "id": "Xhosa1996Bible",
+      "name": "Xhosa XHO96 (IBHAYIBHILE)",
+      "filename": "Xhosa1996Bible.xml"
+    },
+    {
+      "id": "Yoruba2010Bible",
+      "name": "Yoruba 2010",
+      "filename": "Yoruba2010Bible.xml"
+    },
+    {
+      "id": "YorubaBible",
+      "name": "Yoruba YBCV (Bibeli Mimọ)",
+      "filename": "YorubaBible.xml"
+    },
+    {
+      "id": "Yoruba2014Bible",
+      "name": "Yoruba YCB (Bíbélì Mímọ́ ní Èdè Yorùbá Òde-Òní)",
+      "filename": "Yoruba2014Bible.xml"
+    },
+    {
+      "id": "ZandeBible",
+      "name": "Zande (Ziazia kekeapai)",
+      "filename": "ZandeBible.xml"
+    },
+    {
+      "id": "ZarmaBible",
+      "name": "Zarma - No Data",
+      "filename": "ZarmaBible.xml"
+    },
+    {
+      "id": "ZuluBible",
+      "name": "Zulu 1959 (IBHAYIBHELI ELINGCWELE)",
+      "filename": "ZuluBible.xml"
+    },
+    {
+      "id": "Zulu2020Bible",
+      "name": "Zulu 2020 (IsiZulu 2020)",
+      "filename": "Zulu2020Bible.xml"
+    },
+    {
+      "id": "Zulu2023Bible",
+      "name": "Zulu 2023 (Baasraak Zulu New Testament Bible)",
+      "filename": "Zulu2023Bible.xml"
+    },
+    {
+      "id": "IuMienBible",
+      "name": "ฉบับอักษรโรมันใหม่ © Thailand Bible Society, 2007",
+      "filename": "IuMienBible.xml"
+    }
+  ]
+}

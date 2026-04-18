@@ -3,16 +3,14 @@ import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import {
   QUICK_REFERENCES,
-  OFFLINE_BIBLE_FOLDERS,
   BIBLE_TEXTS,
-  fetchBibleTranslationFromAsset,
-  fetchBibleBookIfNeeded,
   canonicalBook,
-  getOfflineBibleFolderMapping,
   searchByReference,
   searchByKeyword,
   loadBibleTranslation,
-  fetchHelloaoVersions,
+  fetchOnlineTranslations,
+  fetchOfflineTranslations,
+  loadOfflineTranslation,
   searchHelloaoByReference,
   parseBebliaXml,
 } from '../data/bible';
@@ -23,9 +21,15 @@ const verseKey = (v) => `${v.version || ''}:${v.reference}`;
 
 const isReference = (q) => /\d/.test(q);
 
-// Flatten favorites stored in settings — supports both online ({id,name,shortName}) and offline (string)
-function hydrateOfflineFavorite(id) {
-  return { id, shortName: id, name: id, language: 'offline', isOffline: true };
+// Build an offline favorite object from an offline index entry
+function buildOfflineFavorite(entry) {
+  return {
+    id: `offline:${entry.id}`,
+    name: entry.name,
+    shortName: entry.id,
+    filename: entry.filename,
+    isOffline: true,
+  };
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
@@ -57,15 +61,15 @@ function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onTo
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = tab === 'online' ? onlineVersions : offlineVersions.map(hydrateOfflineFavorite);
-    if (!q) return list.slice(0, 80);
+    const list = tab === 'online' ? onlineVersions : offlineVersions;
+    if (!q) return list.slice(0, 100);
     return list.filter(v =>
-      v.id.toLowerCase().includes(q) ||
-      v.shortName?.toLowerCase().includes(q) ||
-      v.name?.toLowerCase().includes(q) ||
-      v.languageName?.toLowerCase().includes(q) ||
-      v.language?.toLowerCase().includes(q)
-    ).slice(0, 80);
+      (v.id || '').toLowerCase().includes(q) ||
+      (v.shortName || '').toLowerCase().includes(q) ||
+      (v.name || '').toLowerCase().includes(q) ||
+      (v.languageName || '').toLowerCase().includes(q) ||
+      (v.language || '').toLowerCase().includes(q)
+    ).slice(0, 100);
   }, [query, tab, onlineVersions, offlineVersions]);
 
   const tabBtn = (t, label) => (
@@ -116,9 +120,11 @@ function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onTo
         />
       </div>
 
-      {/* Offline XML import */}
+      {/* Offline info */}
       {tab === 'offline' && (
-        <ImportXmlButton offlineVersions={offlineVersions} />
+        <div style={{ padding: '6px 10px', borderBottom: '1px solid var(--border)', fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+          {offlineVersions.length} translations bundled — star to favorite. Favorited translations load on first search.
+        </div>
       )}
 
       {/* List */}
@@ -128,17 +134,31 @@ function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onTo
             Loading translations…
           </div>
         )}
+        {tab === 'offline' && offlineVersions.length === 0 && (
+          <div style={{ fontSize: 11, color: 'var(--text-dim)', padding: '16px 8px', textAlign: 'center' }}>
+            Loading offline index…
+          </div>
+        )}
         {filtered.map(v => {
-          const fav = favoriteIds.includes(v.id);
+          // For offline entries, the favoriteId uses the 'offline:id' prefix
+          const favId = tab === 'offline' ? `offline:${v.id}` : v.id;
+          const fav = favoriteIds.includes(favId);
+          const handleToggle = () => {
+            if (tab === 'offline') {
+              onToggleFavorite({ id: `offline:${v.id}`, name: v.name, shortName: v.id, filename: v.filename, isOffline: true });
+            } else {
+              onToggleFavorite({ ...v, isOffline: false });
+            }
+          };
           return (
-            <div key={v.id} style={{
+            <div key={favId} style={{
               display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px',
               borderRadius: 5, marginBottom: 2,
               background: fav ? 'rgba(79,142,247,0.07)' : 'transparent',
               border: `1px solid ${fav ? 'rgba(79,142,247,0.2)' : 'transparent'}`,
             }}>
               <button
-                onClick={() => onToggleFavorite(v)}
+                onClick={handleToggle}
                 title={fav ? 'Remove from favorites' : 'Add to favorites'}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
@@ -148,10 +168,10 @@ function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onTo
               >{fav ? '★' : '☆'}</button>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ fontWeight: 700, fontSize: 11, color: 'var(--text)' }}>
-                  {v.shortName || v.id}
+                  {tab === 'offline' ? v.id : (v.shortName || v.id)}
                 </span>
                 <span style={{ fontSize: 10, color: 'var(--text-dim)', marginLeft: 6 }}>
-                  {v.name !== v.shortName ? v.name : ''}
+                  {v.name}
                 </span>
                 {v.languageName && v.languageName !== v.language && (
                   <span style={{ fontSize: 10, color: 'var(--text-dim)', marginLeft: 4 }}>
@@ -240,7 +260,8 @@ export default function BiblePanel() {
 
   // ── Translation data ──────────────────────────────────────────────────────
   const [onlineVersions, setOnlineVersions] = useState([]);
-  const [offlineVersions, setOfflineVersions] = useState(Object.keys(OFFLINE_BIBLE_FOLDERS));
+  // offlineVersions: [{id, name, filename}] from offline-index.json
+  const [offlineVersions, setOfflineVersions] = useState([]);
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [versionsError, setVersionsError] = useState('');
 
@@ -264,10 +285,10 @@ export default function BiblePanel() {
 
   const isElectron = !!window.electronAPI;
 
-  // ── Load offline versions from index ─────────────────────────────────────
+  // ── Load offline versions from bundled index ──────────────────────────────
   useEffect(() => {
-    getOfflineBibleFolderMapping().then(m => setOfflineVersions(Object.keys(m))).catch(() => {});
-    // Restore any XML-imported Bibles from localStorage
+    fetchOfflineTranslations().then(list => setOfflineVersions(list)).catch(() => {});
+    // Restore any manually-imported XML Bibles from localStorage
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -287,9 +308,7 @@ export default function BiblePanel() {
   // ── Load online translations ──────────────────────────────────────────────
   useEffect(() => {
     setVersionsLoading(true);
-    // Pass an onUpdate callback so the translation browser reflects any
-    // live-API additions without requiring a reload.
-    fetchHelloaoVersions((freshVersions) => setOnlineVersions(freshVersions))
+    fetchOnlineTranslations((freshVersions) => setOnlineVersions(freshVersions))
       .then(v => { setOnlineVersions(v); setVersionsError(''); })
       .catch(err => setVersionsError(err.message || 'Failed to load translations'))
       .finally(() => setVersionsLoading(false));
@@ -300,10 +319,13 @@ export default function BiblePanel() {
     const ids = settings?.bibleFavoriteVersionIds || [];
     if (!ids.length) return;
     const hydrated = ids.map(id => {
+      if (id.startsWith('offline:')) {
+        const bareId = id.slice('offline:'.length);
+        const entry = offlineVersions.find(v => v.id === bareId);
+        return entry ? buildOfflineFavorite(entry) : null;
+      }
       const online = onlineVersions.find(v => v.id === id);
-      if (online) return online;
-      if (offlineVersions.includes(id)) return hydrateOfflineFavorite(id);
-      return null;
+      return online ? { ...online, isOffline: false } : null;
     }).filter(Boolean);
     setFavorites(hydrated);
   }, [settings?.bibleFavoriteVersionIds, onlineVersions, offlineVersions]);
@@ -334,10 +356,13 @@ export default function BiblePanel() {
     });
   }, [saveSettings]);
 
-  // ── All offline versions (bundled + XML-imported) ─────────────────────────
+  // ── All offline versions available for search ─────────────────────────────
+  // Includes the full bundled index (1,046 entries) plus any manually imported XML Bibles.
   const allOfflineVersions = useMemo(() => {
-    const xml = Object.keys(BIBLE_TEXTS).filter(v => !offlineVersions.includes(v));
-    return [...offlineVersions, ...xml];
+    // Manually imported Bibles are stored in BIBLE_TEXTS under bare string keys
+    const importedKeys = Object.keys(BIBLE_TEXTS).filter(k => !k.startsWith('offline:'));
+    const importedEntries = importedKeys.map(k => ({ id: k, name: k, filename: null, isImported: true }));
+    return [...offlineVersions, ...importedEntries];
   }, [offlineVersions]);
 
   // ── Clear ────────────────────────────────────────────────────────────────
@@ -362,27 +387,47 @@ export default function BiblePanel() {
   };
 
   // ── Offline search ────────────────────────────────────────────────────────
+  // versionsToUse: array of favorite objects with {id, filename?, isOffline?, isImported?}
   const searchOffline = async (query, versionsToUse) => {
     const isRef = isReference(query);
     const allResults = [];
-    for (const ver of versionsToUse) {
+    for (const fav of versionsToUse) {
+      // Determine the BIBLE_TEXTS key and display label
+      let textKey, displayLabel;
+      if (fav.isImported) {
+        // Manually imported XML Bible — stored under bare key
+        textKey = fav.id;
+        displayLabel = fav.id;
+      } else {
+        // Bundled offline translation — stored under 'offline:id' key
+        const bareId = fav.id.startsWith('offline:') ? fav.id.slice('offline:'.length) : fav.id;
+        textKey = `offline:${bareId}`;
+        displayLabel = fav.shortName || bareId;
+      }
+
       try {
-        if (isRef) {
-          const bookMatch = query.match(/^(.+?)\s+\d/i);
-          if (bookMatch) await fetchBibleBookIfNeeded(ver, canonicalBook(bookMatch[1]));
-          for (const r of searchByReference(query, ver)) {
-            allResults.push({ ...r, version: ver });
+        // Ensure translation is loaded into BIBLE_TEXTS
+        if (!Object.keys(BIBLE_TEXTS[textKey] || {}).length) {
+          if (fav.isImported) {
+            // Already loaded from localStorage in the init useEffect; skip if missing
+            console.warn(`[Bible] Manually imported Bible "${textKey}" not in memory`);
+            continue;
           }
-        } else {
-          if (!Object.keys(BIBLE_TEXTS[ver] || {}).length) {
-            await fetchBibleTranslationFromAsset(ver);
-          }
-          for (const r of searchByKeyword(query, ver)) {
-            allResults.push({ ...r, version: ver });
-          }
+          await loadOfflineTranslation(
+            textKey.startsWith('offline:') ? textKey.slice('offline:'.length) : textKey,
+            fav.filename
+          );
+        }
+
+        const hits = isRef
+          ? searchByReference(query, textKey)
+          : searchByKeyword(query, textKey);
+
+        for (const r of hits) {
+          allResults.push({ ...r, version: displayLabel });
         }
       } catch (err) {
-        console.warn(`[Bible] Offline search in ${ver} failed:`, err.message);
+        console.warn(`[Bible] Offline search in ${textKey} failed:`, err.message);
       }
     }
     return allResults;
@@ -404,13 +449,17 @@ export default function BiblePanel() {
 
     // Determine which versions to search
     const onlineFavs = favorites.filter(f => !f.isOffline);
-    const offlineFavs = favorites.filter(f => f.isOffline).map(f => f.id);
+    const offlineFavs = favorites.filter(f => f.isOffline);
     const hasOnlineFavs = onlineFavs.length > 0;
     const hasOfflineFavs = offlineFavs.length > 0;
 
     // If no favorites at all, default to first online for refs, first offline for keyword
     const defaultOnline = onlineVersions.length > 0 ? [onlineVersions[0]] : [];
-    const defaultOffline = allOfflineVersions.slice(0, 1);
+    const defaultOffline = allOfflineVersions.length > 0
+      ? [allOfflineVersions[0].isImported
+          ? { ...allOfflineVersions[0], isImported: true }
+          : buildOfflineFavorite(allOfflineVersions[0])]
+      : [];
 
     try {
       if (!isRef) {
@@ -437,8 +486,8 @@ export default function BiblePanel() {
           : favorites[1];
 
         const [hitsA, hitsB] = await Promise.all([
-          verA ? (verA.isOffline ? searchOffline(query, [verA.id]) : searchOnline(query, [verA])) : Promise.resolve([]),
-          verB ? (verB.isOffline ? searchOffline(query, [verB.id]) : searchOnline(query, [verB])) : Promise.resolve([]),
+          verA ? (verA.isOffline ? searchOffline(query, [verA]) : searchOnline(query, [verA])) : Promise.resolve([]),
+          verB ? (verB.isOffline ? searchOffline(query, [verB]) : searchOnline(query, [verB])) : Promise.resolve([]),
         ]);
 
         // Zip by verse reference
@@ -473,15 +522,24 @@ export default function BiblePanel() {
 
   // ── Offline autocomplete ──────────────────────────────────────────────────
   const updateSuggestions = (value) => {
-    if (!value.trim() || allOfflineVersions.length === 0) { setSuggestions([]); return; }
-    const ver = allOfflineVersions.find(v => Object.keys(BIBLE_TEXTS[v] || {}).length > 0);
-    if (!ver) { setSuggestions([]); return; }
+    if (!value.trim()) { setSuggestions([]); return; }
+    // Find a loaded offline translation to power autocomplete
+    let textKey = null, displayLabel = null;
+    for (const entry of allOfflineVersions) {
+      const k = entry.isImported ? entry.id : `offline:${entry.id}`;
+      if (Object.keys(BIBLE_TEXTS[k] || {}).length > 0) {
+        textKey = k;
+        displayLabel = entry.shortName || entry.id || k;
+        break;
+      }
+    }
+    if (!textKey) { setSuggestions([]); return; }
     const seen = new Set();
     const merged = [];
-    for (const item of [...searchByReference(value, ver), ...searchByKeyword(value, ver)]) {
+    for (const item of [...searchByReference(value, textKey), ...searchByKeyword(value, textKey)]) {
       if (!seen.has(item.reference)) {
         seen.add(item.reference);
-        merged.push({ ...item, version: ver });
+        merged.push({ ...item, version: displayLabel });
         if (merged.length >= 8) break;
       }
     }
@@ -580,7 +638,7 @@ export default function BiblePanel() {
       {showTranslationBrowser && (
         <TranslationBrowser
           onlineVersions={onlineVersions}
-          offlineVersions={allOfflineVersions}
+          offlineVersions={offlineVersions}
           favoriteIds={favorites.map(f => f.id)}
           onToggleFavorite={toggleFavorite}
           onClose={() => setShowTranslationBrowser(false)}
@@ -718,11 +776,11 @@ export default function BiblePanel() {
           fontSize: 11, color: 'var(--yellow)', lineHeight: 1.6,
         }}>
           <strong>Text search requires offline translations.</strong><br />
-          Download a Beblia XML Bible, then import it via{' '}
+          Open{' '}
           <button
             onClick={() => setShowTranslationBrowser(true)}
             style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: 11, padding: 0, textDecoration: 'underline' }}
-          >Translations → Offline → Import XML</button>.
+          >+ Translations → Offline</button>{' '}and star a translation to favorite it.
         </div>
       )}
 

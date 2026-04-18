@@ -4,13 +4,6 @@ const fs = require('fs');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
-const {
-  hasDefaultAppKey,
-  getAllYouVersionVersions,
-  getYouVersionVersion,
-  getYouVersionPassage,
-  searchYouVersionVerses,
-} = require('./youversion');
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Data directory
@@ -25,7 +18,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [] }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [] }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -495,48 +488,6 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
   } catch (err) {
     console.error('[fs] read-file-text failed', err.message);
     return null;
-  }
-});
-
-// Tells the renderer whether an API key is already configured in the main process
-// (via environment variable or config file), so it doesn't need to prompt the user.
-ipcMain.handle('get-youversion-has-key', () => ({ configured: hasDefaultAppKey() }));
-
-ipcMain.handle('fetch-youversion-versions', async (_, appKey) => {
-  try {
-    // getAllYouVersionVersions paginates the Platform API to retrieve every
-    // version the key can access — the SDK getVersions() only returns one page.
-    return await getAllYouVersionVersions(appKey);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-versions failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion versions.');
-  }
-});
-
-ipcMain.handle('fetch-youversion-version', async (_, appKey, versionId) => {
-  try {
-    return await getYouVersionVersion(appKey, versionId);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-version failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion version metadata.');
-  }
-});
-
-ipcMain.handle('search-youversion-verses', async (_, { appKey, versionId, query }) => {
-  try {
-    return await searchYouVersionVerses(appKey, versionId, query);
-  } catch (err) {
-    console.error('[YouVersion] search-youversion-verses failed', err.message);
-    throw new Error(err.message || 'YouVersion verse search failed.');
-  }
-});
-
-ipcMain.handle('fetch-youversion-passage', async (_, appKey, versionId, reference, format = 'text') => {
-  try {
-    return await getYouVersionPassage(appKey, versionId, reference, format);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-passage failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion passage.');
   }
 });
 

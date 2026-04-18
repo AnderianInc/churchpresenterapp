@@ -7,11 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   readDirectory: (folderPath) => ipcRenderer.invoke('read-directory', folderPath),
   readFileText: (filePath) => ipcRenderer.invoke('read-file-text', filePath),
-  getYouVersionHasKey: () => ipcRenderer.invoke('get-youversion-has-key'),
-  fetchYouVersionVersions: (appKey, language) => ipcRenderer.invoke('fetch-youversion-versions', appKey, language),
-  fetchYouVersionVersion: (appKey, versionId) => ipcRenderer.invoke('fetch-youversion-version', appKey, versionId),
-  fetchYouVersionPassage: (appKey, versionId, reference, format) => ipcRenderer.invoke('fetch-youversion-passage', appKey, versionId, reference, format),
-  searchYouVersionVerses: (opts) => ipcRenderer.invoke('search-youversion-verses', opts),
 
   // Windows
   openPresentation: (displayIndex) => ipcRenderer.invoke('open-presentation', displayIndex),

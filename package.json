@@ -5,17 +5,18 @@
   "main": "electron/main.js",
   "homepage": "./",
   "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "electron": "wait-on http://localhost:3000 && electron .",
     "electron:dev": "concurrently \"BROWSER=none npm start\" \"npm run electron\"",
-    "electron:build": "npm run update-translations && npm run build && electron-builder",
+    "electron:build": "npm run build-offline-index && npm run update-online-index && npm run build && electron-builder",
     "test": "react-scripts test --watchAll=false",
     "test:watch": "react-scripts test",
-    "update-translations": "node scripts/update-bible-translations.js"
+    "build-offline-index": "node scripts/build-offline-index.js",
+    "update-online-index": "node scripts/update-online-index.js"
   },
   "dependencies": {
-    "@youversion/platform-core": "^1.22.3",
     "lucide-react": "^0.383.0",
     "react": "^18.2.0",
     "react-beautiful-dnd": "^13.1.1",
