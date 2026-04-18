@@ -1,0 +1,77 @@
+[
+  { "id": 1,    "abbreviation": "KJV",     "title": "King James Version",                      "language_tag": "en",      "copyright": "Public Domain" },
+  { "id": 59,   "abbreviation": "ESV",     "title": "English Standard Version",                "language_tag": "en",      "copyright": "ESV® Text Edition: 2016. Copyright © 2001 by Crossway Bibles, a publishing ministry of Good News Publishers." },
+  { "id": 72,   "abbreviation": "HCSB",    "title": "Holman Christian Standard Bible",         "language_tag": "en",      "copyright": "Copyright © 1999, 2000, 2002, 2003, 2009 by Holman Bible Publishers. Used by permission." },
+  { "id": 97,   "abbreviation": "MSG",     "title": "The Message",                             "language_tag": "en",      "copyright": "Copyright © 1993, 2002, 2018 by Eugene H. Peterson. Used by permission of NavPress." },
+  { "id": 100,  "abbreviation": "NASB",    "title": "New American Standard Bible 1995",        "language_tag": "en",      "copyright": "Copyright © 1960, 1971, 1977, 1995 by The Lockman Foundation. Used by permission." },
+  { "id": 105,  "abbreviation": "NCV",     "title": "New Century Version",                     "language_tag": "en",      "copyright": "Copyright © 2005 by Thomas Nelson. Used by permission." },
+  { "id": 107,  "abbreviation": "NET",     "title": "New English Translation",                 "language_tag": "en",      "copyright": "Copyright © 1996-2017 by Biblical Studies Press, L.L.C. Used by permission." },
+  { "id": 110,  "abbreviation": "NIRV",    "title": "New International Reader's Version",      "language_tag": "en",      "copyright": "Copyright © 1996, 1998, 2014 by Biblica, Inc.™ Used by permission." },
+  { "id": 111,  "abbreviation": "NIV",     "title": "New International Version",               "language_tag": "en",      "copyright": "Copyright © 1973, 1978, 1984, 2011 by Biblica, Inc.™ Used by permission. All rights reserved worldwide." },
+  { "id": 113,  "abbreviation": "TNIV",    "title": "Today's New International Version",       "language_tag": "en",      "copyright": "Copyright © 2001, 2005 by Biblica, Inc.™ Used by permission." },
+  { "id": 114,  "abbreviation": "NKJV",    "title": "New King James Version",                  "language_tag": "en",      "copyright": "Copyright © 1982 by Thomas Nelson. Used by permission. All rights reserved." },
+  { "id": 116,  "abbreviation": "NLT",     "title": "New Living Translation",                  "language_tag": "en",      "copyright": "Copyright © 1996, 2004, 2015 by Tyndale House Foundation. Used by permission of Tyndale House Publishers." },
+  { "id": 130,  "abbreviation": "NRSV",    "title": "New Revised Standard Version",            "language_tag": "en",      "copyright": "Copyright © 1989 National Council of the Churches of Christ in the USA. Used by permission." },
+  { "id": 206,  "abbreviation": "WEB",     "title": "World English Bible",                     "language_tag": "en",      "copyright": "Public Domain" },
+  { "id": 37,   "abbreviation": "CEB",     "title": "Common English Bible",                    "language_tag": "en",      "copyright": "Copyright © 2011 Common English Bible." },
+  { "id": 68,   "abbreviation": "GNT",     "title": "Good News Translation",                   "language_tag": "en",      "copyright": "Copyright © 1992 by American Bible Society. Used by permission." },
+  { "id": 392,  "abbreviation": "CEV",     "title": "Contemporary English Version",            "language_tag": "en",      "copyright": "Copyright © 1995 by American Bible Society. Used by permission." },
+  { "id": 820,  "abbreviation": "YLT",     "title": "Young's Literal Translation",             "language_tag": "en",      "copyright": "Public Domain" },
+  { "id": 1182, "abbreviation": "NABRE",   "title": "New American Bible Revised Edition",      "language_tag": "en",      "copyright": "Copyright © 2010, 1991, 1986, 1970 Confraternity of Christian Doctrine. Used by permission." },
+  { "id": 1588, "abbreviation": "AMP",     "title": "Amplified Bible",                         "language_tag": "en",      "copyright": "Copyright © 1954, 1958, 1962, 1964, 1965, 1987 by The Lockman Foundation. Used by permission." },
+  { "id": 1713, "abbreviation": "CSB",     "title": "Christian Standard Bible",                "language_tag": "en",      "copyright": "Copyright © 2017 by Holman Bible Publishers. Used by permission." },
+  { "id": 1849, "abbreviation": "TPT",     "title": "The Passion Translation",                 "language_tag": "en",      "copyright": "Copyright © 2017, 2018, 2020 Passion & Fire Ministries, Inc. Used by permission." },
+  { "id": 2016, "abbreviation": "MEV",     "title": "Modern English Version",                  "language_tag": "en",      "copyright": "Copyright © 2014 by Military Bible Association. Used by permission." },
+  { "id": 3034, "abbreviation": "BSB",     "title": "Berean Standard Bible",                   "language_tag": "en",      "copyright": "Copyright © 2016, 2020 by Bible Hub. Used by permission. All Rights Reserved Worldwide." },
+  { "id": 2135, "abbreviation": "NASB2020","title": "New American Standard Bible 2020",        "language_tag": "en",      "copyright": "Copyright © 1960, 1971, 1977, 1995, 2020 by The Lockman Foundation. Used by permission." },
+
+  { "id": 25,   "abbreviation": "RVR1960", "title": "Reina-Valera 1960",                       "language_tag": "es",      "copyright": "© Sociedades Bíblicas en América Latina, 1960. Renovado © Sociedades Bíblicas Unidas, 1988." },
+  { "id": 128,  "abbreviation": "NVI",     "title": "Nueva Versión Internacional",              "language_tag": "es",      "copyright": "Copyright © 1999, 2015 by Biblica, Inc.™ Usado con permiso." },
+  { "id": 103,  "abbreviation": "TLA",     "title": "Traducción en lenguaje actual",            "language_tag": "es",      "copyright": "Copyright © 2000 by Sociedades Bíblicas Unidas." },
+  { "id": 127,  "abbreviation": "LBLA",    "title": "La Biblia de las Américas",               "language_tag": "es",      "copyright": "Copyright © 1986, 1995, 1997 by The Lockman Foundation. Usado con permiso." },
+  { "id": 149,  "abbreviation": "RVR1909", "title": "Reina-Valera 1909",                       "language_tag": "es",      "copyright": "Dominio Público" },
+  { "id": 2872, "abbreviation": "RVC",     "title": "Reina Valera Contemporánea",              "language_tag": "es",      "copyright": "Copyright © 2009, 2011 by Sociedades Bíblicas Unidas." },
+
+  { "id": 211,  "abbreviation": "ARA",     "title": "Almeida Revisada e Atualizada",           "language_tag": "pt-BR",   "copyright": "Copyright © Sociedades Bíblicas do Brasil." },
+  { "id": 290,  "abbreviation": "NTLH",    "title": "Nova Tradução na Linguagem de Hoje",      "language_tag": "pt-BR",   "copyright": "Copyright © 2000 Sociedades Bíblicas do Brasil. Usado com permissão." },
+  { "id": 212,  "abbreviation": "NVT",     "title": "Nova Versão Transformadora",               "language_tag": "pt-BR",   "copyright": "Copyright © 2015 Editora Mundo Cristão." },
+
+  { "id": 93,   "abbreviation": "LSG",     "title": "Louis Segond 1910",                       "language_tag": "fr",      "copyright": "Domaine Public" },
+  { "id": 232,  "abbreviation": "S21",     "title": "Segond 21",                               "language_tag": "fr",      "copyright": "Copyright © 2007 Société Biblique de Genève." },
+  { "id": 4031, "abbreviation": "PDV2017", "title": "Parole de Vie",                           "language_tag": "fr",      "copyright": "Copyright © Alliance Biblique Universelle, 2000." },
+
+  { "id": 51,   "abbreviation": "ELB",     "title": "Elberfelder Bibel 1905",                  "language_tag": "de",      "copyright": "Gemeinfrei" },
+  { "id": 1462, "abbreviation": "HFA",     "title": "Hoffnung für Alle",                       "language_tag": "de",      "copyright": "Copyright © 1983, 1996, 2002, 2015 Biblica, Inc.™ Verwendet mit Erlaubnis." },
+  { "id": 70,   "abbreviation": "LUT1912", "title": "Luther Bibel 1912",                       "language_tag": "de",      "copyright": "Gemeinfrei" },
+
+  { "id": 46,   "abbreviation": "CUNPS",   "title": "Chinese Union Version (Simplified)",      "language_tag": "zh-Hans", "copyright": "Copyright © The Bible Society in Taiwan. Used by permission." },
+  { "id": 61,   "abbreviation": "CUNPT",   "title": "Chinese Union Version (Traditional)",     "language_tag": "zh-Hant", "copyright": "Copyright © The Bible Society in Taiwan. Used by permission." },
+
+  { "id": 136,  "abbreviation": "KRV",     "title": "개역한글 Korean Revised Version",           "language_tag": "ko",      "copyright": "Copyright © 1998 대한성서공회. Used by permission." },
+
+  { "id": 78,   "abbreviation": "JA1955",  "title": "口語訳 Japanese Colloquial Bible",          "language_tag": "ja",      "copyright": "Copyright © 日本聖書協会." },
+
+  { "id": 31,   "abbreviation": "NAV",     "title": "New Arabic Version",                      "language_tag": "ar",      "copyright": "Copyright © 2022 Biblica, Inc.® Used by permission." },
+
+  { "id": 400,  "abbreviation": "RSZ",     "title": "Синодальный перевод (Synodal)",           "language_tag": "ru",      "copyright": "Общественное достояние (Public Domain)" },
+  { "id": 329,  "abbreviation": "NRT",     "title": "Новый Русский Перевод",                   "language_tag": "ru",      "copyright": "Copyright © 2014 International Bible Society." },
+
+  { "id": 306,  "abbreviation": "TB",      "title": "Terjemahan Baru",                         "language_tag": "id",      "copyright": "Copyright © 1974 Lembaga Alkitab Indonesia. Used by permission." },
+  { "id": 2369, "abbreviation": "BIS",     "title": "Bahasa Indonesia Sehari-hari",            "language_tag": "id",      "copyright": "Copyright © 1985 Lembaga Alkitab Indonesia. Used by permission." },
+
+  { "id": 120,  "abbreviation": "TAB",     "title": "Ang Biblia (Tagalog 1905)",               "language_tag": "tl",      "copyright": "Public Domain" },
+  { "id": 2428, "abbreviation": "MBB",     "title": "Magandang Balita Biblia",                 "language_tag": "tl",      "copyright": "Copyright © 1980 Philippine Bible Society. Used by permission." },
+
+  { "id": 153,  "abbreviation": "NRV",     "title": "Nuova Riveduta 2006",                     "language_tag": "it",      "copyright": "Copyright © 2006 Società Biblica di Ginevra." },
+  { "id": 1221, "abbreviation": "CEI2008", "title": "La Bibbia (CEI 2008)",                    "language_tag": "it",      "copyright": "Copyright © 2008 Conferenza Episcopale Italiana." },
+
+  { "id": 1890, "abbreviation": "HTB",     "title": "Het Boek",                                "language_tag": "nl",      "copyright": "Copyright © 1988, 2008 Biblica, Inc.™ Gebruikt met toestemming." },
+
+  { "id": 640,  "abbreviation": "PSZ",     "title": "Słowo Życia (Polish Living Bible)",       "language_tag": "pl",      "copyright": "Copyright © 1984, 1990, 2016 Biblica, Inc.™ Used by permission." },
+
+  { "id": 191,  "abbreviation": "CORNILESCU", "title": "Cornilescu (Romanian)",               "language_tag": "ro",      "copyright": "Copyright © Societatea Biblică Interconfesională." },
+
+  { "id": 14,   "abbreviation": "SNT",     "title": "Swahili New Testament",                   "language_tag": "sw",      "copyright": "Copyright © Bible Society of Kenya. Used by permission." },
+
+  { "id": 40,   "abbreviation": "ERV-HI",  "title": "Easy-to-Read Version Hindi",              "language_tag": "hi",      "copyright": "Copyright © 2010 Bible League International. Used by permission." }
+]
