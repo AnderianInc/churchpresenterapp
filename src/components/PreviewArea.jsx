@@ -115,37 +115,40 @@ export default function PreviewArea() {
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center', justifyContent: 'center', maxWidth: 340 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-            <button type="button" style={btnStyle()} onClick={prevSlide}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', width: '100%', maxWidth: 340 }}>
+          {/* Navigation + Send row — equal-width grid so buttons always align */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto 1fr', gap: 6, width: '100%' }}>
+            <button type="button" style={{ ...btnStyle(), justifyContent: 'center' }} onClick={prevSlide}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-panel)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
               ◀ Prev
             </button>
-            <button type="button" style={btnStyle(true)} onClick={handleSend}
+            <button type="button" style={{ ...btnStyle(true), justifyContent: 'center', padding: '7px 18px' }} onClick={handleSend}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               disabled={!currentSlide}>
               ▶ Send
             </button>
-            <button type="button" style={{ ...btnStyle(true), background: 'var(--cyan)' }} onClick={() => { if (currentSlide && currentItem) goLiveAll({ ...currentSlide, item: currentItem }); }}
+            <button type="button" style={{ ...btnStyle(true), background: 'var(--cyan)', justifyContent: 'center', padding: '7px 14px' }}
+              onClick={() => { if (currentSlide && currentItem) goLiveAll({ ...currentSlide, item: currentItem }); }}
               onMouseEnter={e => { e.currentTarget.style.opacity = '0.85'; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
               disabled={!currentSlide}>
-              ▶ Send All
+              ▶▶ All
             </button>
-            <button type="button" style={btnStyle()} onClick={nextSlide}
+            <button type="button" style={{ ...btnStyle(), justifyContent: 'center' }} onClick={nextSlide}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-hover)'; e.currentTarget.style.color = 'var(--text)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-panel)'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
               Next ▶
             </button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-            <label style={{ fontSize: 11, color: 'var(--text-muted)' }}>Send to</label>
+          {/* Send target — full width below the button row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, width: '100%' }}>
+            <label style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>To:</label>
             <select
               value={target}
               onChange={(e) => setTarget(e.target.value)}
-              style={{ flex: 1, minWidth: 150, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'var(--text)', padding: '7px 10px', fontSize: 12 }}
+              style={{ flex: 1, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-panel)', color: 'var(--text)', padding: '6px 10px', fontSize: 12 }}
             >
               {targetOptions.map(option => (
                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -249,7 +252,7 @@ export default function PreviewArea() {
           )}
         </div>
         {liveProgram && (
-          <div style={{ fontSize: 11, color: 'var(--green)' }}>
+          <div style={{ fontSize: 11, color: 'var(--green)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             ● {liveProgram.label} — {liveProgram.item?.title}
           </div>
         )}
@@ -257,25 +260,25 @@ export default function PreviewArea() {
 
       {/* Available screens */}
       {displays.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 260, flexShrink: 0 }}>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Screens
           </div>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr', minWidth: 260 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {displayOutputs.map(({ display, output }) => {
               const title = output ? `${output.title} (${output.role})` : display.label;
               const slide = output ? resolveOutputSlide(output) : null;
-              const subtitle = output ? `Screen ${display.index + 1}` : `Screen ${display.index + 1} • no output`;
+              const subtitle = output ? `Screen ${display.index + 1}` : `Screen ${display.index + 1} · no output`;
               return (
-                <div key={display.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)' }}>
-                  <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, background: '#0f1218' }}>
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{title}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{subtitle}</div>
+                <div key={display.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)', width: 260 }}>
+                  <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, background: '#0f1218', minWidth: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</div>
                     </div>
-                    {display.isPrimary && <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Primary</div>}
+                    {display.isPrimary && <div style={{ fontSize: 10, color: 'var(--text-dim)', flexShrink: 0 }}>Primary</div>}
                   </div>
-                  <div style={{ width: '100%', height: 140, position: 'relative' }}>
+                  <div style={{ width: '100%', height: 140, position: 'relative', overflow: 'hidden' }}>
                     {slide && slide.item ? (
                       <SlideRenderer slide={slide} item={slide.item} scale={0.18} />
                     ) : (
@@ -291,24 +294,22 @@ export default function PreviewArea() {
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 260, flexShrink: 0 }}>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Role outputs
         </div>
-        <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr', minWidth: 260 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {builtInRoles.map((roleMeta) => {
             const slide = resolveRoleSlide(roleMeta.id);
             return (
-              <div key={roleMeta.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)' }}>
-                <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, background: '#0f1218' }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{roleMeta.label}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>
-                      {slide?.item?.title || 'No active content'}
-                    </div>
+              <div key={roleMeta.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)', width: 260 }}>
+                <div style={{ padding: '7px 10px', background: '#0f1218', minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{roleMeta.label}</div>
+                  <div style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {slide?.item?.title || 'No active content'}
                   </div>
                 </div>
-                <div style={{ width: '100%', height: 140, position: 'relative' }}>
+                <div style={{ width: '100%', height: 140, position: 'relative', overflow: 'hidden' }}>
                   {slide && slide.item ? (
                     <SlideRenderer slide={slide} item={slide.item} scale={0.18} />
                   ) : (
@@ -352,7 +353,7 @@ export default function PreviewArea() {
           )}
         </div>
         {effectiveStage && (
-          <div style={{ fontSize: 11, color: 'var(--purple)' }}>
+          <div style={{ fontSize: 11, color: 'var(--purple)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             ● {effectiveStage.label} — {effectiveStage.item?.title}
           </div>
         )}

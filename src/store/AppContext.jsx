@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, createContext, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { storage, migrateLegacyStorage, validateSongsArray, validateScheduleArray, validateSettings } from './persistence';
 import defaultSongs from '../data/defaultSongs';
@@ -281,7 +281,38 @@ export function AppProvider({ children }) {
     saveSchedule([]);
     setActiveScheduleIdx(0);
     setActiveSlideIdx(0);
-  }, [saveSchedule, pushScheduleHistory]);
+    // Reset all live outputs to standby
+    setLiveProgram(null);
+    setLiveStage(null);
+    setLiveOutputs({});
+    setLiveRoleSlides({});
+    setIsLive(false);
+    setIsBlackout(false);
+    setIsClear(false);
+    if (isElectron) {
+      window.electronAPI.sendSlideProgram(null);
+      window.electronAPI.sendSlideStage(null);
+      window.electronAPI.sendBlackout(false);
+      window.electronAPI.sendClear(false);
+      window.electronAPI.sendOutputState({
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      });
+    } else {
+      writeLiveState({
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      });
+      broadcastRef.current?.postMessage(makeBroadcastMsg('state-sync', {
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveSchedule, pushScheduleHistory, isElectron]);
 
   // Crash-safe autosave — write snapshot to localStorage every 60s
   // Uses refs so the interval doesn't restart on every schedule/songs change
@@ -310,6 +341,22 @@ export function AppProvider({ children }) {
     setRecoveryData(null);
   }, [saveSongs, saveSchedule]);
 
+  // Derived next-slide for confidence/stage monitors — computed reactively so
+  // sendOutputState and broadcast payloads always carry the current value.
+  const liveNextSlide = useMemo(() => {
+    const currentItemSlides = schedule[activeScheduleIdx]?.slides || [];
+    if (activeSlideIdx < currentItemSlides.length - 1) {
+      const s = currentItemSlides[activeSlideIdx + 1];
+      return s ? { ...s, item: schedule[activeScheduleIdx] } : null;
+    }
+    if (activeScheduleIdx < schedule.length - 1) {
+      const nextItem = schedule[activeScheduleIdx + 1];
+      const s = nextItem?.slides?.[0];
+      return s ? { ...s, item: nextItem } : null;
+    }
+    return null;
+  }, [schedule, activeScheduleIdx, activeSlideIdx]);
+
   // Stable BroadcastChannel ref for browser mode
   const broadcastRef = useRef(null);
   useEffect(() => {
@@ -326,6 +373,7 @@ export function AppProvider({ children }) {
           isClear,
           outputs: liveOutputs,
           roleSlides: liveRoleSlides,
+          nextSlide: liveNextSlide,
         };
         broadcastRef.current?.postMessage(makeBroadcastMsg('state-sync', payload));
       };
@@ -334,7 +382,7 @@ export function AppProvider({ children }) {
   // liveOutputs/liveRoleSlides intentionally omitted — adding them would
   // tear down and recreate the BroadcastChannel on every live state change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear]);
+  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, liveNextSlide]);
 
   const broadcast = useCallback((type, payload) => {
     broadcastRef.current?.postMessage(makeBroadcastMsg(type, payload));
@@ -374,8 +422,9 @@ export function AppProvider({ children }) {
       isClear,
       outputs,
       roleSlides: liveRoleSlides,
+      nextSlide: liveNextSlide,
     });
-  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides]);
+  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides, liveNextSlide]);
 
   /**
    * Compute the slide that comes immediately after the currently active slide.

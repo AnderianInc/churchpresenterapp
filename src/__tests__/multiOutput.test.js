@@ -399,3 +399,76 @@ describe('sendOutputState resolution — override precedence order', () => {
     expect(map['win-3'].slide).toBe(slideB);
   });
 });
+
+// ── nextSlide in output state payload ────────────────────────────────────────
+
+/**
+ * AppContext.sendOutputState (and its BroadcastChannel state-sync equivalent)
+ * now includes `nextSlide` in the top-level payload so that confidence monitor
+ * output windows can display the upcoming slide in their split-screen panel.
+ *
+ * `buildOutputStatePayload` mirrors the shape of the object broadcast to all
+ * output windows. The `outputs` field is computed by resolveOutputStateMap.
+ */
+function buildOutputStatePayload(state) {
+  const { liveProgram, liveStage, nextSlide, isBlackout, isClear, liveRoleSlides, stageMirrorProgram } = state;
+  return {
+    programSlide: liveProgram,
+    stageSlide: liveStage,
+    nextSlide: nextSlide ?? null,
+    isBlackout: !!isBlackout,
+    isClear: !!isClear,
+    outputs: resolveOutputStateMap(state),
+    roleSlides: liveRoleSlides,
+    stageMirror: stageMirrorProgram,
+  };
+}
+
+function baseStateWithNext(overrides = {}) {
+  return {
+    ...baseState(),
+    nextSlide: null,
+    ...overrides,
+  };
+}
+
+describe('sendOutputState — nextSlide field in payload', () => {
+  it('payload includes nextSlide field', () => {
+    const payload = buildOutputStatePayload(baseStateWithNext());
+    expect(payload).toHaveProperty('nextSlide');
+  });
+
+  it('nextSlide is null when no next slide is available', () => {
+    const payload = buildOutputStatePayload(baseStateWithNext({ nextSlide: null }));
+    expect(payload.nextSlide).toBeNull();
+  });
+
+  it('nextSlide carries the correct slide object when set', () => {
+    const payload = buildOutputStatePayload(baseStateWithNext({ nextSlide: slideB }));
+    expect(payload.nextSlide).toBe(slideB);
+  });
+
+  it('nextSlide is present alongside programSlide and outputs', () => {
+    const payload = buildOutputStatePayload(baseStateWithNext({ nextSlide: slideB }));
+    expect(payload.programSlide).toBe(slideA); // liveProgram from baseState
+    expect(payload.nextSlide).toBe(slideB);
+    expect(typeof payload.outputs).toBe('object');
+  });
+
+  it('nextSlide defaults to null when key is absent from state (undefined → null)', () => {
+    // state without nextSlide key — ?? null guard handles it
+    const stateWithoutKey = baseState(); // no nextSlide property
+    const payload = buildOutputStatePayload(stateWithoutKey);
+    expect(payload.nextSlide).toBeNull();
+  });
+
+  it('nextSlide changes independently of programSlide', () => {
+    const p1 = buildOutputStatePayload(baseStateWithNext({ nextSlide: slideB }));
+    const p2 = buildOutputStatePayload(baseStateWithNext({ nextSlide: slideC }));
+    expect(p1.nextSlide).toBe(slideB);
+    expect(p2.nextSlide).toBe(slideC);
+    // programSlide unchanged in both
+    expect(p1.programSlide).toBe(slideA);
+    expect(p2.programSlide).toBe(slideA);
+  });
+});

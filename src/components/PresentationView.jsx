@@ -49,15 +49,22 @@ export default function PresentationView() {
     return <div style={{ width: '100vw', height: '100vh', background: '#000000' }} />;
   }
 
-  if (isClear || !slide) {
+  // Clear: show the item background without text
+  if (isClear && slide) {
+    return (
+      <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+        <SlideRenderer slide={{ ...slide, lines: '', chords: '' }} item={slide.item} fullscreen />
+      </div>
+    );
+  }
+
+  if (!slide) {
     return (
       <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {!slide && (
-          <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>✝</div>
-            <div style={{ fontSize: 16, fontFamily: 'Georgia', letterSpacing: '0.1em' }}>Waiting for content</div>
-          </div>
-        )}
+        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>✝</div>
+          <div style={{ fontSize: 16, fontFamily: 'Georgia', letterSpacing: '0.1em' }}>Waiting for content</div>
+        </div>
       </div>
     );
   }
