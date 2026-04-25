@@ -99,7 +99,7 @@ export default function MediaPanel() {
     event.target.value = '';
   };
 
-  const useImageFavorite = (fav) => {
+  const applyImageFavorite = (fav) => {
     addToSchedule({
       type: 'announcement',
       title: fav.name,
@@ -312,7 +312,7 @@ export default function MediaPanel() {
                       <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Slot {idx + 1}</div>
                     </div>
                     <button
-                      onClick={() => useImageFavorite(fav)}
+                      onClick={() => applyImageFavorite(fav)}
                       title="Add to schedule"
                       style={{
                         background: 'var(--accent)', border: 'none', color: '#fff',
