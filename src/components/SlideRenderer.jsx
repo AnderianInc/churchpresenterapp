@@ -101,7 +101,7 @@ export default function SlideRenderer({
       {/* YouTube background
             fullscreen + ytPlayerId → empty div; the YT IFrame API player is injected here
                                        by the parent (OutputView) which manages the player lifecycle
-            fullscreen, no ytPlayerId → raw iframe (e.g. ConfidencePanel's SlideSection)
+            fullscreen, no ytPlayerId → raw iframe (e.g. ConfidencePanel's SlideCanvas)
             thumbnail               → static hqdefault.jpg image
       */}
       {bgType === 'youtube' && effectiveBg.value && (
