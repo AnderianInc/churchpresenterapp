@@ -276,6 +276,31 @@ export function AppProvider({ children }) {
     saveSchedule(newOrder);
   }, [saveSchedule, pushScheduleHistory]);
 
+  // ── Saved Service Orders ──────────────────────────────────────────────────
+  const saveServiceOrder = useCallback((name) => {
+    const savedServices = settings.savedServices || [];
+    const entry = {
+      id: uuidv4(),
+      name: (name || '').trim() || 'Service',
+      savedAt: new Date().toISOString(),
+      items: schedule,
+    };
+    saveSettings({ savedServices: [...savedServices, entry] });
+  }, [schedule, settings, saveSettings]);
+
+  const loadServiceOrder = useCallback((savedService) => {
+    const newSch = savedService.items.map(item => ({ ...item, scheduleId: uuidv4() }));
+    pushScheduleHistory(newSch);
+    saveSchedule(newSch);
+    setActiveScheduleIdx(0);
+    setActiveSlideIdx(0);
+  }, [saveSchedule, pushScheduleHistory]);
+
+  const deleteSavedService = useCallback((id) => {
+    const savedServices = (settings.savedServices || []).filter(s => s.id !== id);
+    saveSettings({ savedServices });
+  }, [settings, saveSettings]);
+
   const clearSchedule = useCallback(() => {
     pushScheduleHistory([]);
     saveSchedule([]);
@@ -749,6 +774,24 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  const sendYouTubeControl = useCallback((func, args = []) => {
+    const payload = { func, args };
+    if (isElectron) {
+      window.electronAPI.sendYouTubeControl(payload);
+    } else {
+      broadcastRef.current?.postMessage(makeBroadcastMsg('youtube-control', payload));
+    }
+  }, [isElectron]);
+
+  const sendVideoControl = useCallback((func, args = []) => {
+    const payload = { func, args };
+    if (isElectron) {
+      window.electronAPI.sendVideoControl(payload);
+    } else {
+      broadcastRef.current?.postMessage(makeBroadcastMsg('video-control', payload));
+    }
+  }, [isElectron]);
+
   const currentItem = schedule[activeScheduleIdx] || null;
   const currentSlides = currentItem?.slides || [];
   const currentSlide = currentSlides[activeSlideIdx] || null;
@@ -810,9 +853,12 @@ export function AppProvider({ children }) {
       undoSchedule, redoSchedule,
       addSong, updateSong, deleteSong,
       addToSchedule, removeFromSchedule, updateScheduleItem, reorderSchedule, clearSchedule,
+      saveServiceOrder, loadServiceOrder, deleteSavedService,
       goLive, goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, toggleBlackout, toggleClear,
       openPresentation, closePresentation, openStage, closeStage,
       openStream, closeStream, pushLowerThird, sendStreamConfig,
+      sendYouTubeControl,
+      sendVideoControl,
       nextSlide, prevSlide,
     }}>
       {children}

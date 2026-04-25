@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { useApp } from '../store/AppContext';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useApp, BROADCAST_CHANNEL } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import { parsePptx } from '../utils/pptxParser';
+import { parseYouTubeMessage, shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
 
 const PRESET_BACKGROUNDS = [
   { id: 'b1', name: 'Deep Navy', type: 'color', value: '#0a0f1e', category: 'solid' },
@@ -19,17 +20,103 @@ const PRESET_BACKGROUNDS = [
 ];
 
 const NUM_FAVORITE_SLOTS = 4;
-const TABS = ['solid', 'gradient', 'video', 'slides'];
+const TABS = ['solid', 'gradient', 'image', 'video', 'youtube', 'slides'];
+
+// ── YouTube helpers ───────────────────────────────────────────────────────────
+
+function extractYouTubeId(input) {
+  if (!input) return null;
+  input = input.trim();
+  // Plain 11-char video ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  try {
+    const url = new URL(input);
+    if (url.hostname.includes('youtube.com')) {
+      if (url.searchParams.get('v')) return url.searchParams.get('v');
+      const parts = url.pathname.split('/');
+      const seg = parts.find((_, i) => parts[i - 1] === 'embed' || parts[i - 1] === 'shorts' || parts[i - 1] === 'live');
+      if (seg && /^[a-zA-Z0-9_-]{11}$/.test(seg)) return seg;
+    }
+    if (url.hostname === 'youtu.be') {
+      const id = url.pathname.slice(1).split('?')[0];
+      if (/^[a-zA-Z0-9_-]{11}$/.test(id)) return id;
+    }
+  } catch { /* not a URL */ }
+  const m = input.match(/[a-zA-Z0-9_-]{11}/);
+  return m ? m[0] : null;
+}
+
+function youTubeThumbnailUrl(videoId) {
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
 
 export default function MediaPanel() {
-  const { addToSchedule, settings, saveSettings } = useApp();
+  const { addToSchedule, settings, saveSettings, liveProgram, sendYouTubeControl } = useApp();
   const [category, setCategory] = useState('solid');
   const [customColor, setCustomColor] = useState('#0a0f1e');
   const fileInputRef = useRef(null);
+  const imageFileInputRef = useRef(null);
   // slotIndex tracks which favorite slot is being assigned (-1 = add to schedule directly)
   const [assigningSlot, setAssigningSlot] = useState(-1);
+  const [assigningImageSlot, setAssigningImageSlot] = useState(-1);
 
   const videoFavorites = settings?.videoFavorites || [];
+  const imageFavorites = settings?.imageFavorites || [];
+
+  const importImageFile = async (file) => {
+    let imageUrl;
+    if (window.electronAPI?.copyMediaFile && file.path) {
+      try { imageUrl = await window.electronAPI.copyMediaFile(file.path); }
+      catch { imageUrl = URL.createObjectURL(file); }
+    } else {
+      imageUrl = URL.createObjectURL(file);
+    }
+    return { url: imageUrl, name: file.name };
+  };
+
+  const handleImageImport = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const { url: imageUrl, name } = await importImageFile(file);
+
+    if (assigningImageSlot >= 0) {
+      const newFavorites = [...imageFavorites];
+      while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
+      newFavorites[assigningImageSlot] = { url: imageUrl, name };
+      saveSettings({ imageFavorites: newFavorites });
+    } else {
+      addToSchedule({
+        type: 'announcement',
+        title: name,
+        slides: [{ id: uuidv4(), type: 'blank', label: name, lines: '' }],
+        background: { type: 'image', value: imageUrl, name, brightness: 0.7 },
+        textColor: '#ffffff',
+        fontSize: 44,
+        fontFamily: 'Georgia',
+      });
+    }
+    setAssigningImageSlot(-1);
+    event.target.value = '';
+  };
+
+  const useImageFavorite = (fav) => {
+    addToSchedule({
+      type: 'announcement',
+      title: fav.name,
+      slides: [{ id: uuidv4(), type: 'blank', label: fav.name, lines: '' }],
+      background: { type: 'image', value: fav.url, name: fav.name, brightness: 0.7 },
+      textColor: '#ffffff',
+      fontSize: 44,
+      fontFamily: 'Georgia',
+    });
+  };
+
+  const clearImageFavorite = (idx) => {
+    const newFavorites = [...imageFavorites];
+    while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
+    newFavorites[idx] = null;
+    saveSettings({ imageFavorites: newFavorites });
+  };
 
   const importVideoFile = async (file) => {
     let videoUrl;
@@ -115,14 +202,19 @@ export default function MediaPanel() {
       {/* Category tabs */}
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
         {TABS.map(cat => (
-          <button key={cat} onClick={() => setCategory(cat)} style={{
-            flex: 1, padding: '7px 2px', fontSize: 10, cursor: 'pointer',
-            background: 'transparent', border: 'none',
-            borderBottom: category === cat ? '2px solid var(--accent)' : '2px solid transparent',
-            color: category === cat ? 'var(--accent)' : 'var(--text-muted)',
-            fontFamily: 'var(--font)', transition: 'all 0.15s', whiteSpace: 'nowrap',
-          }}>
-            {cat === 'solid' ? '🎨 Solid' : cat === 'gradient' ? '🌈 Grad' : cat === 'video' ? '🎬 Video' : '📊 Slides'}
+          <button
+            key={cat}
+            onClick={() => setCategory(cat)}
+            title={cat === 'solid' ? 'Solid Colors' : cat === 'gradient' ? 'Gradients' : cat === 'image' ? 'Images' : cat === 'video' ? 'Videos' : cat === 'youtube' ? 'YouTube' : 'Slides'}
+            style={{
+              flex: 1, padding: '7px 2px', fontSize: 14, cursor: 'pointer',
+              background: 'transparent', border: 'none',
+              borderBottom: category === cat ? '2px solid var(--accent)' : '2px solid transparent',
+              color: category === cat ? 'var(--accent)' : 'var(--text-muted)',
+              fontFamily: 'var(--font)', transition: 'all 0.15s', whiteSpace: 'nowrap',
+            }}
+          >
+            {cat === 'solid' ? '🎨' : cat === 'gradient' ? '🌈' : cat === 'image' ? '🖼️' : cat === 'video' ? '🎬' : cat === 'youtube' ? '📺' : '📊'}
           </button>
         ))}
       </div>
@@ -172,8 +264,114 @@ export default function MediaPanel() {
           </div>
         )}
 
+        {category === 'youtube' && (
+          <YouTubePanel
+            addToSchedule={addToSchedule}
+            settings={settings}
+            saveSettings={saveSettings}
+            liveProgram={liveProgram}
+            sendYouTubeControl={sendYouTubeControl}
+          />
+        )}
+
         {category === 'slides' && (
           <PptxImporter addToSchedule={addToSchedule} />
+        )}
+
+        {category === 'image' && (
+          <>
+            <input
+              ref={imageFileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleImageImport}
+            />
+
+            {/* Image favorite slots */}
+            <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+              Image Favorites
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              {Array.from({ length: NUM_FAVORITE_SLOTS }).map((_, idx) => {
+                const fav = imageFavorites[idx] || null;
+                return fav ? (
+                  <div key={idx} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '7px 10px', borderRadius: 'var(--radius)',
+                    background: 'var(--bg-hover)', border: '1px solid var(--border)',
+                  }}>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: 4, flexShrink: 0,
+                      backgroundImage: `url(${fav.url})`,
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      border: '1px solid var(--border)',
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fav.name}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Slot {idx + 1}</div>
+                    </div>
+                    <button
+                      onClick={() => useImageFavorite(fav)}
+                      title="Add to schedule"
+                      style={{
+                        background: 'var(--accent)', border: 'none', color: '#fff',
+                        borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+                        fontSize: 10, fontFamily: 'var(--font)',
+                      }}
+                    >▶</button>
+                    <button
+                      onClick={() => { setAssigningImageSlot(idx); imageFileInputRef.current?.click(); }}
+                      title="Reassign slot"
+                      style={{
+                        background: 'rgba(255,255,255,0.07)', border: '1px solid var(--border)',
+                        color: 'var(--text-dim)', borderRadius: 4, padding: '3px 6px',
+                        cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)',
+                      }}
+                    >🔄</button>
+                    <button
+                      onClick={() => clearImageFavorite(idx)}
+                      title="Remove favorite"
+                      style={{
+                        background: 'transparent', border: 'none', color: 'var(--text-dim)',
+                        cursor: 'pointer', fontSize: 13, padding: '0 2px',
+                      }}
+                    >✕</button>
+                  </div>
+                ) : (
+                  <button key={idx} type="button" onClick={() => { setAssigningImageSlot(idx); imageFileInputRef.current?.click(); }} style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '7px 10px', borderRadius: 'var(--radius)',
+                    background: 'transparent', border: '1px dashed var(--border)',
+                    color: 'var(--text-dim)', cursor: 'pointer',
+                    fontFamily: 'var(--font)', fontSize: 11, textAlign: 'left', width: '100%',
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(79,142,247,0.4)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-dim)'; }}
+                  >
+                    <span style={{ fontSize: 16 }}>＋</span>
+                    <div>
+                      <div>Set Favorite {idx + 1}</div>
+                      <div style={{ fontSize: 10, opacity: 0.7 }}>Click to assign image file</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* One-off import */}
+            <button type="button" style={{
+              width: '100%', background: 'none', border: '1px solid var(--border)',
+              color: 'var(--text-muted)', padding: '8px', borderRadius: 'var(--radius)',
+              cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+            }}
+              onClick={() => { setAssigningImageSlot(-1); imageFileInputRef.current?.click(); }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+            >
+              📁 Import Image to Schedule
+            </button>
+          </>
         )}
 
         {category === 'video' && (
@@ -285,6 +483,367 @@ export default function MediaPanel() {
           >＋ Add Blank Slide</button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── YouTube Panel component ───────────────────────────────────────────────────
+
+function YouTubePanel({ addToSchedule, settings, saveSettings, liveProgram, sendYouTubeControl }) {
+  const [urlInput, setUrlInput] = useState('');
+  const [labelInput, setLabelInput] = useState('');
+  const [error, setError] = useState('');
+  // Audio/playback state — starts muted (YouTube autoplay requires mute=1)
+  // Updated to confirmed state via state relay from the output window
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true); // autoplay=1 so starts playing
+  const [volume, setVolume] = useState(80);
+  // Guard against stale infoDelivery events overriding fresh optimistic updates
+  const lastActionRef = useRef(0);
+
+  // Listen for youtube-state messages relayed back from the output window
+  useEffect(() => {
+    const handleState = (payload) => {
+      // Only accept confirmed state once the debounce window has passed
+      if (!shouldAcceptYtState(lastActionRef.current, Date.now())) return;
+      if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
+      if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
+      // Only update volume when value is meaningful
+      if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
+    };
+
+    let ch;
+    if (typeof BroadcastChannel !== 'undefined') {
+      ch = new BroadcastChannel(BROADCAST_CHANNEL);
+      ch.onmessage = (e) => {
+        const { type, payload } = e.data || {};
+        if (type === 'youtube-state') handleState(payload);
+      };
+    }
+    if (window.electronAPI?.onReceiveYouTubeState) {
+      window.electronAPI.onReceiveYouTubeState(handleState);
+    }
+    return () => {
+      ch?.close();
+      window.electronAPI?.removeAllListeners?.('receive-youtube-state');
+    };
+  }, []);
+
+  // Reset audio state when a new YouTube video goes live
+  const liveYt = liveProgram?.item?.background?.type === 'youtube' ? liveProgram.item.background : null;
+  const prevLiveId = useRef(null);
+  useEffect(() => {
+    if (liveYt?.value !== prevLiveId.current) {
+      prevLiveId.current = liveYt?.value ?? null;
+      if (liveYt) {
+        setIsMuted(true);     // new video always starts muted (playerVars: mute:1)
+        setIsPlaying(false);  // will update to true via onStateChange once player starts
+        setVolume(80);
+        lastActionRef.current = 0;
+      }
+    }
+  }, [liveYt]);
+
+  const youtubeFavorites = settings?.youtubeFavorites || [];
+
+  const addYouTubeToSchedule = (videoId, label) => {
+    addToSchedule({
+      type: 'video',
+      title: label || `YouTube: ${videoId}`,
+      slides: [{ id: uuidv4(), type: 'video', label: label || videoId, lines: '' }],
+      background: { type: 'youtube', value: videoId, name: label || videoId },
+      textColor: '#ffffff',
+      fontSize: 44,
+      fontFamily: 'Georgia',
+    });
+  };
+
+  const handleAdd = () => {
+    const id = extractYouTubeId(urlInput);
+    if (!id) { setError('Could not find a YouTube video ID in that URL.'); return; }
+    setError('');
+    addYouTubeToSchedule(id, labelInput.trim() || `YouTube: ${id}`);
+    setUrlInput('');
+    setLabelInput('');
+  };
+
+  const saveFavorite = (videoId, label) => {
+    const already = youtubeFavorites.some(f => f.id === videoId);
+    if (already) return;
+    saveSettings({ youtubeFavorites: [...youtubeFavorites, { id: videoId, name: label || videoId }] });
+  };
+
+  const removeFavorite = (videoId) => {
+    saveSettings({ youtubeFavorites: youtubeFavorites.filter(f => f.id !== videoId) });
+  };
+
+  const videoId = extractYouTubeId(urlInput);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+      {/* ── Live playback controls ─────────────────────────────────── */}
+      {liveYt && (
+        <div style={{
+          borderRadius: 8, border: '1px solid rgba(255,0,0,0.25)',
+          background: 'rgba(255,0,0,0.06)', overflow: 'hidden',
+        }}>
+          {/* Header row — title + confirmed audio status badge */}
+          <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', letterSpacing: '1px', textTransform: 'uppercase' }}>● Live</span>
+            <span style={{ flex: 1, fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {liveYt.name || liveYt.value}
+            </span>
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: '2px 7px', borderRadius: 3,
+              background: isMuted ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.15)',
+              border: isMuted ? '1px solid rgba(245,158,11,0.35)' : '1px solid rgba(34,197,94,0.35)',
+              color: isMuted ? '#f59e0b' : '#22c55e',
+              letterSpacing: '0.5px',
+            }}>
+              {isMuted ? '🔇 MUTED' : '🔊 LIVE AUDIO'}
+            </span>
+          </div>
+
+          {/* Playback buttons */}
+          <div style={{ padding: '0 8px', display: 'flex', gap: 5 }}>
+            {/* Play / Pause toggle — single button that changes based on confirmed state */}
+            <button
+              onClick={() => {
+                const nextPlaying = !isPlaying;
+                lastActionRef.current = Date.now();
+                setIsPlaying(nextPlaying);
+                sendYouTubeControl(nextPlaying ? 'playVideo' : 'pauseVideo', []);
+              }}
+              title={isPlaying ? 'Pause' : 'Play'}
+              style={{
+                flex: 2, background: isPlaying ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.07)',
+                border: isPlaying ? '1px solid rgba(79,142,247,0.4)' : '1px solid rgba(255,255,255,0.12)',
+                color: isPlaying ? '#4f8ef7' : 'var(--text)',
+                borderRadius: 5, padding: '5px 0',
+                cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font)',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+            >{isPlaying ? '⏸ Pause' : '▶ Play'}</button>
+
+            {/* Mute / Unmute toggle — single button highlighted based on confirmed state */}
+            <button
+              onClick={() => {
+                const nextMuted = !isMuted;
+                lastActionRef.current = Date.now();
+                setIsMuted(nextMuted);
+                sendYouTubeControl(muteCommandFor(nextMuted), []);
+              }}
+              title={isMuted ? 'Unmute' : 'Mute'}
+              style={{
+                flex: 1, borderRadius: 5, padding: '5px 0', cursor: 'pointer',
+                fontSize: 13, fontFamily: 'var(--font)',
+                background: isMuted ? 'rgba(245,158,11,0.2)' : 'rgba(34,197,94,0.15)',
+                border: isMuted ? '1px solid rgba(245,158,11,0.5)' : '1px solid rgba(34,197,94,0.4)',
+                color: isMuted ? '#f59e0b' : '#22c55e',
+              }}
+            >{isMuted ? '🔇' : '🔊'}</button>
+          </div>
+
+          {/* Volume slider */}
+          <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-dim)', flexShrink: 0, width: 48 }}>
+              Vol {volume}%
+            </span>
+            <input
+              type="range" min="0" max="100" value={volume}
+              onChange={e => {
+                const v = Number(e.target.value);
+                lastActionRef.current = Date.now();
+                setVolume(v);
+                sendYouTubeControl('setVolume', [v]);
+                // Auto-unmute when raising volume from 0
+                if (v > 0 && isMuted) {
+                  setIsMuted(false);
+                  sendYouTubeControl('unMute', []);
+                }
+              }}
+              style={{ flex: 1, accentColor: isMuted ? '#f59e0b' : '#22c55e', cursor: 'pointer' }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* URL input */}
+      <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+        Add YouTube Video
+      </div>
+
+      <input
+        type="text"
+        value={urlInput}
+        onChange={e => { setUrlInput(e.target.value); setError(''); }}
+        placeholder="YouTube URL or video ID"
+        onKeyDown={e => e.key === 'Enter' && handleAdd()}
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          background: 'var(--bg-input, #1a1f2e)', border: '1px solid var(--border)',
+          color: 'var(--text)', borderRadius: 4, padding: '7px 8px', fontSize: 11,
+          fontFamily: 'var(--font)', outline: 'none',
+        }}
+      />
+
+      <input
+        type="text"
+        value={labelInput}
+        onChange={e => setLabelInput(e.target.value)}
+        placeholder="Label (optional)"
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          background: 'var(--bg-input, #1a1f2e)', border: '1px solid var(--border)',
+          color: 'var(--text)', borderRadius: 4, padding: '7px 8px', fontSize: 11,
+          fontFamily: 'var(--font)', outline: 'none',
+        }}
+      />
+
+      {error && (
+        <div style={{ fontSize: 10, color: 'var(--red, #ef4444)', lineHeight: 1.4 }}>{error}</div>
+      )}
+
+      {/* Thumbnail preview */}
+      {videoId && (
+        <div style={{
+          position: 'relative', borderRadius: 6, overflow: 'hidden',
+          border: '1px solid var(--border)', aspectRatio: '16/9',
+        }}>
+          <img
+            src={youTubeThumbnailUrl(videoId)}
+            alt="YouTube thumbnail"
+            style={{ width: '100%', display: 'block', objectFit: 'cover' }}
+            onError={e => { e.currentTarget.style.display = 'none'; }}
+          />
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(0,0,0,0.3)',
+          }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'rgba(255,0,0,0.85)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ color: '#fff', fontSize: 14, marginLeft: 2 }}>▶</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={handleAdd}
+          disabled={!urlInput.trim()}
+          style={{
+            flex: 1, background: urlInput.trim() ? 'var(--accent)' : 'var(--bg-hover)',
+            border: 'none', color: urlInput.trim() ? '#fff' : 'var(--text-dim)',
+            borderRadius: 4, padding: '7px 8px', cursor: urlInput.trim() ? 'pointer' : 'default',
+            fontSize: 11, fontFamily: 'var(--font)',
+          }}
+        >
+          ＋ Add to Schedule
+        </button>
+        {videoId && (
+          <button
+            onClick={() => saveFavorite(videoId, labelInput.trim() || `YouTube: ${videoId}`)}
+            title="Save to favorites"
+            style={{
+              background: 'var(--bg-hover)', border: '1px solid var(--border)',
+              color: 'var(--text-muted)', borderRadius: 4, padding: '7px 8px',
+              cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+            }}
+          >★</button>
+        )}
+      </div>
+
+      {/* Favorites list */}
+      {youtubeFavorites.length > 0 && (
+        <>
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.6px', marginTop: 4 }}>
+            Saved Favorites
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {youtubeFavorites.map(fav => (
+              <YouTubeFavoriteRow
+                key={fav.id}
+                fav={fav}
+                onPlay={() => addYouTubeToSchedule(fav.id, fav.name)}
+                onRemove={() => removeFavorite(fav.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5, paddingTop: 4 }}>
+        Supports youtube.com/watch, youtu.be, and plain video IDs.
+        Video plays muted and looped on output screens.
+      </div>
+    </div>
+  );
+}
+
+function YouTubeFavoriteRow({ fav, onPlay, onRemove }) {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '6px 8px', borderRadius: 'var(--radius)',
+        background: hover ? 'var(--bg-hover)' : 'transparent',
+        border: `1px solid ${hover ? 'var(--border)' : 'transparent'}`,
+        transition: 'all 0.1s',
+      }}
+    >
+      {/* Thumbnail */}
+      <div style={{
+        width: 42, height: 28, borderRadius: 3, overflow: 'hidden',
+        flexShrink: 0, background: '#111', position: 'relative',
+      }}>
+        <img
+          src={youTubeThumbnailUrl(fav.id)}
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          onError={e => { e.currentTarget.style.display = 'none'; }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ color: 'rgba(255,0,0,0.9)', fontSize: 10 }}>▶</span>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {fav.name}
+        </div>
+        <div style={{ fontSize: 9, color: 'var(--text-dim)', fontFamily: 'monospace' }}>{fav.id}</div>
+      </div>
+
+      <button
+        onClick={onPlay}
+        title="Add to schedule"
+        style={{
+          background: 'var(--accent)', border: 'none', color: '#fff',
+          borderRadius: 4, padding: '3px 8px', cursor: 'pointer',
+          fontSize: 10, fontFamily: 'var(--font)', flexShrink: 0,
+        }}
+      >▶</button>
+
+      <button
+        onClick={onRemove}
+        title="Remove favorite"
+        style={{
+          background: 'transparent', border: 'none', color: 'var(--text-dim)',
+          cursor: 'pointer', fontSize: 13, padding: '0 2px', flexShrink: 0,
+        }}
+      >✕</button>
     </div>
   );
 }

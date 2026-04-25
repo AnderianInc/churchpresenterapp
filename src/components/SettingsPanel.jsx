@@ -274,8 +274,13 @@ function DevicesTab({ settings, saveSettings }) {
           </div>
 
           {micPermission === 'denied' ? (
-            <div style={{ fontSize: 11, color: 'var(--red)', padding: '6px 8px', borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              Microphone access denied. Allow it in your OS privacy settings and reload.
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--red)', padding: '6px 8px', borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 6 }}>
+                Microphone access denied. Grant it in <strong>System Settings → Privacy → Microphone</strong>, then click Try Again.
+              </div>
+              <button onClick={grantMicAccess} style={{ width: '100%', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--red)', borderRadius: 6, padding: '6px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>
+                🔄 Try Again
+              </button>
             </div>
           ) : micPermission !== 'granted' ? (
             <button onClick={grantMicAccess} style={{ width: '100%', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.3)', color: 'var(--accent)', borderRadius: 6, padding: '7px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>
@@ -337,8 +342,13 @@ function DevicesTab({ settings, saveSettings }) {
           </div>
 
           {camPermission === 'denied' ? (
-            <div style={{ fontSize: 11, color: 'var(--red)', padding: '6px 8px', borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              Camera access denied. Allow it in your OS privacy settings and reload.
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--red)', padding: '6px 8px', borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 6 }}>
+                Camera access denied. Grant it in <strong>System Settings → Privacy → Camera</strong>, then click Try Again — no reload needed.
+              </div>
+              <button onClick={grantCamAccess} style={{ width: '100%', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--red)', borderRadius: 6, padding: '6px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>
+                🔄 Try Again
+              </button>
             </div>
           ) : camPermission !== 'granted' ? (
             <button onClick={grantCamAccess} style={{ width: '100%', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.3)', color: 'var(--accent)', borderRadius: 6, padding: '7px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>

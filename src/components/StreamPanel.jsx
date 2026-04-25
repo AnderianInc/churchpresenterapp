@@ -56,6 +56,7 @@ function SermonSection({ pushLowerThird, setLtText, setLtLabel, setLtSource }) {
   const recognitionRef = useRef(null);
   const [speechSupported, setSpeechSupported] = useState(true);
   const [micError, setMicError] = useState('');
+  const networkErrRef = useRef(0);
 
   // Level meter
   const audioCtxRef = useRef(null);
@@ -152,6 +153,8 @@ function SermonSection({ pushLowerThird, setLtText, setLtLabel, setLtSource }) {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (e) => {
+      networkErrRef.current = 0;
+      setMicError('');
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
@@ -174,6 +177,12 @@ function SermonSection({ pushLowerThird, setLtText, setLtLabel, setLtSource }) {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         setMicError('Mic access denied. Check OS privacy settings.');
         stopListening();
+      } else if (e.error === 'network') {
+        // Transient — onend will auto-restart. Only surface after repeated failures.
+        networkErrRef.current += 1;
+        if (networkErrRef.current >= 4) {
+          setMicError('Speech service unreachable — check internet connection. Retrying…');
+        }
       } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
         setMicError(`Speech error: ${e.error}`);
       }
@@ -397,6 +406,20 @@ export default function StreamPanel() {
   const [rtmpElapsed, setRtmpElapsed] = useState(0);
   const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
+  // ── Local recording state ────────────────────────────────────────────────
+  const [isLocalRecording, setIsLocalRecording] = useState(false);
+  const [recordingPaused, setRecordingPaused] = useState(false);
+  const [recordingReady, setRecordingReady] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [recordingSize, setRecordingSize] = useState(0);
+  const [recordingExporting, setRecordingExporting] = useState(false);
+  const [recordingExported, setRecordingExported] = useState(false);
+  const localRecorderRef = useRef(null);
+  const localStreamRef = useRef(null);
+  const localChunksRef = useRef([]);
+  const localSizeRef = useRef(0);
+  const localDurationRef = useRef(null);
+
   const cameraDeviceId = settings?.preferredCameraId || '';
 
   // ── Auto-start camera preview using preferred device from settings ───────
@@ -405,10 +428,15 @@ export default function StreamPanel() {
     if (!cameraDeviceId) { setPreviewStream(null); return; }
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: cameraDeviceId } },
-          audio: false,
-        });
+        let stream;
+try {
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: { deviceId: { ideal: cameraDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: false,
+  });
+} catch {
+  stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+}
         if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
         setPreviewStream(stream);
         setPreviewError('');
@@ -416,7 +444,7 @@ export default function StreamPanel() {
         if (!active) return;
         setPreviewError(
           err.name === 'NotAllowedError'
-            ? 'Camera access denied — grant it in ⚙ Settings → Devices'
+            ? 'Camera access denied — go to ⚙ Settings → Devices and click 🔄 Try Again'
             : err.name === 'NotFoundError'
               ? 'Camera not found — check ⚙ Settings → Devices'
               : 'Preview unavailable: ' + (err.message || err.name)
@@ -491,7 +519,8 @@ export default function StreamPanel() {
         const result = await window.electronAPI.startRtmp({ destId: dest.id, rtmpUrl: dest.rtmpUrl + dest.streamKey });
         if (result?.error) { setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error); return; }
       }
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=h264') ? 'video/webm;codecs=h264' : 'video/webm';
+      const mimeType = ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
+  .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
       const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
       recorderRef.current = recorder;
       recorder.ondataavailable = (e) => {
@@ -519,6 +548,131 @@ export default function StreamPanel() {
       setIsRtmpStreaming(false); setRtmpStatus({}); setRtmpElapsed(0);
     }
   }, [isElectron]);
+
+  // ── Local recording ──────────────────────────────────────────────────────
+  const fmtDur = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const fmtSize = (b) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`;
+
+  const startLocalRecording = useCallback(async () => {
+    setRecordingExported(false);
+    setRecordingReady(false);
+    localChunksRef.current = [];
+    localSizeRef.current = 0;
+    setRecordingSize(0);
+    setRecordingDuration(0);
+
+    // In Electron: auto-select the best capture source (Stream View → Presentation → screen)
+    // so no Chrome picker is shown. In browser: fall through to getDisplayMedia normally.
+    if (window.electronAPI?.getCapturableSources) {
+     try {
+  const sources = await window.electronAPI.getCapturableSources();
+  console.log('[recording] capturable sources:', sources.map(s => s.name));
+
+  // Get all Church Presenter windows, skip the first one (main window = us)
+  const appWindows = sources.filter(s => s.name === 'Church Presenter' && s.type === 'window');
+
+  const source =
+    sources.find(s => s.name?.includes('Stream View')) ||
+    sources.find(s => s.name === 'Church Presenter' && s.type === 'window') ||
+    sources.find(s => s.name?.includes('Presentation') && s.type === 'window') ||
+    sources.find(s => s.type === 'screen');
+  console.log('[recording] selected source:', source?.name);
+  if (source) await window.electronAPI.setRecordingSource(source.id);
+  else console.warn('[recording] no suitable source found, handler will auto-pick');
+} catch (err) {
+  console.error('[recording] getCapturableSources failed:', err.message);
+}
+    }
+
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: 1280, height: 720, frameRate: 30 },
+        audio: false,
+      });
+    } catch (err) {
+      if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+        console.error('Recording capture failed:', err);
+      }
+      return;
+    }
+
+    localStreamRef.current = stream;
+    const mimeType = ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
+  .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+  console.log('[recording] using mimeType:', mimeType);
+    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
+    localRecorderRef.current = recorder;
+
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) {
+        localChunksRef.current.push(e.data);
+        localSizeRef.current += e.data.size;
+        setRecordingSize(localSizeRef.current);
+      }
+    };
+    recorder.onstop = () => {
+      if (localStreamRef.current) { localStreamRef.current.getTracks().forEach(t => t.stop()); localStreamRef.current = null; }
+      clearInterval(localDurationRef.current);
+      setIsLocalRecording(false);
+      setRecordingPaused(false);
+      setRecordingReady(localChunksRef.current.length > 0);
+    };
+
+    recorder.start(1000);
+    setIsLocalRecording(true);
+    setRecordingPaused(false);
+    localDurationRef.current = setInterval(() => setRecordingDuration(s => s + 1), 1000);
+  }, []);
+
+  const pauseLocalRecording = useCallback(() => {
+    if (localRecorderRef.current?.state === 'recording') {
+      localRecorderRef.current.pause();
+      clearInterval(localDurationRef.current);
+      setRecordingPaused(true);
+    }
+  }, []);
+
+  const resumeLocalRecording = useCallback(() => {
+    if (localRecorderRef.current?.state === 'paused') {
+      localRecorderRef.current.resume();
+      localDurationRef.current = setInterval(() => setRecordingDuration(s => s + 1), 1000);
+      setRecordingPaused(false);
+    }
+  }, []);
+
+  const stopLocalRecording = useCallback(() => {
+    if (localRecorderRef.current && localRecorderRef.current.state !== 'inactive') {
+      localRecorderRef.current.stop();
+      localRecorderRef.current = null;
+    } else {
+      if (localStreamRef.current) { localStreamRef.current.getTracks().forEach(t => t.stop()); localStreamRef.current = null; }
+      clearInterval(localDurationRef.current);
+      setIsLocalRecording(false);
+      setRecordingPaused(false);
+    }
+  }, []);
+
+  const exportRecording = useCallback(async () => {
+    if (!localChunksRef.current.length) return;
+    setRecordingExporting(true);
+    try {
+      const mimeType = localChunksRef.current[0]?.type || 'video/webm';
+      const blob = new Blob(localChunksRef.current, { type: mimeType });
+      const filename = `service-${new Date().toISOString().slice(0, 10)}.webm`;
+      if (window.electronAPI?.saveRecording) {
+        const buffer = await blob.arrayBuffer();
+        const result = await window.electronAPI.saveRecording({ buffer, filename, convertToMp4: true, });
+        if (result && !result.canceled) { setRecordingExported(true); localChunksRef.current = []; localSizeRef.current = 0; setRecordingReady(false); }
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        setRecordingExported(true); localChunksRef.current = []; setRecordingReady(false);
+      }
+    } finally { setRecordingExporting(false); }
+  }, []);
 
   const isLtActive = lowerThird?.active;
 
@@ -597,6 +751,68 @@ export default function StreamPanel() {
               </div>
             </>
           )}
+        </div>
+
+        {/* ── Record to Device ─────────────────────────────────────────── */}
+        <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={sectionLabel}>Record to Device</div>
+            {isLocalRecording && (
+              <span style={{ fontSize: 9, color: '#ef4444', background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700, animation: recordingPaused ? 'none' : 'pulse 1.5s ease-in-out infinite' }}>
+                {recordingPaused ? '⏸ PAUSED' : `● ${fmtDur(recordingDuration)}`}
+              </span>
+            )}
+          </div>
+
+          {!isLocalRecording && !recordingReady && (
+            <button onClick={startLocalRecording} style={{ ...primaryBtn, width: '100%', background: '#dc2626', marginBottom: 0 }}>
+              ● Start Recording
+            </button>
+          )}
+
+          {isLocalRecording && (
+            <>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
+                {recordingPaused ? (
+                  <button onClick={resumeLocalRecording} style={{ ...primaryBtn, flex: 1, background: '#16a34a', padding: '6px 8px' }}>▶ Resume</button>
+                ) : (
+                  <button onClick={pauseLocalRecording} style={{ ...ghostBtn, flex: 1, padding: '6px 8px' }}>⏸ Pause</button>
+                )}
+                <button onClick={stopLocalRecording} style={{ ...primaryBtn, flex: 1, background: '#7c3aed', padding: '6px 8px' }}>■ Stop</button>
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', textAlign: 'center' }}>
+                {fmtSize(recordingSize)} · {recordingPaused ? 'Paused' : 'Recording…'}
+              </div>
+            </>
+          )}
+
+          {recordingReady && (
+            <>
+              <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8, padding: '6px 8px', background: 'rgba(255,255,255,0.03)', borderRadius: 5, border: '1px solid var(--border)' }}>
+                Ready — {fmtSize(recordingSize)} · {fmtDur(recordingDuration)}
+              </div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button onClick={startLocalRecording} style={{ ...ghostBtn, flex: 1, fontSize: 11, padding: '6px 6px' }}>New</button>
+                <button
+                  onClick={exportRecording}
+                  disabled={recordingExporting}
+                  style={{ ...primaryBtn, flex: 2, background: recordingExported ? '#15803d' : '#7c3aed', opacity: recordingExporting ? 0.6 : 1, cursor: recordingExporting ? 'not-allowed' : 'pointer' }}
+                >
+                  {recordingExporting ? 'Saving…' : recordingExported ? '✓ Saved' : '💾 Export & Save'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {recordingSize >= 500 * 1024 * 1024 && isLocalRecording && (
+            <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 6, padding: '4px 6px', background: 'rgba(251,191,36,0.08)', borderRadius: 4, border: '1px solid rgba(251,191,36,0.2)' }}>
+              ⚠ Large recording ({fmtSize(recordingSize)}) — consider stopping soon
+            </div>
+          )}
+
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5 }}>
+            Captures as .webm for video editing. Auto-detects the stream window as the source.
+          </div>
         </div>
 
         {/* ── Lower-third ───────────────────────────────────────────────── */}

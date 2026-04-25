@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   closeStage: () => ipcRenderer.invoke('close-stage'),
   openOutputWindow: (options) => ipcRenderer.invoke('open-output-window', options),
   closeOutputWindow: (id) => ipcRenderer.invoke('close-output-window', id),
+  minimizeOutputWindow: (id) => ipcRenderer.invoke('minimize-output-window', id),
   moveOutputWindow: (payload) => ipcRenderer.invoke('move-output-window', payload),
   updateOutputWindowRole: (payload) => ipcRenderer.invoke('update-output-window-role', payload),
   getOutputWindows: () => ipcRenderer.invoke('get-output-windows'),
@@ -26,12 +27,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   sendBlackout: (isBlackout) => ipcRenderer.send('send-blackout', isBlackout),
   sendClear: (isClear) => ipcRenderer.send('send-clear', isClear),
   sendOutputState: (payload) => ipcRenderer.send('send-output-state', payload),
+  sendYouTubeControl: (payload) => ipcRenderer.send('send-youtube-control', payload),
+  sendYouTubeState: (payload) => ipcRenderer.send('send-youtube-state', payload),
+  sendVideoControl: (payload) => ipcRenderer.send('send-video-control', payload),
+  sendVideoState: (payload) => ipcRenderer.send('send-video-state', payload),
 
   // Listeners
   onReceiveSlide: (cb) => ipcRenderer.on('receive-slide', (_, data) => cb(data)),
   onReceiveBlackout: (cb) => ipcRenderer.on('receive-blackout', (_, v) => cb(v)),
   onReceiveClear: (cb) => ipcRenderer.on('receive-clear', (_, v) => cb(v)),
   onReceiveOutput: (cb) => ipcRenderer.on('receive-output', (_, data) => cb(data)),
+  onReceiveYouTubeControl: (cb) => ipcRenderer.on('receive-youtube-control', (_, data) => cb(data)),
+  onReceiveYouTubeState: (cb) => ipcRenderer.on('receive-youtube-state', (_, data) => cb(data)),
+  onReceiveVideoControl: (cb) => ipcRenderer.on('receive-video-control', (_, data) => cb(data)),
+  onReceiveVideoState: (cb) => ipcRenderer.on('receive-video-state', (_, data) => cb(data)),
   onPresentationClosed: (cb) => ipcRenderer.on('presentation-closed', cb),
   onStageClosed: (cb) => ipcRenderer.on('stage-closed', cb),
   onOutputWindowClosed: (cb) => ipcRenderer.on('output-closed', (_, id) => cb(id)),
@@ -71,6 +80,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Media file persistence — copies imported video/image to app data dir; returns file:// path
   copyMediaFile: (srcPath) => ipcRenderer.invoke('copy-media-file', srcPath),
+
+  // Local recording — save WebM blob to disk via native save dialog
+  saveRecording: ({ buffer, filename }) => ipcRenderer.invoke('save-recording', { buffer, filename }),
+  openRecordingFolder: (folderPath) => ipcRenderer.send('open-recording-folder', folderPath),
+  getCapturableSources: () => ipcRenderer.invoke('get-capturable-sources'),
+  setRecordingSource: (sourceId) => ipcRenderer.invoke('set-recording-source', sourceId),
 
   isElectron: true,
 });

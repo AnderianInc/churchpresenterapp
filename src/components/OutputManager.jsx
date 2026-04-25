@@ -381,7 +381,9 @@ export default function OutputManager() {
       }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Output Manager</div>
         <div style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 2 }}>
-          {outputWindows.length === 0 ? 'No outputs open' : `${outputWindows.length} output${outputWindows.length !== 1 ? 's' : ''} active`}
+          {outputWindows.length === 0
+            ? 'Add outputs below, then Go Live sends to all of them'
+            : `${outputWindows.length} output${outputWindows.length !== 1 ? 's' : ''} active — Go Live sends to all`}
         </div>
       </div>
 
