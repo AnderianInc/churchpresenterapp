@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SlideRenderer from './SlideRenderer';
 import { SlideCanvas } from './SlideCanvas';
+import ConfidenceMonitor from './ConfidenceMonitor';
 import { readLiveState } from '../store/liveStateSync';
 import { makeBroadcastMsg, BROADCAST_CHANNEL } from '../store/AppContext';
 
@@ -40,70 +41,6 @@ function resolveSlideForRole(role, outputId, payload) {
   return payload.programSlide;
 }
 
-// ── Confidence Monitor — split-screen panel ───────────────────────────────────
-
-function ConfidencePanel({ slide, nextSlide, isBlackout }) {
-  const [clock, setClock] = useState('');
-
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      let h = now.getHours(), m = String(now.getMinutes()).padStart(2, '0');
-      const s = String(now.getSeconds()).padStart(2, '0');
-      const ap = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
-      setClock(`${h}:${m}:${s} ${ap}`);
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  if (isBlackout) {
-    return <div style={{ width: '100vw', height: '100vh', background: '#000' }} />;
-  }
-
-  return (
-    <div style={{
-      width: '100vw', height: '100vh',
-      display: 'flex', flexDirection: 'column',
-      background: '#0a0c10', fontFamily: 'Inter, sans-serif', overflow: 'hidden',
-    }}>
-      {/* Top bar */}
-      <div style={{
-        flexShrink: 0,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '5px 16px',
-        background: '#12151c', borderBottom: '1px solid rgba(255,255,255,0.07)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 20, height: 20, borderRadius: 3, background: '#4f8ef7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 9 }}>CP</span>
-          </div>
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>Confidence Monitor</span>
-        </div>
-        <span style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, fontFamily: 'Georgia', letterSpacing: '0.05em' }}>
-          {clock}
-        </span>
-        <div style={{ width: 140 }} />
-      </div>
-
-      {/* Body — current left (65%) + next right (35%) */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-
-        {/* CURRENT slide */}
-        <SlideCanvas slide={slide} label="Current" accent="#4f8ef7" flex="0 0 65%" />
-
-        {/* Divider */}
-        <div style={{ width: 2, background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
-
-        {/* NEXT slide */}
-        <SlideCanvas slide={nextSlide} label="Next" accent="rgba(255,255,255,0.3)" dimmed flex="0 0 35%" />
-
-      </div>
-    </div>
-  );
-}
 
 // ── YouTube IFrame API helpers ────────────────────────────────────────────────
 
@@ -458,11 +395,11 @@ export default function OutputView() {
     return () => channel.close();
   }, [role, outputId, sendYouTubeCommand, sendVideoCommand]);
 
-  // ── Confidence monitor: split-screen view ─────────────────────────────────
+  // ── Confidence monitor: four-quadrant view ───────────────────────────────
   if (role === 'confidence') {
     return (
       <>
-        <ConfidencePanel
+        <ConfidenceMonitor
           slide={isClear ? null : slide}
           nextSlide={nextSlide}
           isBlackout={isBlackout}

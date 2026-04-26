@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * Shared slide preview panel used by both StageView and ConfidencePanel.
+ * Shared slide preview panel used by both StageView and ConfidenceMonitor.
  *
  * @param {object}  slide        - Slide payload with .lines, .item, .chords, etc.
  * @param {boolean} isBlackout   - Show solid black instead of content.
