@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 
 const btn = (extra = {}) => ({
@@ -10,64 +10,20 @@ const btn = (extra = {}) => ({
   transition: 'all 0.15s', ...extra,
 });
 
-function DisplayPicker({ displays, onSelect, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
-
-  return (
-    <div ref={ref} style={{
-      position: 'absolute', top: 46, right: 0, zIndex: 200,
-      background: '#1e2128', border: '1px solid var(--border)',
-      borderRadius: 8, padding: 6, minWidth: 220,
-      boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-    }}>
-      <div style={{ fontSize: 10, color: 'var(--text-dim)', padding: '4px 8px 6px', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
-        Select output display
-      </div>
-      {displays.map(d => (
-        <button key={d.index} onClick={() => { onSelect(d.index); onClose(); }} style={{
-          display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-          background: 'transparent', border: 'none', color: 'var(--text)',
-          padding: '7px 10px', borderRadius: 6, cursor: 'pointer',
-          fontFamily: 'var(--font)', fontSize: 12, textAlign: 'left',
-          transition: 'background 0.12s',
-        }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-hover)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        >
-          <span style={{ fontSize: 16 }}>{d.isPrimary ? '🖥️' : '📺'}</span>
-          <div>
-            <div style={{ fontWeight: 500 }}>{d.label}</div>
-            {d.isPrimary && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>Primary (this screen)</div>}
-          </div>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function Toolbar({ onNewSong, onOpenSettings }) {
   const {
     isBlackout, isClear,
     toggleBlackout, toggleClear,
-    presentationOpen, stageOpen, outputWindows,
-    openPresentation, closePresentation,
+    stageOpen, outputWindows,
     openStage, closeStage,
     activeView, setActiveView,
     settingsOpen, setSettingsOpen,
     saveStatus,
-    settings, saveSettings,
+    goLive, currentSlide, currentItem,
+    createOutputWindow, displays,
   } = useApp();
 
   const [clock, setClock] = useState('');
-  const [displays, setDisplays] = useState([]);
-  const [showDisplayPicker, setShowDisplayPicker] = useState(false);
-  const [selectedDisplay, setSelectedDisplay] = useState(1);
-  const goLiveBtnRef = useRef(null);
 
   useEffect(() => {
     const tick = () => {
@@ -82,34 +38,23 @@ export default function Toolbar({ onNewSong, onOpenSettings }) {
     return () => clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    if (window.electronAPI) {
-      window.electronAPI.getDisplays().then(d => {
-        setDisplays(d);
-        // Restore preferred display from settings if it still exists
-        const preferred = settings?.preferredDisplayIndex;
-        if (preferred != null) {
-          const found = d.find(x => x.index === preferred);
-          if (found) { setSelectedDisplay(preferred); return; }
-          // Preferred display no longer connected — fall through to default
-        }
-        // Default to first non-primary display if available
-        const ext = d.find(x => !x.isPrimary);
-        if (ext) setSelectedDisplay(ext.index);
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once on mount; settings are loaded before Toolbar mounts
+  const handleGoLive = async () => {
+    if (!currentSlide || !currentItem) return;
+    const slide = { ...currentSlide, item: currentItem };
 
-  const handleGoLive = () => {
-    if (presentationOpen) {
-      closePresentation();
-    } else if (displays.length > 1) {
-      setShowDisplayPicker(true);
-    } else {
-      openPresentation(selectedDisplay);
+    if (outputWindows.length === 0) {
+      // No output windows configured — auto-create a presentation output on the
+      // best available display (second display if present, otherwise primary).
+      const bestDisplay = (displays?.length ?? 0) > 1 ? 1 : 0;
+      await createOutputWindow({ role: 'presentation', displayIdx: bestDisplay, title: 'Program' });
+      // Give the output window a moment to mount and register its IPC listener
+      await new Promise(r => setTimeout(r, 400));
     }
+
+    goLive(slide);
   };
+
+  const canGoLive = !!(currentSlide && currentItem);
 
   const tabStyle = (view) => ({
     ...btn(),
@@ -240,52 +185,25 @@ export default function Toolbar({ onNewSong, onOpenSettings }) {
           📺 {outputWindows.length > 0 ? `Outputs (${outputWindows.length})` : 'Outputs'}
         </button>
 
-        {/* Go Live button + display picker */}
-        <div style={{ position: 'relative' }} ref={goLiveBtnRef}>
-          <div style={{ display: 'flex', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
-            <button onClick={handleGoLive} title="Go Live (Enter)"
-              style={{
-                background: presentationOpen ? 'var(--red)' : 'var(--accent)',
-                border: 'none', color: '#fff',
-                padding: '6px 14px',
-                cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                fontFamily: 'var(--font)', transition: 'opacity 0.15s',
-                borderRadius: displays.length > 1 && !presentationOpen ? '6px 0 0 6px' : 'var(--radius)',
-              }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            >
-              {presentationOpen ? '⏹ Stop Live' : '▶ Go Live'}
-            </button>
-
-            {/* Display selector chevron — only in Electron with multiple displays, not while live */}
-            {displays.length > 1 && !presentationOpen && (
-              <button onClick={() => setShowDisplayPicker(v => !v)}
-                title="Choose output display"
-                style={{
-                  background: 'var(--accent-dark)', border: 'none', color: '#fff',
-                  padding: '6px 7px', cursor: 'pointer', fontSize: 10,
-                  borderLeft: '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '0 6px 6px 0',
-                }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >▾</button>
-            )}
-          </div>
-
-          {showDisplayPicker && displays.length > 0 && (
-            <DisplayPicker
-              displays={displays}
-              onSelect={(idx) => {
-                setSelectedDisplay(idx);
-                saveSettings({ preferredDisplayIndex: idx });
-                openPresentation(idx);
-              }}
-              onClose={() => setShowDisplayPicker(false)}
-            />
-          )}
-        </div>
+        {/* Go Live — pushes current slide to all configured output windows */}
+        <button
+          onClick={handleGoLive}
+          disabled={!canGoLive}
+          title={canGoLive ? 'Go Live (Enter)' : 'Select a slide first'}
+          style={{
+            background: 'var(--accent)',
+            border: 'none', color: '#fff',
+            padding: '6px 16px',
+            cursor: canGoLive ? 'pointer' : 'default',
+            fontSize: 12, fontWeight: 600,
+            fontFamily: 'var(--font)',
+            borderRadius: 'var(--radius)',
+            opacity: canGoLive ? 1 : 0.45,
+            transition: 'opacity 0.15s',
+          }}
+          onMouseEnter={e => { if (canGoLive) e.currentTarget.style.opacity = '0.85'; }}
+          onMouseLeave={e => { if (canGoLive) e.currentTarget.style.opacity = '1'; }}
+        >▶ Go Live</button>
 
         <span style={{ fontSize: 11, color: 'var(--text-dim)', marginLeft: 6 }}>{clock}</span>
       </div>

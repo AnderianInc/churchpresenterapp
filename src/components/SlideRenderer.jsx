@@ -18,6 +18,8 @@ export default function SlideRenderer({
   scale = 1,
   fullscreen = false,
   videoRef: externalVideoRef,
+  iframeRef: externalIframeRef,
+  ytPlayerId,
   videoLoop = true,
   videoBrightness,
 }) {
@@ -39,6 +41,15 @@ export default function SlideRenderer({
     if (externalVideoRef) {
       if (typeof externalVideoRef === 'function') externalVideoRef(internalVideoRef.current);
       else externalVideoRef.current = internalVideoRef.current;
+    }
+  });
+
+  // Internal iframe ref — merged with external if provided
+  const internalIframeRef = useRef(null);
+  useEffect(() => {
+    if (externalIframeRef) {
+      if (typeof externalIframeRef === 'function') externalIframeRef(internalIframeRef.current);
+      else externalIframeRef.current = internalIframeRef.current;
     }
   });
 
@@ -85,6 +96,49 @@ export default function SlideRenderer({
             filter: `brightness(${dimLevel})`,
           }}
         />
+      )}
+
+      {/* YouTube background
+            fullscreen + ytPlayerId → empty div; the YT IFrame API player is injected here
+                                       by the parent (OutputView) which manages the player lifecycle
+            fullscreen, no ytPlayerId → raw iframe (e.g. ConfidencePanel's SlideSection)
+            thumbnail               → static hqdefault.jpg image
+      */}
+      {bgType === 'youtube' && effectiveBg.value && (
+        <>
+          {fullscreen && ytPlayerId ? (
+            // Placeholder — OutputView's YT.Player injects its iframe here
+            <div
+              id={ytPlayerId}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            />
+          ) : fullscreen ? (
+            // Fallback raw iframe (no YT API, e.g. ConfidencePanel)
+            <iframe
+              ref={internalIframeRef}
+              src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=1&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}
+              style={{
+                position: 'absolute', inset: 0,
+                width: '100%', height: '100%',
+                border: 'none', pointerEvents: 'none',
+              }}
+              allow="autoplay; encrypted-media"
+              title="YouTube background"
+            />
+          ) : (
+            // Thumbnail preview
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundImage: `url(https://img.youtube.com/vi/${effectiveBg.value}/hqdefault.jpg)`,
+              backgroundSize: 'cover', backgroundPosition: 'center',
+            }} />
+          )}
+          {/* Dimming overlay — replaces CSS filter which can't cross iframe boundaries */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: `rgba(0,0,0,${1 - dimLevel})`,
+          }} />
+        </>
       )}
 
       {/* Text layer */}

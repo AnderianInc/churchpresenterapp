@@ -509,29 +509,232 @@ describe('schedule undo / redo', () => {
   });
 });
 
-// ── StageView clear parity ─────────────────────────────────────────────────────
+// ── Clear / blackout render resolution ───────────────────────────────────────
 
-describe('stage view clear parity', () => {
-  /**
-   * Verify that stage view receives and handles clear messages.
-   * StageView currently registers onReceiveClear but does nothing with it.
-   * This test documents the expected contract so that when clear-display is
-   * fully implemented, the test drives the right behaviour.
-   */
-  it('clear event handler should exist and be callable without error', () => {
-    // Simulate the BroadcastChannel message handler in StageView
-    let stageSlide = { lines: 'Some lyrics' };
-    let stageIsBlackout = false;
+/**
+ * Mirrors the render-decision logic shared by PresentationView, OutputView,
+ * and StageView:
+ *   - blackout         → no content rendered (full black)
+ *   - clear + slide    → render slide background only (lines/chords stripped)
+ *   - clear, no slide  → nothing to render
+ *   - default          → pass slide through as-is
+ *
+ * PresentationView.jsx and OutputView.jsx implement this as:
+ *   if (isBlackout) return <div style={{background:'#000'}} />
+ *   if (isClear && slide) return <SlideRenderer slide={{...slide, lines:'', chords:''}} />
+ */
+function resolveSlideForRender(slide, isBlackout, isClear) {
+  if (isBlackout) return null;
+  if (isClear && slide) return { ...slide, lines: '', chords: '' };
+  return slide;
+}
 
-    const handleMessage = ({ type, payload }) => {
-      if (type === 'slide') { stageSlide = payload; stageIsBlackout = false; }
-      if (type === 'blackout') stageIsBlackout = payload;
-      // clear: currently a no-op in StageView — when implemented, add assertion here
+describe('resolveSlideForRender — clear/blackout render logic', () => {
+  const slide = { id: 's1', lines: 'Amazing grace', chords: 'G  C  G', item: { title: 'Amazing Grace', background: { type: 'color', value: '#001' } } };
+
+  it('passes slide through when neither blackout nor clear', () => {
+    expect(resolveSlideForRender(slide, false, false)).toBe(slide);
+  });
+
+  it('returns null when blackout is true (regardless of slide)', () => {
+    expect(resolveSlideForRender(slide, true, false)).toBeNull();
+  });
+
+  it('strips lines and chords when isClear=true and slide exists', () => {
+    const result = resolveSlideForRender(slide, false, true);
+    expect(result.lines).toBe('');
+    expect(result.chords).toBe('');
+  });
+
+  it('preserves background and item on clear slide (background is still shown)', () => {
+    const result = resolveSlideForRender(slide, false, true);
+    expect(result.item).toBe(slide.item);
+    expect(result.id).toBe(slide.id);
+  });
+
+  it('returns null when isClear=true but no slide (nothing to show background of)', () => {
+    expect(resolveSlideForRender(null, false, true)).toBeNull();
+  });
+
+  it('blackout takes precedence over clear when both are true', () => {
+    expect(resolveSlideForRender(slide, true, true)).toBeNull();
+  });
+
+  it('returns null when both slide and blackout are falsy', () => {
+    expect(resolveSlideForRender(null, false, false)).toBeNull();
+  });
+});
+
+// ── computeNextSlidePayload (mirrors liveNextSlide useMemo in AppContext) ─────
+
+/**
+ * liveNextSlide is a useMemo in AppContext that computes which slide should
+ * appear as "next" — used by the confidence monitor split-screen and potentially
+ * other preview UIs.
+ *
+ * Priority:
+ *   1. Next slide within the same schedule item (if not on last slide)
+ *   2. First slide of the next schedule item (at item boundaries)
+ *   3. null — at the very end of the schedule or with an empty schedule
+ *
+ * The returned slide always has `.item` set to its parent schedule item.
+ */
+function computeNextSlidePayload(schedule, activeScheduleIdx, activeSlideIdx) {
+  const currentItemSlides = schedule[activeScheduleIdx]?.slides || [];
+  if (activeSlideIdx < currentItemSlides.length - 1) {
+    const s = currentItemSlides[activeSlideIdx + 1];
+    return s ? { ...s, item: schedule[activeScheduleIdx] } : null;
+  }
+  if (activeScheduleIdx < schedule.length - 1) {
+    const nextItem = schedule[activeScheduleIdx + 1];
+    const s = nextItem?.slides?.[0];
+    return s ? { ...s, item: nextItem } : null;
+  }
+  return null;
+}
+
+describe('computeNextSlidePayload', () => {
+  it('returns the next slide within the same item when not on the last slide', () => {
+    const item = makeItem('Song A', 3);
+    const schedule = [item];
+    const result = computeNextSlidePayload(schedule, 0, 0);
+    expect(result).not.toBeNull();
+    expect(result.id).toBe(item.slides[1].id);
+  });
+
+  it('attaches the parent item to the returned slide', () => {
+    const item = makeItem('Song A', 3);
+    const result = computeNextSlidePayload([item], 0, 0);
+    expect(result.item).toBe(item);
+  });
+
+  it('returns first slide of next item at an item boundary', () => {
+    const itemA = makeItem('Song A', 2);
+    const itemB = makeItem('Song B', 3);
+    const result = computeNextSlidePayload([itemA, itemB], 0, 1); // on last slide of A
+    expect(result).not.toBeNull();
+    expect(result.id).toBe(itemB.slides[0].id);
+    expect(result.item).toBe(itemB);
+  });
+
+  it('returns null at the very last slide of the last item', () => {
+    const item = makeItem('Song A', 2);
+    expect(computeNextSlidePayload([item], 0, 1)).toBeNull();
+  });
+
+  it('returns null for an empty schedule', () => {
+    expect(computeNextSlidePayload([], 0, 0)).toBeNull();
+  });
+
+  it('returns null when the current item has no slides', () => {
+    const emptyItem = { scheduleId: 'empty', title: 'Empty', type: 'song', slides: [] };
+    expect(computeNextSlidePayload([emptyItem], 0, 0)).toBeNull();
+  });
+
+  it('works across a single-slide item boundary (item with 1 slide → next item)', () => {
+    const intro = makeItem('Intro', 1);
+    const song = makeItem('Song A', 4);
+    const result = computeNextSlidePayload([intro, song], 0, 0);
+    expect(result.id).toBe(song.slides[0].id);
+    expect(result.item).toBe(song);
+  });
+
+  it('returns next slide from same item mid-sequence', () => {
+    const item = makeItem('Song A', 5);
+    const result = computeNextSlidePayload([item], 0, 2); // on slide index 2
+    expect(result.id).toBe(item.slides[3].id);
+  });
+});
+
+// ── clearSchedule state reset ──────────────────────────────────────────────────
+
+/**
+ * Mirrors AppContext.clearSchedule — resets the entire live session:
+ * empties the schedule, resets navigation indices, clears all live output
+ * state, and resets all display flags.
+ */
+function clearSchedule(state) {
+  return {
+    ...state,
+    schedule: [],
+    activeScheduleIdx: 0,
+    activeSlideIdx: 0,
+    liveProgram: null,
+    liveStage: null,
+    liveOutputs: {},
+    liveRoleSlides: {},
+    isLive: false,
+    isBlackout: false,
+    isClear: false,
+  };
+}
+
+describe('clearSchedule', () => {
+  function fullState() {
+    const schedule = [makeItem('Song A', 3), makeItem('Song B', 2)];
+    const slide = { id: 's1', lines: 'Some lyrics', item: schedule[0] };
+    return {
+      schedule,
+      activeScheduleIdx: 1,
+      activeSlideIdx: 1,
+      liveProgram: slide,
+      liveStage: slide,
+      liveOutputs: { 'win-1': slide, 'win-2': slide },
+      liveRoleSlides: { announcement: slide, confidence: slide },
+      isLive: true,
+      isBlackout: true,
+      isClear: true,
     };
+  }
 
-    expect(() => handleMessage({ type: 'clear', payload: true })).not.toThrow();
-    // State unchanged (clear is a no-op today)
-    expect(stageSlide).not.toBeNull();
-    expect(stageIsBlackout).toBe(false);
+  it('empties the schedule', () => {
+    expect(clearSchedule(fullState()).schedule).toHaveLength(0);
+  });
+
+  it('resets activeScheduleIdx to 0', () => {
+    expect(clearSchedule(fullState()).activeScheduleIdx).toBe(0);
+  });
+
+  it('resets activeSlideIdx to 0', () => {
+    expect(clearSchedule(fullState()).activeSlideIdx).toBe(0);
+  });
+
+  it('sets liveProgram to null', () => {
+    expect(clearSchedule(fullState()).liveProgram).toBeNull();
+  });
+
+  it('sets liveStage to null', () => {
+    expect(clearSchedule(fullState()).liveStage).toBeNull();
+  });
+
+  it('clears liveOutputs to empty object', () => {
+    expect(clearSchedule(fullState()).liveOutputs).toEqual({});
+  });
+
+  it('clears liveRoleSlides to empty object', () => {
+    expect(clearSchedule(fullState()).liveRoleSlides).toEqual({});
+  });
+
+  it('sets isLive to false', () => {
+    expect(clearSchedule(fullState()).isLive).toBe(false);
+  });
+
+  it('sets isBlackout to false', () => {
+    expect(clearSchedule(fullState()).isBlackout).toBe(false);
+  });
+
+  it('sets isClear to false', () => {
+    expect(clearSchedule(fullState()).isClear).toBe(false);
+  });
+
+  it('is safe to call on an already-empty state', () => {
+    const empty = {
+      schedule: [], activeScheduleIdx: 0, activeSlideIdx: 0,
+      liveProgram: null, liveStage: null, liveOutputs: {}, liveRoleSlides: {},
+      isLive: false, isBlackout: false, isClear: false,
+    };
+    const result = clearSchedule(empty);
+    expect(result.schedule).toHaveLength(0);
+    expect(result.liveProgram).toBeNull();
   });
 });

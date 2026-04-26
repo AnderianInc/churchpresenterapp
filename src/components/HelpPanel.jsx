@@ -84,7 +84,7 @@ const sections = [
     icon: '📖',
     body: [
       'Offline: search by reference (John 3:16) or keyword across all installed translations simultaneously (KJV and NIV included).',
-      'Online (YouVersion): set up your API key in ⚙ Settings → API Keys to enable online reference lookup.',
+      'Online: search by reference across any favorited online translation via bible.helloao.org — no API key required.',
       'Select individual verses or use "Add All" to add them to the schedule as slides.',
       'Click ✕ in the search bar to clear results and start a new search.',
     ],
@@ -129,7 +129,7 @@ const sections = [
     icon: '⚙',
     body: [
       'Open ⚙ Settings from the nav bar. Settings are organized into three tabs:',
-      '🔑 API Keys — YouVersion (online Bible search), Genius (lyrics import), Planning Center (song library import), Anthropic (AI verse suggestions). All keys are stored locally and never uploaded.',
+      '🔑 API Keys — Genius (lyrics import), Planning Center (song library import), Anthropic (AI verse suggestions). All keys are stored locally and never uploaded.',
       '📡 Social Media — Add and manage RTMP streaming destinations (Facebook Live, YouTube Live, Instagram, custom RTMP). Configure stream keys here, then go live from the 📡 Stream panel.',
       '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults. Grant mic and camera access here to unlock device selection.',
     ],

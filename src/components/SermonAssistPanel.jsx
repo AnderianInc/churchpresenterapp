@@ -139,6 +139,7 @@ export default function SermonAssistPanel() {
   const [aiError, setAiError] = useState('');
   const autoTimerRef = useRef(null);
   const lastSuggestWordsRef = useRef(0);
+  const networkErrRef = useRef(0);
 
   // ── Check speech API support ─────────────────────────────────────────────
   useEffect(() => {
@@ -236,6 +237,8 @@ export default function SermonAssistPanel() {
     recognition.maxAlternatives = 1;
 
     recognition.onresult = (e) => {
+      networkErrRef.current = 0;
+      setMicError('');
       let interim = '';
       for (let i = e.resultIndex; i < e.results.length; i++) {
         const r = e.results[i];
@@ -263,6 +266,12 @@ export default function SermonAssistPanel() {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         setMicError('Microphone access denied. Check OS privacy settings.');
         stopListening();
+      } else if (e.error === 'network') {
+        // Transient — onend will auto-restart. Only surface after repeated failures.
+        networkErrRef.current += 1;
+        if (networkErrRef.current >= 4) {
+          setMicError('Speech service unreachable — check internet connection. Retrying…');
+        }
       } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
         setMicError(`Speech error: ${e.error}`);
       }

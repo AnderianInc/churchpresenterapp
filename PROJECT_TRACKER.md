@@ -377,6 +377,420 @@ Pull professional lyrics directly from Genius into the import modal, giving oper
 
 ---
 
+### P10 — Output System Stability & Unified Flow ✅ Complete
+
+This milestone corrects architectural drift introduced during YouTube and output-control work. The goal is a clean, unified program flow where **all output types obey a single source of truth (the main program)** and YouTube/video controls are addons — not special branches of the rendering pipeline.
+
+---
+
+#### Background: What the Architecture Must Look Like
+
+```
+Operator selects slide (any type: text, video, YouTube, image)
+  └─► Go Live  ─────────────────────────────────────────────────►  liveProgram
+                                                                        │
+                              ┌─────────────────────────────────────────┘
+                              ▼
+                     sendOutputState()
+                        │        │        │        │
+                     OutputView OutputView OutputView ...
+                     (Program)  (Stage)  (Confidence)
+                        │
+                   SlideRenderer
+                   renders background type:
+                     color / gradient / image / video / youtube
+                        │
+              (youtube background only)
+              YT.Player addon — plays/pauses/mutes based on operator commands
+```
+
+Key invariants:
+1. **Go Live always works.** If no output windows are open, one is auto-created on the best available display.
+2. **Every slide type flows uniformly.** Text → YouTube → video → image transitions are seamless; no special "mode" is entered.
+3. **OutputView is type-agnostic.** The only YouTube-specific logic it needs is the `window.YT.Player` lifecycle (required because Electron's `file://` origin blocks raw postMessage to cross-origin iframes). This is transparent background plumbing, not a special rendering path.
+4. **YouTube controls and video controls are operator addons.** They appear in the floating controller / PreviewArea when the relevant background type is live, but do not alter how the slide flows through the system.
+5. **The confidence monitor shows current + next slide side-by-side.** This requires `nextSlide` to be correctly propagated in every state update path.
+
+---
+
+#### Issues Found (code review 2026-04-19)
+
+| # | Symptom | Root cause |
+|---|---|---|
+| **I1** | Go Live does nothing visible in Electron | Toolbar now calls `goLive(currentSlide)` which sends via `sendOutputState` to `outputWindows`. But if no output windows are configured (user hasn't opened any via Output Manager), `sendOutputState` iterates zero windows — nothing appears. The old "open presentationWindow on a display" path was removed but no fallback was added. |
+| **I2** | OutputView couples slide rendering to YouTube type | `currentYtId` derived state and the YT player lifecycle effects make `OutputView` YouTube-aware. The `isStaleYt` check (which blocks any YouTube-background slide on startup) is a blunt-instrument workaround that also prevents legitimate slide restoration. |
+| **I3** | YouTube → text → video transitions may stall | The YT player destroy/create cycle runs inside a `useEffect` keyed on `currentYtId`. If a slide with YouTube background is replaced by another slide type, the effect cleanup should destroy the player and `SlideRenderer` renders the new type. In practice, race conditions between the YT API script loading and slide state changes can cause the output window to show a blank frame. |
+| **I4** | Confidence monitor split screen not verifiable | `ConfidencePanel` code exists and is correct in structure, but `nextSlide` may not reach the output window. The `resolveSlideForRole` function sets `slide` from the payload, while `nextSlide` is read directly from `payload.nextSlide`. If `nextSlide` is missing from the `receive-output` IPC payload, the right panel will always be empty. |
+| **I5** | No video background playback controls | `SlideRenderer` renders `<video autoPlay muted loop>` for video backgrounds. The `videoRef` prop exists but nothing uses it. No operator controls exist to pause, seek, or adjust volume for video backgrounds. |
+| **I6** | `goLiveAll` does not update `liveProgram` | `goLiveAll` (used by PreviewArea "All Outputs" button) sends to all output windows but never calls `setLiveProgram(slide)`. This means `liveProgram` (used by the YouTube floating controller and anywhere that checks `liveProgram?.item?.background`) stays stale. |
+
+---
+
+#### Fix Plan
+
+##### F1 — Go Live auto-creates output window when none exist (fixes I1)
+
+**File:** `src/components/Toolbar.jsx`
+
+In `handleGoLive`, if `outputWindows.length === 0`, before calling `goLive()`, call `createOutputWindow({ role: 'presentation', displayIdx: <best display>, title: 'Program' })`. "Best display" = first non-primary display index, falling back to 0.
+
+After creating the window, there is a brief delay before it is ready to receive slides. Use a short timeout (300ms) before calling `goLive()`, or listen for the window-open acknowledgement.
+
+In **Electron**, the `createOutputWindow` call is async (IPC). Chain: `await createOutputWindow(...)` then `goLive(slide)`.
+In **browser** mode, `createOutputWindow` opens a new tab synchronously; calling `goLive` immediately is fine because BroadcastChannel delivery is async anyway.
+
+```
+Toolbar.handleGoLive():
+  if outputWindows.length === 0:
+    displays = await window.electronAPI.getDisplays() (cache from state)
+    bestDisplay = displays.find(!isPrimary) ?? displays[0]
+    await createOutputWindow({ role: 'presentation', displayIdx: bestDisplay.index, title: 'Program' })
+    await sleep(300ms)   // let the window mount and subscribe
+  goLive({ ...currentSlide, item: currentItem })
+```
+
+Add `createOutputWindow` and `displays` to Toolbar's `useApp()` destructuring. Keep a local `displays` state loaded once on mount.
+
+##### F2 — Remove `isStaleYt` check; fix YT startup correctly (fixes I2, I3)
+
+**File:** `src/components/OutputView.jsx`
+
+The `isStaleYt` check:
+```js
+const isStaleYt = startSlide?.item?.background?.type === 'youtube';
+setSlide(isStaleYt ? null : startSlide);  // ← blocks ALL YouTube slides on startup
+```
+…was added to prevent autoplay before Go Live. But it's wrong: it prevents YouTube slides from being shown even when the operator deliberately restores state (e.g., after a crash).
+
+**Correct fix for startup autoplay:** The YT player creation already handles this. The player starts muted (`mute: 1` in `playerVars`) — the operator must explicitly unmute. No slide-blocking is needed. Remove `isStaleYt` and restore `setSlide(startSlide)`.
+
+The `currentYtId` effect should remain — it is the mechanism that creates/destroys the `YT.Player` for YouTube-background slides. But it must be robust against the case where `window.YT` isn't available yet (already handled by `registerYtReadyCallback`).
+
+##### F3 — Verify and fix `nextSlide` delivery to confidence monitor (fixes I4)
+
+**File:** `src/store/AppContext.jsx`, `src/components/OutputView.jsx`
+
+Audit `sendOutputState` to confirm `nextSlide: liveNextSlide` is included in the IPC payload sent to output windows. Currently `computeNextSlidePayload` is used — verify it includes `nextSlide`.
+
+Also audit the Electron IPC path: `window.electronAPI.sendOutputState(payload)` → `main.js` `send-output-state` → `receive-output`. Confirm the payload is forwarded verbatim (not filtered).
+
+In `OutputView`, confirm that the `data.nextSlide` field in the `receive-output` handler is used to set `nextSlide` state.
+
+##### F4 — Fix `goLiveAll` to update `liveProgram` (fixes I6)
+
+**File:** `src/store/AppContext.jsx`
+
+`goLiveAll` sends to all output windows but leaves `liveProgram = null`. Add:
+```js
+setLiveProgram(slide);
+setIsLive(true);
+setIsBlackout(false);
+setIsClear(false);
+```
+at the top of `goLiveAll` (same as `goLiveProgram` does).
+
+##### F5 — Video background playback controls (fixes I5)
+
+**File:** `src/components/MainLayout.jsx` (new `VideoController` component, mirroring `YouTubeController`)
+
+When `liveProgram?.item?.background?.type === 'video'` AND `activeView !== 'media'`, show a floating controller similar to the YouTube one. It needs to control the `<video>` element rendered inside the output window.
+
+Since the video element lives in a separate Electron window, we need an IPC command channel similar to `send-youtube-control`. Add:
+- IPC: `send-video-control` (commands: `play`, `pause`, `setVolume`, `seek`)  
+- `electron/main.js`: relay to all `outputWindows` as `receive-video-control`
+- `electron/preload.js`: expose `sendVideoControl`, `onReceiveVideoControl`
+- `OutputView.jsx`: listen for `receive-video-control` and call methods on a `videoRef` attached to the `<video>` in `SlideRenderer`
+- `SlideRenderer.jsx`: the existing `videoRef` prop already supports external control — use it
+- `MainLayout.jsx`: `VideoController` floating panel with play/pause and volume slider
+
+In browser mode, relay via BroadcastChannel `video-control` messages (same pattern as `youtube-control`).
+
+---
+
+#### Implementation Order
+
+1. **F1** (Go Live auto-create) — highest user impact, unblocks everything else
+2. **F2** (remove `isStaleYt`) — simple one-line fix, removes incorrect guard
+3. **F3** (confidence monitor nextSlide audit) — verify then fix
+4. **F4** (fix `goLiveAll` liveProgram) — simple addition to AppContext
+5. **F5** (video controls) — new feature, implement last
+
+- [x] F1: Toolbar auto-creates presentation output when Go Live clicked with no outputs open
+- [x] F2: Remove `isStaleYt` guard from OutputView startup; YouTube slides now restore correctly on startup
+- [x] F3: Audited `nextSlide` propagation — `sendOutputState` carries `liveNextSlide`, `receive-output` sets `nextSlide` state, `ConfidencePanel` renders it; flow is correct by design
+- [x] F4: `goLiveAll` already calls `setLiveProgram` + `setIsLive` + `setIsBlackout(false)` + `setIsClear(false)` — no fix needed
+- [x] F5: Video background playback controls — IPC channel `send-video-control` / `receive-video-control`, floating `VideoController` in `MainLayout.jsx`, `videoRef` wired through `SlideRenderer` in `OutputView`
+
+---
+
+---
+
+### P11 — Live Stream Recording 🔲 Planned
+
+This milestone adds an in-app recording module that captures the stream window to memory in real time, embeds chapter markers on every Go Live event, and exports to an edit-friendly format. The goal is a self-contained record of every service that a video editor can open immediately — no screen-capture software required.
+
+---
+
+#### Goal & Design Principles
+
+1. **Zero extra hardware.** Reuse the same display-capture source already open for RTMP streaming (`captureStreamRef`). No second `getDisplayMedia` call.
+2. **Non-destructive to streaming.** Recording runs concurrently with RTMP output. Stopping a recording does not affect the live stream.
+3. **Edit-friendly output.** Chunks are stored as `Blob[]` in memory during the service. On export, they are assembled and written as a `.webm` file. A sidecar `.json` file contains the full chapter timeline (slide ID, item title, lyrics excerpt, wall-clock timestamp). Video editors (DaVinci Resolve, Premiere, FFmpeg) can import both.
+4. **Optional MP4 transcode.** If FFmpeg is available (already bundled for RTMP), the operator can request an MP4 on export. The `.webm` is always written first as a lossless fallback; FFmpeg runs as a background subprocess.
+5. **Memory-safe.** The UI displays a running size estimate. At ~500 MB accumulated the operator is warned. No hard limit — a 90-minute 720p WebM is typically 600–900 MB.
+
+---
+
+#### Architecture
+
+```
+StreamPanel (Start/Stop/Pause recording controls)
+      │
+      ▼
+RecordingController (new module: src/recording/RecordingController.js)
+  ├── MediaRecorder(captureStreamRef.current, { mimeType: 'video/webm; codecs=vp9,opus', timeslice: 1000 })
+  ├── chunks: Blob[]        ← ondataavailable accumulates chunks
+  ├── markers: Marker[]     ← stamped on every goLive / blackout / clear event
+  ├── totalBytes: number    ← running size for memory warning
+  └── state: idle | recording | paused | stopped
+
+AppContext.goLive / goLiveAll
+  └── fires addRecordingMarker({ slideId, itemTitle, lines, timestamp: Date.now() })
+
+Export flow (main process):
+  Renderer ──send── 'save-recording' ──IPC──► main.js
+                                               │
+                              ┌────────────────┴───────────────┐
+                              ▼                                ▼
+                    write <uuid>.webm                 write <uuid>.json
+                    to <userData>/recordings/         (chapter timeline sidecar)
+                              │
+                    (optional, if FFmpeg available)
+                              ▼
+                    spawn ffmpeg -i input.webm -c copy output.mp4
+                    (stream-copy, no re-encode — fast)
+```
+
+---
+
+#### New IPC Channels
+
+| Channel (renderer → main) | Payload | Description |
+|---|---|---|
+| `save-recording` | `{ webmBuffer: ArrayBuffer, markers: Marker[], filename: string, transcode: bool }` | Triggers save dialog; writes `.webm` + `.json`; optionally spawns FFmpeg MP4 copy |
+| `open-recording-location` | `{ dirPath: string }` | Opens `<userData>/recordings/` in Finder/Explorer |
+
+| Channel (main → renderer) | Payload | Description |
+|---|---|---|
+| `recording-save-progress` | `{ phase: 'writing' | 'transcoding' | 'done', percent: number }` | Progress updates shown in StreamPanel |
+| `recording-save-error` | `{ message: string }` | Surfaces disk-write or FFmpeg errors to the operator |
+
+---
+
+#### Data Structures
+
+```js
+// Chapter marker — appended on every Go Live and control event
+Marker {
+  timestamp: number,       // Date.now() relative to recording start (ms)
+  wallClock: string,       // ISO-8601 wall time for the sidecar JSON
+  event: 'go-live' | 'blackout' | 'clear' | 'pause-recording' | 'resume-recording',
+  slideId: string | null,
+  itemTitle: string | null,
+  lines: string | null,    // first ~80 chars of slide text (lyrics / scripture)
+  backgroundType: string | null, // 'image' | 'video' | 'youtube' | 'color' etc.
+}
+
+// Sidecar JSON written alongside the .webm
+RecordingManifest {
+  version: 1,
+  recordedAt: string,      // ISO wall-clock of recording start
+  durationMs: number,
+  totalBytes: number,
+  chapters: Marker[],
+}
+```
+
+---
+
+#### Component Breakdown
+
+##### R1 — RecordingController module (`src/recording/RecordingController.js`)
+
+Pure-JS class (no React). Wraps `MediaRecorder` lifecycle.
+
+```
+new RecordingController(stream: MediaStream)
+  .start(timeslice = 1000)  → sets state=recording, registers ondataavailable
+  .pause()                  → MediaRecorder.pause(), appends pause marker
+  .resume()                 → MediaRecorder.resume(), appends resume marker
+  .stop()                   → MediaRecorder.stop(), returns Promise<{ blob, markers }>
+  .addMarker(markerObj)     → stamps a chapter marker at Date.now() - startTime
+  .getSizeEstimate()        → sum of chunk sizes in bytes
+  .getState()               → 'idle' | 'recording' | 'paused' | 'stopped'
+```
+
+`captureStreamRef.current` is already open in `StreamPanel`. Pass it to `RecordingController` at start time. No second `getDisplayMedia` call needed.
+
+**Browser-mode fallback:** `captureStreamRef` may be null in browser mode (no Electron display capture). In that case, prompt the user to grant `getDisplayMedia` permission directly. Degrade gracefully — recording is an Electron-first feature.
+
+##### R2 — StreamPanel recording controls (`src/components/StreamPanel.jsx`)
+
+Add a **Recording** subsection below the RTMP controls:
+
+```
+[ ● Start Recording ]   ← idle state
+[ ■ Stop   ⏸ Pause ]   ← recording state
+[ ⏵ Resume  ■ Stop  ]  ← paused state
+
+Size: 0.0 MB  Duration: 00:00
+⚠ 487 MB — recording is large, consider stopping soon  (shown > 500 MB)
+[ Export & Save ]   ← enabled once stopped; opens dialog
+  ☐ Also export as MP4 (requires FFmpeg)
+[ 📂 Open Recordings Folder ]
+```
+
+State is held in `useRef` / `useState` local to `StreamPanel` (the recording is transient — it doesn't need to survive remounts). `RecordingController` instance lives in a `useRef`.
+
+Size estimate and duration are polled with `setInterval(500ms)` while recording is active.
+
+##### R3 — AppContext marker integration (`src/store/AppContext.jsx`)
+
+Add a `recordingControllerRef` to `AppContext` (or pass a callback from `StreamPanel`). The cleanest approach: expose `addRecordingMarker(marker)` from AppContext via a callback registered by `StreamPanel` on mount:
+
+```js
+// StreamPanel registers:
+registerMarkerCallback((marker) => recordingControllerRef.current?.addMarker(marker));
+
+// AppContext.goLive, goLiveAll, setIsBlackout, setIsClear call:
+markerCallbackRef.current?.({ event: 'go-live', slideId, itemTitle, lines, backgroundType });
+```
+
+This keeps AppContext decoupled from `RecordingController` — it only fires a generic callback.
+
+##### R4 — IPC: save-recording handler (`electron/main.js`)
+
+```js
+ipcMain.handle('save-recording', async (_, { webmBuffer, markers, filename, transcode }) => {
+  const savePath = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: path.join(app.getPath('userData'), 'recordings', filename),
+    filters: [{ name: 'WebM Video', extensions: ['webm'] }],
+  });
+  if (savePath.canceled) return { canceled: true };
+
+  const webmPath = savePath.filePath;
+  await fs.promises.writeFile(webmPath, Buffer.from(webmBuffer));
+
+  const jsonPath = webmPath.replace(/\.webm$/, '.json');
+  await fs.promises.writeFile(jsonPath, JSON.stringify({ version: 1, chapters: markers }, null, 2));
+
+  if (transcode) {
+    // Spawn ffmpeg -i webmPath -c copy mp4Path
+    const mp4Path = webmPath.replace(/\.webm$/, '.mp4');
+    await spawnFfmpegCopy(webmPath, mp4Path, (percent) => {
+      mainWindow.webContents.send('recording-save-progress', { phase: 'transcoding', percent });
+    });
+  }
+
+  return { webmPath, jsonPath };
+});
+```
+
+Reuse the existing `findFFmpegPath()` helper. The MP4 export uses `-c copy` (stream-copy, no re-encode) — very fast and lossless.
+
+##### R5 — preload.js additions
+
+```js
+saveRecording: (payload) => ipcRenderer.invoke('save-recording', payload),
+openRecordingLocation: (dirPath) => ipcRenderer.send('open-recording-location', dirPath),
+onRecordingSaveProgress: (cb) => ipcRenderer.on('recording-save-progress', (_, d) => cb(d)),
+onRecordingSaveError: (cb) => ipcRenderer.on('recording-save-error', (_, d) => cb(d)),
+```
+
+---
+
+#### File Storage Layout
+
+```
+<userData>/
+  recordings/
+    2026-04-20-14-30-service.webm
+    2026-04-20-14-30-service.json
+    2026-04-20-14-30-service.mp4   (optional, if FFmpeg transcode requested)
+```
+
+Default filename: `<YYYY-MM-DD-HH-MM>-service.webm`. User can rename in the save dialog.
+
+---
+
+#### Memory Management
+
+| Threshold | Action |
+|---|---|
+| < 500 MB | Normal operation, show size counter |
+| ≥ 500 MB | Show warning banner in StreamPanel: "Recording is large — consider stopping soon" |
+| Operator stops recording | Chunks converted to Blob URL in renderer, held until Export is clicked |
+| Export clicked | `Blob[]` joined into single ArrayBuffer, sent via IPC to main for disk write |
+| After successful export | Chunks and Blob URL released (`URL.revokeObjectURL`) |
+
+---
+
+#### Test Coverage (`src/__tests__/p11Recording.test.js`)
+
+Pure-function tests, no MediaRecorder mock needed — extract logic:
+
+- `buildRecordingFilename(date)` → `2026-04-20-14-30-service.webm`
+- `buildManifest(markers, durationMs, totalBytes)` → correct JSON structure
+- `addMarker(markers, markerObj, startTime)` → correct timestamp offset, immutable
+- `sizeWarning(totalBytes)` → false below 500 MB, true at or above
+- `estimateDuration(startTime, now)` → correct ms difference
+- `joinChunks(blobs)` → returns a single Blob with correct mimeType
+- `ffmpegCopyArgs(inputPath, outputPath)` → correct `-c copy` argument array
+- Marker event coverage: go-live, blackout, clear, pause-recording, resume-recording
+- `buildManifest` with zero chapters (empty service edge case)
+- `sizeWarning` boundary: exactly 500 MB → true; 499 MB → false
+
+---
+
+#### README Section
+
+Add "Live Stream Recording" section to `README.md` explaining:
+- Click "Start Recording" in StreamPanel (requires active stream capture)
+- Go Live events are automatically marked as chapters
+- Click "Stop" then "Export & Save" to write `.webm` + chapter `.json` to disk
+- Optional: check "Also export as MP4" for broad compatibility (requires FFmpeg)
+- Open `<userData>/recordings/` to find past recordings
+
+#### HelpPanel Section
+
+Add "Recording" accordion item to `src/components/HelpPanel.jsx`:
+- How to start/stop/pause a recording
+- Where files are saved
+- What the chapter JSON is for
+- MP4 export requirement (FFmpeg)
+- Memory warning at 500 MB
+
+---
+
+#### Implementation Order
+
+1. **R1** — `RecordingController.js` module (pure JS, no React, testable immediately)
+2. **R4 + R5** — IPC handlers and preload additions (unblocks export without UI)
+3. **R2** — StreamPanel recording controls (UI for start/stop/pause/export)
+4. **R3** — AppContext marker callback (chapter markers on Go Live events)
+5. Tests, README, HelpPanel
+
+- [ ] R1: `src/recording/RecordingController.js` — `start`, `pause`, `resume`, `stop`, `addMarker`, `getSizeEstimate`
+- [ ] R2: StreamPanel recording controls — Start/Stop/Pause buttons, size/duration counter, Export button, memory warning at 500 MB
+- [ ] R3: AppContext marker callback — fires on `goLive`, `goLiveAll`, blackout, clear
+- [ ] R4: `electron/main.js` — `save-recording` IPC handler with native save dialog, `.webm` + `.json` write, optional FFmpeg MP4 copy
+- [ ] R5: `electron/preload.js` — expose `saveRecording`, `openRecordingLocation`, `onRecordingSaveProgress`, `onRecordingSaveError`
+- [ ] Tests: `src/__tests__/p11Recording.test.js` — pure-function coverage for all extracted logic
+- [ ] README: "Live Stream Recording" section
+- [ ] HelpPanel: "Recording" accordion item
+
+---
+
 ## Known Gaps & Risks
 
 ### Resolved
@@ -405,7 +819,6 @@ Pull professional lyrics directly from Genius into the import modal, giving oper
 
 ## Tracking
 
-- **Last updated:** 2026-04-17
-- **Current focus:** Complete — all milestones shipped
-- **Next up:** P8.2 video lifecycle controls (play/pause in PreviewArea), P8.3 transition effects, post-v1 feature requests
-- **Status:** Active development — P0 + P1 + P2 + P3 + P4 + P5 + P6 + P7 + P8 + P8.1 + P9 complete
+- **Last updated:** 2026-04-19
+- **Current focus:** P11 — Live Stream Recording (planned, not started)
+- **Status:** P0–P10 complete. P11 plan written; implementation pending.

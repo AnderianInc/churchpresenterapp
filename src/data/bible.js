@@ -1,10 +1,26 @@
-// Offline translations are discovered dynamically from /public/bibles/index.json
-// (falls back to OFFLINE_BIBLE_FOLDERS below). There is no hardcoded version list.
-
 // ── HelloAO Bible API (https://bible.helloao.org) ──────────────────────────
 // Free public API, no authentication required.
 export const HELLOAO_BASE = 'https://bible.helloao.org/api';
 const HELLOAO_TRANSLATIONS_URL = `${HELLOAO_BASE}/available_translations.json`;
+
+// ── Book number → canonical name (Beblia XML format uses numbers 1-66) ──────
+export const BOOK_NAMES_BY_NUMBER = {
+  1: 'Genesis', 2: 'Exodus', 3: 'Leviticus', 4: 'Numbers', 5: 'Deuteronomy',
+  6: 'Joshua', 7: 'Judges', 8: 'Ruth', 9: '1 Samuel', 10: '2 Samuel',
+  11: '1 Kings', 12: '2 Kings', 13: '1 Chronicles', 14: '2 Chronicles',
+  15: 'Ezra', 16: 'Nehemiah', 17: 'Esther', 18: 'Job', 19: 'Psalms',
+  20: 'Proverbs', 21: 'Ecclesiastes', 22: 'Song of Solomon', 23: 'Isaiah',
+  24: 'Jeremiah', 25: 'Lamentations', 26: 'Ezekiel', 27: 'Daniel',
+  28: 'Hosea', 29: 'Joel', 30: 'Amos', 31: 'Obadiah', 32: 'Jonah',
+  33: 'Micah', 34: 'Nahum', 35: 'Habakkuk', 36: 'Zephaniah', 37: 'Haggai',
+  38: 'Zechariah', 39: 'Malachi', 40: 'Matthew', 41: 'Mark', 42: 'Luke',
+  43: 'John', 44: 'Acts', 45: 'Romans', 46: '1 Corinthians', 47: '2 Corinthians',
+  48: 'Galatians', 49: 'Ephesians', 50: 'Philippians', 51: 'Colossians',
+  52: '1 Thessalonians', 53: '2 Thessalonians', 54: '1 Timothy', 55: '2 Timothy',
+  56: 'Titus', 57: 'Philemon', 58: 'Hebrews', 59: 'James', 60: '1 Peter',
+  61: '2 Peter', 62: '1 John', 63: '2 John', 64: '3 John', 65: 'Jude',
+  66: 'Revelation',
+};
 
 let _helloaoVersionsCache = null;
 let _helloaoVersionsPromise = null;
@@ -86,6 +102,146 @@ async function _refreshHelloaoVersions(onUpdate, currentCount) {
   } catch { /* silently ignored — live refresh is best-effort */ }
 }
 
+// ── Offline translation index ─────────────────────────────────────────────
+let _offlineIndexCache = null;
+
+/**
+ * Load the offline translation index from public/bibles/offline-index.json.
+ * Returns an array of { id, name, filename } entries sorted by name.
+ */
+export async function fetchOfflineTranslations() {
+  if (_offlineIndexCache) return _offlineIndexCache;
+  const publicUrl = process.env.PUBLIC_URL || '';
+  try {
+    const r = await fetch(`${publicUrl}/bibles/offline-index.json`);
+    if (!r.ok) throw new Error('offline-index.json unavailable');
+    const data = await r.json();
+    const list = Array.isArray(data.translations) ? data.translations : [];
+    _offlineIndexCache = list;
+    return list;
+  } catch {
+    _offlineIndexCache = [];
+    return [];
+  }
+}
+
+// ── Online translation index ──────────────────────────────────────────────
+let _onlineIndexCache = null;
+
+/**
+ * Load the online translation index.
+ * 1. Reads public/bibles/online-index.json (fast, works offline).
+ * 2. Background-refreshes from the live API; calls onUpdate(list) if the
+ *    live list is larger than the bundled one.
+ *
+ * Returns an array of { id, name, language, languageCode, ... } entries.
+ */
+export async function fetchOnlineTranslations(onUpdate) {
+  if (_onlineIndexCache) {
+    if (onUpdate) _refreshOnlineTranslations(onUpdate, _onlineIndexCache.length);
+    return _onlineIndexCache;
+  }
+
+  const publicUrl = process.env.PUBLIC_URL || '';
+  try {
+    const r = await fetch(`${publicUrl}/bibles/online-index.json`);
+    if (r.ok) {
+      const data = await r.json();
+      const list = Array.isArray(data.translations) ? data.translations : [];
+      if (list.length > 0) {
+        _onlineIndexCache = list;
+        _refreshOnlineTranslations(onUpdate, list.length);
+        return list;
+      }
+    }
+  } catch { /* fall through to live API */ }
+
+  // Live API fallback
+  try {
+    const r2 = await fetch(HELLOAO_TRANSLATIONS_URL);
+    if (!r2.ok) throw new Error('Could not load online translations');
+    const raw = await r2.json();
+    const list = _normalizeVersionList(raw);
+    _onlineIndexCache = list;
+    return list;
+  } catch (err) {
+    _onlineIndexCache = [];
+    throw err;
+  }
+}
+
+async function _refreshOnlineTranslations(onUpdate, currentCount) {
+  try {
+    const r = await fetch(HELLOAO_TRANSLATIONS_URL);
+    if (!r.ok) return;
+    const raw = await r.json();
+    const fresh = _normalizeVersionList(raw);
+    if (fresh.length > 0) {
+      _onlineIndexCache = fresh;
+      if (onUpdate && fresh.length > currentCount) onUpdate(fresh);
+    }
+  } catch { /* best-effort */ }
+}
+
+// ── Offline XML translation loader ────────────────────────────────────────
+const OFFLINE_CACHE_PREFIX = 'cp_bible_offline_';
+const OFFLINE_XML_BASE = '/Holy-Bible-XML-Format-master';
+
+/**
+ * Load an offline translation by its id and filename.
+ * Checks localStorage first, then fetches and parses the XML file.
+ *
+ * @param {string} id       e.g. "EnglishKJBible"
+ * @param {string} filename e.g. "EnglishKJBible.xml"
+ * @returns {Promise<{[ref: string]: string}>} flat passages dict
+ */
+export async function loadOfflineTranslation(id, filename) {
+  const cacheKey = `${OFFLINE_CACHE_PREFIX}${id}`;
+
+  // Try localStorage cache
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const passages = JSON.parse(cached);
+      if (passages && Object.keys(passages).length > 0) {
+        BIBLE_TEXTS[`offline:${id}`] = passages;
+        return passages;
+      }
+    }
+  } catch { /* localStorage unavailable or parse error — fetch fresh */ }
+
+  // Fetch from public/Holy-Bible-XML-Format-master/
+  const publicUrl = process.env.PUBLIC_URL || '';
+  const url = `${publicUrl}${OFFLINE_XML_BASE}/${encodeURIComponent(filename)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Could not load offline translation: ${filename}`);
+  const xml = await r.text();
+
+  const passages = parseBebliaXml(xml);
+  if (Object.keys(passages).length === 0) {
+    throw new Error(`No verses found in ${filename}. The file may use an unsupported format.`);
+  }
+
+  // Cache in localStorage (best-effort — may fail if storage is full)
+  try {
+    localStorage.setItem(cacheKey, JSON.stringify(passages));
+  } catch { /* quota exceeded — skip caching */ }
+
+  BIBLE_TEXTS[`offline:${id}`] = passages;
+  return passages;
+}
+
+/**
+ * Clear the localStorage cache for a specific offline translation.
+ * @param {string} id  e.g. "EnglishKJBible"
+ */
+export function clearOfflineTranslationCache(id) {
+  try {
+    localStorage.removeItem(`${OFFLINE_CACHE_PREFIX}${id}`);
+  } catch { /* ignore */ }
+  delete BIBLE_TEXTS[`offline:${id}`];
+}
+
 /** Map canonical book name → USFM book code used by helloao */
 const HELLOAO_BOOK_IDS = {
   Genesis: 'GEN', Exodus: 'EXO', Leviticus: 'LEV', Numbers: 'NUM', Deuteronomy: 'DEU',
@@ -148,7 +304,9 @@ export async function searchHelloaoByReference(query, versionId) {
 /**
  * Parse a Beblia-format XML string into the flat passages dict
  * { "Genesis 1:1": "In the beginning...", ... }.
- * Supports both single-book and whole-Bible XML files.
+ *
+ * Supports both named-book format (name="Genesis") and the numbered-book
+ * format used by the Holy-Bible-XML-Format collection (number="1").
  */
 export function parseBebliaXml(xmlString) {
   if (typeof DOMParser === 'undefined') return {};
@@ -159,8 +317,15 @@ export function parseBebliaXml(xmlString) {
   // Tolerate whole-bible root (<bible>) or single-book root (<book>)
   const bookEls = doc.querySelectorAll('bible > b, bible > book, book');
   bookEls.forEach(bookEl => {
-    const rawName = bookEl.getAttribute('n') || bookEl.getAttribute('name') || '';
-    const bookName = canonicalBook(rawName);
+    // Numbered format: <book number="1"> → look up canonical name
+    const numAttr = bookEl.getAttribute('number') || bookEl.getAttribute('num');
+    let bookName;
+    if (numAttr) {
+      bookName = BOOK_NAMES_BY_NUMBER[parseInt(numAttr, 10)] || null;
+    } else {
+      const rawName = bookEl.getAttribute('n') || bookEl.getAttribute('name') || '';
+      bookName = rawName ? canonicalBook(rawName) : null;
+    }
     if (!bookName) return;
 
     const chEls = bookEl.querySelectorAll('c, chapter');

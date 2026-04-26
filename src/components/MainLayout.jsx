@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useApp } from '../store/AppContext';
+import { useApp, BROADCAST_CHANNEL } from '../store/AppContext';
+import { shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import Toolbar from './Toolbar';
 import SchedulePanel from './SchedulePanel';
@@ -15,14 +16,15 @@ import SettingsPanel from './SettingsPanel';
 import SongEditorModal from './SongEditorModal';
 
 // ── Draggable / resizable floating window shell ───────────────────────────────
-function FloatingWindow({ title, icon, onClose, children }) {
+function FloatingWindow({ title, icon, onClose, children, initialW = 360, initialH }) {
+  const defaultH = initialH ?? Math.min(700, window.innerHeight - 70);
   const [size, setSize] = useState(() => ({
-    w: 360,
-    h: Math.min(700, window.innerHeight - 70),
+    w: initialW,
+    h: defaultH,
   }));
   const [pos, setPos] = useState(() => ({
-    x: Math.max(0, Math.round((window.innerWidth - 360) / 2)),
-    y: Math.max(44, Math.round((window.innerHeight - Math.min(700, window.innerHeight - 70)) / 2)),
+    x: Math.max(0, Math.round((window.innerWidth - initialW) / 2)),
+    y: Math.max(44, Math.round((window.innerHeight - defaultH) / 2)),
   }));
   const [minimized, setMinimized] = useState(false);
   const dragging = useRef(null); // { startMX, startMY, startPX, startPY }
@@ -162,6 +164,299 @@ function FloatingWindow({ title, icon, onClose, children }) {
   );
 }
 
+// ── Floating YouTube playback controller ──────────────────────────────────────
+
+function YouTubeController({ liveYt, sendYouTubeControl, setActiveView }) {
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(80);
+  const [dismissed, setDismissed] = useState(false);
+  const lastActionRef = useRef(0);
+  const prevIdRef = useRef(null);
+
+  // Auto-show when a new video goes live
+  useEffect(() => {
+    if (liveYt?.value && liveYt.value !== prevIdRef.current) {
+      prevIdRef.current = liveYt.value;
+      setIsMuted(true);
+      setIsPlaying(false);
+      setVolume(80);
+      lastActionRef.current = 0;
+      setDismissed(false);
+    }
+  }, [liveYt]);
+
+  // Subscribe to youtube-state relay from output window
+  useEffect(() => {
+    const handleState = (payload) => {
+      if (!shouldAcceptYtState(lastActionRef.current, Date.now())) return;
+      if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
+      if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
+      if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
+    };
+
+    let ch;
+    if (typeof BroadcastChannel !== 'undefined') {
+      ch = new BroadcastChannel(BROADCAST_CHANNEL);
+      ch.onmessage = (e) => {
+        const { type, payload } = e.data || {};
+        if (type === 'youtube-state') handleState(payload);
+      };
+    }
+    if (window.electronAPI?.onReceiveYouTubeState) {
+      window.electronAPI.onReceiveYouTubeState(handleState);
+    }
+    return () => {
+      ch?.close();
+      window.electronAPI?.removeAllListeners?.('receive-youtube-state');
+    };
+  }, []);
+
+  if (!liveYt || dismissed) return null;
+
+  const sliderTrackStyle = {
+    flex: 1, height: 4, borderRadius: 2,
+    background: `linear-gradient(to right, #4f8ef7 ${volume}%, rgba(255,255,255,0.15) ${volume}%)`,
+    cursor: 'pointer', outline: 'none', appearance: 'none',
+    WebkitAppearance: 'none',
+  };
+
+  const ctrlBtn = (active) => ({
+    flex: 1, padding: '5px 0', borderRadius: 5,
+    background: active ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.07)',
+    border: active ? '1px solid rgba(79,142,247,0.4)' : '1px solid rgba(255,255,255,0.12)',
+    color: active ? '#4f8ef7' : 'var(--text)',
+    cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)',
+  });
+
+  return (
+    <FloatingWindow
+      title={liveYt.name || `YouTube: ${liveYt.value}`}
+      icon={<span style={{ color: '#ef4444', fontSize: 10 }}>●</span>}
+      onClose={() => setDismissed(true)}
+      initialW={300}
+      initialH={220}
+    >
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Thumbnail */}
+        <div style={{
+          borderRadius: 6, overflow: 'hidden', flexShrink: 0,
+          aspectRatio: '16/9', background: '#000', position: 'relative',
+        }}>
+          <img
+            src={`https://img.youtube.com/vi/${liveYt.value}/hqdefault.jpg`}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
+          />
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              fontSize: 9, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase',
+              color: '#ef4444', background: 'rgba(0,0,0,0.65)', padding: '2px 7px', borderRadius: 3,
+            }}>● Live</div>
+          </div>
+        </div>
+
+        {/* Play / Pause + Mute row */}
+        <div style={{ display: 'flex', gap: 5 }}>
+          <button
+            onClick={() => {
+              const next = !isPlaying;
+              lastActionRef.current = Date.now();
+              setIsPlaying(next);
+              sendYouTubeControl(next ? 'playVideo' : 'pauseVideo', []);
+            }}
+            style={ctrlBtn(isPlaying)}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          >{isPlaying ? '⏸ Pause' : '▶ Play'}</button>
+
+          <button
+            onClick={() => {
+              const next = !isMuted;
+              lastActionRef.current = Date.now();
+              setIsMuted(next);
+              sendYouTubeControl(muteCommandFor(next), []);
+            }}
+            style={{ ...ctrlBtn(false), flex: 'none', padding: '5px 12px' }}
+            title={isMuted ? 'Unmute' : 'Mute'}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          >{isMuted ? '🔇' : '🔊'}</button>
+        </div>
+
+        {/* Volume slider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44 }}>Vol {volume}</span>
+          <input
+            type="range" min={0} max={100} value={volume}
+            style={sliderTrackStyle}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              lastActionRef.current = Date.now();
+              setVolume(v);
+              sendYouTubeControl('setVolume', [v]);
+              if (v > 0 && isMuted) { setIsMuted(false); sendYouTubeControl('unMute', []); }
+            }}
+          />
+        </div>
+
+        {/* Open in Media link */}
+        <button
+          onClick={() => setActiveView('media')}
+          style={{
+            background: 'transparent', border: 'none', color: 'var(--text-dim)',
+            fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0,
+            fontFamily: 'var(--font)', textDecoration: 'underline',
+          }}
+        >Open in Media &amp; Backgrounds</button>
+      </div>
+    </FloatingWindow>
+  );
+}
+
+// ── Floating video background playback controller ─────────────────────────────
+
+function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
+  const [isMuted, setIsMuted] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(true); // video autoPlays on mount
+  const [volume, setVolume] = useState(80);
+  const [dismissed, setDismissed] = useState(false);
+  const lastActionRef = useRef(0);
+  const prevValueRef = useRef(null);
+
+  // Auto-show and reset state when a new video goes live
+  useEffect(() => {
+    if (liveVideo?.value && liveVideo.value !== prevValueRef.current) {
+      prevValueRef.current = liveVideo.value;
+      setIsMuted(true);
+      setIsPlaying(true);
+      setVolume(80);
+      lastActionRef.current = 0;
+      setDismissed(false);
+    }
+  }, [liveVideo]);
+
+  // Subscribe to video-state relay from output window
+  useEffect(() => {
+    const handleState = (payload) => {
+      if (!shouldAcceptYtState(lastActionRef.current, Date.now())) return;
+      if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
+      if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
+      if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
+    };
+
+    let ch;
+    if (typeof BroadcastChannel !== 'undefined') {
+      ch = new BroadcastChannel(BROADCAST_CHANNEL);
+      ch.onmessage = (e) => {
+        const { type, payload } = e.data || {};
+        if (type === 'video-state') handleState(payload);
+      };
+    }
+    if (window.electronAPI?.onReceiveVideoState) {
+      window.electronAPI.onReceiveVideoState(handleState);
+    }
+    return () => {
+      ch?.close();
+      window.electronAPI?.removeAllListeners?.('receive-video-state');
+    };
+  }, []);
+
+  if (!liveVideo || dismissed) return null;
+
+  const sliderTrackStyle = {
+    flex: 1, height: 4, borderRadius: 2,
+    background: `linear-gradient(to right, #4f8ef7 ${volume}%, rgba(255,255,255,0.15) ${volume}%)`,
+    cursor: 'pointer', outline: 'none', appearance: 'none',
+    WebkitAppearance: 'none',
+  };
+
+  const ctrlBtn = (active) => ({
+    flex: 1, padding: '5px 0', borderRadius: 5,
+    background: active ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.07)',
+    border: active ? '1px solid rgba(79,142,247,0.4)' : '1px solid rgba(255,255,255,0.12)',
+    color: active ? '#4f8ef7' : 'var(--text)',
+    cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)',
+  });
+
+  return (
+    <FloatingWindow
+      title={liveVideo.name || 'Video Background'}
+      icon="🎬"
+      onClose={() => setDismissed(true)}
+      initialW={300}
+      initialH={170}
+    >
+      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {/* Live badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', letterSpacing: '1px' }}>● LIVE</span>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {liveVideo.name || 'Video Background'}
+          </span>
+        </div>
+
+        {/* Play / Pause + Mute row */}
+        <div style={{ display: 'flex', gap: 5 }}>
+          <button
+            onClick={() => {
+              const next = !isPlaying;
+              lastActionRef.current = Date.now();
+              setIsPlaying(next);
+              sendVideoControl(next ? 'play' : 'pause', []);
+            }}
+            style={ctrlBtn(isPlaying)}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          >{isPlaying ? '⏸ Pause' : '▶ Play'}</button>
+
+          <button
+            onClick={() => {
+              const next = !isMuted;
+              lastActionRef.current = Date.now();
+              setIsMuted(next);
+              sendVideoControl(next ? 'mute' : 'unmute', []);
+            }}
+            style={{ ...ctrlBtn(false), flex: 'none', padding: '5px 12px' }}
+            title={isMuted ? 'Unmute' : 'Mute'}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          >{isMuted ? '🔇' : '🔊'}</button>
+        </div>
+
+        {/* Volume slider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44 }}>Vol {volume}</span>
+          <input
+            type="range" min={0} max={100} value={volume}
+            style={sliderTrackStyle}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              lastActionRef.current = Date.now();
+              setVolume(v);
+              sendVideoControl('setVolume', [v]);
+              if (v > 0 && isMuted) { setIsMuted(false); sendVideoControl('unmute', []); }
+            }}
+          />
+        </div>
+
+        {/* Open in Media link */}
+        <button
+          onClick={() => setActiveView('media')}
+          style={{
+            background: 'transparent', border: 'none', color: 'var(--text-dim)',
+            fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0,
+            fontFamily: 'var(--font)', textDecoration: 'underline',
+          }}
+        >Open in Media &amp; Backgrounds</button>
+      </div>
+    </FloatingWindow>
+  );
+}
+
 const styles = {
   app: {
     display: 'flex', flexDirection: 'column', height: '100vh',
@@ -176,7 +471,7 @@ const styles = {
 };
 
 export default function MainLayout() {
-  const { activeView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery } = useApp();
+  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl } = useApp();
   const [songEditorOpen, setSongEditorOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
   const [settingsInitialTab, setSettingsInitialTab] = useState('keys');
@@ -252,6 +547,24 @@ export default function MainLayout() {
         >
           <SettingsPanel hideTitle initialTab={settingsInitialTab} />
         </FloatingWindow>
+      )}
+
+      {/* Floating YouTube controller — only when YouTube is live and not already on media tab */}
+      {activeView !== 'media' && (
+        <YouTubeController
+          liveYt={liveProgram?.item?.background?.type === 'youtube' ? liveProgram.item.background : null}
+          sendYouTubeControl={sendYouTubeControl}
+          setActiveView={setActiveView}
+        />
+      )}
+
+      {/* Floating video controller — only when a video background is live and not on media tab */}
+      {activeView !== 'media' && (
+        <VideoController
+          liveVideo={liveProgram?.item?.background?.type === 'video' ? liveProgram.item.background : null}
+          sendVideoControl={sendVideoControl}
+          setActiveView={setActiveView}
+        />
       )}
 
       {/* Crash-safe recovery banner */}

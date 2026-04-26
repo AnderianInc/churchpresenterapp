@@ -209,7 +209,7 @@ describe('send-clear relay', () => {
 // ── send-output-state ─────────────────────────────────────────────────────────
 
 describe('send-output-state relay', () => {
-  const state = { programSlide: slide, isBlackout: false, isClear: false, outputs: {}, roleSlides: {} };
+  const state = { programSlide: slide, isBlackout: false, isClear: false, nextSlide: null, outputs: {}, roleSlides: {} };
 
   it('sends receive-output to every open output window', () => {
     const calls = relayOutputState(allOpen, state);

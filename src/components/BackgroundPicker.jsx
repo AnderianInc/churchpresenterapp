@@ -51,6 +51,7 @@ export function bgToCss(bg) {
       return `linear-gradient(${bg.angle ?? 135}deg, ${stops})`;
     }
   }
+  if (bg.type === 'youtube') return '#000000'; // iframe renders on top; CSS bg is a dark placeholder
   return '#0d1117';
 }
 

@@ -1,16 +1,9 @@
-const { app, BrowserWindow, ipcMain, screen, dialog, desktopCapturer } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, dialog, desktopCapturer, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
-const {
-  hasDefaultAppKey,
-  getAllYouVersionVersions,
-  getYouVersionVersion,
-  getYouVersionPassage,
-  searchYouVersionVerses,
-} = require('./youversion');
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Data directory
@@ -25,7 +18,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], youversionApiKey: '', rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [] }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [], imageFavorites: [], savedServices: [] }),
 };
 
 function writeJsonFile(filePath, data) {
@@ -82,6 +75,7 @@ let streamWindow = null;
 const outputWindows = new Map();
 const rtmpProcesses = new Map();
 let pendingRtmpSourceId = null;
+let pendingRecordingSourceId = null;
 
 // ── RTMP helpers ──────────────────────────────────────────────────────────────
 
@@ -146,13 +140,41 @@ function createMainWindow() {
   if (isDev) mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   mainWindow.webContents.session.setDisplayMediaRequestHandler(async (request, callback) => {
-    if (pendingRtmpSourceId) {
-      const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-      const source = sources.find(s => s.id === pendingRtmpSourceId);
-      pendingRtmpSourceId = null;
+    // Consume whichever pending source was set (RTMP takes priority)
+    console.log('[capture] handler fired, pendingRtmp:', pendingRtmpSourceId, 'pendingRecording:', pendingRecordingSourceId);
+  
+    const sourceId = pendingRtmpSourceId || pendingRecordingSourceId;
+    pendingRtmpSourceId = null;
+    pendingRecordingSourceId = null;
+
+    const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+    console.log('[capture] available sources:', sources.map(s => s.name));
+  
+    if (sourceId) {
+      const source = sources.find(s => s.id === sourceId);
       if (source) { callback({ video: source }); return; }
     }
-    callback({});
+    const appWindows = sources.filter(s => s.name?.includes('Church Presenter') && s.id.startsWith('window:'));
+    // No pre-selected source: auto-pick the best presentation surface.
+    // Priority: Stream View → any Church Presenter window → primary screen.
+    const auto =
+      sources.find(s => s.name?.includes('Stream View')) ||
+      sources.find(s => s.name?.includes('Church Presenter') && s.id.startsWith('window:')) ||
+      sources.find(s => s.id.startsWith('screen:'));
+
+    if (auto) { callback({ video: auto }); return; }
+
+    // Absolute fallback — pick whatever is available to avoid an unhandled crash
+    if (sources.length > 0) { callback({ video: sources[0] }); return; }
+
+    // AFTER — pick the primary screen as absolute fallback
+const primaryScreen = sources.find(s => s.id.startsWith('screen:0')) || sources[0];
+if (primaryScreen) {
+  console.log('[capture] fallback to:', primaryScreen.name);
+  callback({ video: primaryScreen });
+} else {
+  callback({});  // truly nothing available
+}
   });
 
   mainWindow.on('closed', () => {
@@ -415,6 +437,12 @@ ipcMain.handle('close-output-window', async (_, id) => {
   return true;
 });
 
+ipcMain.handle('minimize-output-window', async (_, id) => {
+  const entry = outputWindows.get(id);
+  if (entry?.window && !entry.window.isDestroyed()) entry.window.minimize();
+  return true;
+});
+
 ipcMain.handle('move-output-window', async (_, { id, displayIndex }) => {
   const entry = outputWindows.get(id);
   if (!entry || !entry.window || entry.window.isDestroyed()) return false;
@@ -498,48 +526,6 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
   }
 });
 
-// Tells the renderer whether an API key is already configured in the main process
-// (via environment variable or config file), so it doesn't need to prompt the user.
-ipcMain.handle('get-youversion-has-key', () => ({ configured: hasDefaultAppKey() }));
-
-ipcMain.handle('fetch-youversion-versions', async (_, appKey) => {
-  try {
-    // getAllYouVersionVersions paginates the Platform API to retrieve every
-    // version the key can access — the SDK getVersions() only returns one page.
-    return await getAllYouVersionVersions(appKey);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-versions failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion versions.');
-  }
-});
-
-ipcMain.handle('fetch-youversion-version', async (_, appKey, versionId) => {
-  try {
-    return await getYouVersionVersion(appKey, versionId);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-version failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion version metadata.');
-  }
-});
-
-ipcMain.handle('search-youversion-verses', async (_, { appKey, versionId, query }) => {
-  try {
-    return await searchYouVersionVerses(appKey, versionId, query);
-  } catch (err) {
-    console.error('[YouVersion] search-youversion-verses failed', err.message);
-    throw new Error(err.message || 'YouVersion verse search failed.');
-  }
-});
-
-ipcMain.handle('fetch-youversion-passage', async (_, appKey, versionId, reference, format = 'text') => {
-  try {
-    return await getYouVersionPassage(appKey, versionId, reference, format);
-  } catch (err) {
-    console.error('[YouVersion] fetch-youversion-passage failed', err.message);
-    throw new Error(err.message || 'Unable to load YouVersion passage.');
-  }
-});
-
 // IPC - Slide broadcast (program vs stage are independent streams)
 ipcMain.on('send-slide-program', (_, slideData) => {
   if (presentationWindow) presentationWindow.webContents.send('receive-slide', slideData);
@@ -565,6 +551,28 @@ ipcMain.on('send-output-state', (_, state) => {
   }
 });
 
+ipcMain.on('send-youtube-control', (_, payload) => {
+  for (const entry of outputWindows.values()) {
+    entry.window.webContents.send('receive-youtube-control', payload);
+  }
+});
+
+// State relay: output window → main operator window
+ipcMain.on('send-youtube-state', (_, payload) => {
+  if (mainWindow) mainWindow.webContents.send('receive-youtube-state', payload);
+});
+
+ipcMain.on('send-video-control', (_, payload) => {
+  for (const entry of outputWindows.values()) {
+    entry.window.webContents.send('receive-video-control', payload);
+  }
+});
+
+// State relay: output window → main operator window
+ipcMain.on('send-video-state', (_, payload) => {
+  if (mainWindow) mainWindow.webContents.send('receive-video-state', payload);
+});
+
 // Stream window — lower-third overlay and camera config
 ipcMain.on('send-lower-third', (_, data) => {
   if (streamWindow) streamWindow.webContents.send('receive-lower-third', data);
@@ -587,6 +595,18 @@ ipcMain.handle('get-stream-sources', async () => {
 
 ipcMain.handle('set-rtmp-source', async (_, sourceId) => {
   pendingRtmpSourceId = sourceId;
+  return true;
+});
+
+// Returns all capturable windows and screens (for recording source auto-detection)
+ipcMain.handle('get-capturable-sources', async () => {
+  const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+  console.log('[main] desktopCapturer sources:', sources.map(s => ({ name: s.name, id: s.id })));
+  return sources.map(s => ({ id: s.id, name: s.name, type: s.id.startsWith('screen:') ? 'screen' : 'window' }));
+});
+
+ipcMain.handle('set-recording-source', async (_, sourceId) => {
+  pendingRecordingSourceId = sourceId;
   return true;
 });
 
@@ -867,7 +887,61 @@ ipcMain.handle('copy-media-file', async (_, srcPath) => {
   return `file://${destPath}`;
 });
 
+// IPC - Save a local recording to disk via a native save dialog
+ipcMain.handle('save-recording', async (_, { buffer, filename, convertToMp4 }) => {
+  const defaultDir = app.getPath('videos');
+  const mp4Name = filename.replace(/\.webm$/i, '.mp4');
+
+  const { filePath, canceled } = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: path.join(defaultDir, convertToMp4 ? mp4Name : filename),
+    filters: convertToMp4
+      ? [{ name: 'MP4 Video', extensions: ['mp4'] }, { name: 'All Files', extensions: ['*'] }]
+      : [{ name: 'WebM Video', extensions: ['webm'] }, { name: 'All Files', extensions: ['*'] }],
+    properties: ['createDirectory'],
+  });
+  if (canceled || !filePath) return { canceled: true };
+
+  if (convertToMp4) {
+    const ffmpegPath = findFFmpegPath();
+    if (!ffmpegPath) {
+      // FFmpeg not available — fall back to saving webm
+      await fs.promises.writeFile(filePath, Buffer.from(buffer));
+      return { filePath, warning: 'FFmpeg not found — saved as WebM instead.' };
+    }
+    // Write webm to a temp file, convert, then delete temp
+    const tmpPath = filePath + '.tmp.webm';
+    try {
+      await fs.promises.writeFile(tmpPath, Buffer.from(buffer));
+      execSync(
+        `"${ffmpegPath}" -y -i "${tmpPath}" -c:v libx264 -preset fast -crf 22 -c:a aac -movflags +faststart "${filePath}"`,
+        { timeout: 300_000 } // 5 min max
+      );
+    } finally {
+      fs.unlink(tmpPath, () => {}); // cleanup temp regardless
+    }
+  } else {
+    await fs.promises.writeFile(filePath, Buffer.from(buffer));
+  }
+
+  return { filePath };
+});
+
+// IPC - Open the folder containing a saved recording
+ipcMain.on('open-recording-folder', (_, folderPath) => {
+  shell.openPath(folderPath || app.getPath('videos'));
+});
+
 app.whenReady().then(() => {
+  if (process.platform === 'darwin') {
+    const { systemPreferences, shell } = require('electron');
+    const status = systemPreferences.getMediaAccessStatus('screen');
+    console.log('[permissions] screen recording status:', status);
+    
+    if (status !== 'granted') {
+      // Open System Settings to Privacy & Security
+      shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
+    }
+  }
   ensureDataDir();
   createMainWindow();
 });

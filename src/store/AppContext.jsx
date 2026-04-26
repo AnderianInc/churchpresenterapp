@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo, createContext, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { storage, migrateLegacyStorage, validateSongsArray, validateScheduleArray, validateSettings } from './persistence';
 import defaultSongs from '../data/defaultSongs';
@@ -276,12 +276,68 @@ export function AppProvider({ children }) {
     saveSchedule(newOrder);
   }, [saveSchedule, pushScheduleHistory]);
 
+  // ── Saved Service Orders ──────────────────────────────────────────────────
+  const saveServiceOrder = useCallback((name) => {
+    const savedServices = settings.savedServices || [];
+    const entry = {
+      id: uuidv4(),
+      name: (name || '').trim() || 'Service',
+      savedAt: new Date().toISOString(),
+      items: schedule,
+    };
+    saveSettings({ savedServices: [...savedServices, entry] });
+  }, [schedule, settings, saveSettings]);
+
+  const loadServiceOrder = useCallback((savedService) => {
+    const newSch = savedService.items.map(item => ({ ...item, scheduleId: uuidv4() }));
+    pushScheduleHistory(newSch);
+    saveSchedule(newSch);
+    setActiveScheduleIdx(0);
+    setActiveSlideIdx(0);
+  }, [saveSchedule, pushScheduleHistory]);
+
+  const deleteSavedService = useCallback((id) => {
+    const savedServices = (settings.savedServices || []).filter(s => s.id !== id);
+    saveSettings({ savedServices });
+  }, [settings, saveSettings]);
+
   const clearSchedule = useCallback(() => {
     pushScheduleHistory([]);
     saveSchedule([]);
     setActiveScheduleIdx(0);
     setActiveSlideIdx(0);
-  }, [saveSchedule, pushScheduleHistory]);
+    // Reset all live outputs to standby
+    setLiveProgram(null);
+    setLiveStage(null);
+    setLiveOutputs({});
+    setLiveRoleSlides({});
+    setIsLive(false);
+    setIsBlackout(false);
+    setIsClear(false);
+    if (isElectron) {
+      window.electronAPI.sendSlideProgram(null);
+      window.electronAPI.sendSlideStage(null);
+      window.electronAPI.sendBlackout(false);
+      window.electronAPI.sendClear(false);
+      window.electronAPI.sendOutputState({
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      });
+    } else {
+      writeLiveState({
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      });
+      broadcastRef.current?.postMessage(makeBroadcastMsg('state-sync', {
+        programSlide: null, stageSlide: null,
+        stageMirror: true, isBlackout: false, isClear: false,
+        outputs: {}, roleSlides: {},
+      }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saveSchedule, pushScheduleHistory, isElectron]);
 
   // Crash-safe autosave — write snapshot to localStorage every 60s
   // Uses refs so the interval doesn't restart on every schedule/songs change
@@ -310,6 +366,22 @@ export function AppProvider({ children }) {
     setRecoveryData(null);
   }, [saveSongs, saveSchedule]);
 
+  // Derived next-slide for confidence/stage monitors — computed reactively so
+  // sendOutputState and broadcast payloads always carry the current value.
+  const liveNextSlide = useMemo(() => {
+    const currentItemSlides = schedule[activeScheduleIdx]?.slides || [];
+    if (activeSlideIdx < currentItemSlides.length - 1) {
+      const s = currentItemSlides[activeSlideIdx + 1];
+      return s ? { ...s, item: schedule[activeScheduleIdx] } : null;
+    }
+    if (activeScheduleIdx < schedule.length - 1) {
+      const nextItem = schedule[activeScheduleIdx + 1];
+      const s = nextItem?.slides?.[0];
+      return s ? { ...s, item: nextItem } : null;
+    }
+    return null;
+  }, [schedule, activeScheduleIdx, activeSlideIdx]);
+
   // Stable BroadcastChannel ref for browser mode
   const broadcastRef = useRef(null);
   useEffect(() => {
@@ -326,6 +398,7 @@ export function AppProvider({ children }) {
           isClear,
           outputs: liveOutputs,
           roleSlides: liveRoleSlides,
+          nextSlide: liveNextSlide,
         };
         broadcastRef.current?.postMessage(makeBroadcastMsg('state-sync', payload));
       };
@@ -334,7 +407,7 @@ export function AppProvider({ children }) {
   // liveOutputs/liveRoleSlides intentionally omitted — adding them would
   // tear down and recreate the BroadcastChannel on every live state change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear]);
+  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, liveNextSlide]);
 
   const broadcast = useCallback((type, payload) => {
     broadcastRef.current?.postMessage(makeBroadcastMsg(type, payload));
@@ -374,8 +447,28 @@ export function AppProvider({ children }) {
       isClear,
       outputs,
       roleSlides: liveRoleSlides,
+      nextSlide: liveNextSlide,
     });
-  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides]);
+  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides, liveNextSlide]);
+
+  /**
+   * Compute the slide that comes immediately after the currently active slide.
+   * Returns null if there is no next slide (end of schedule).
+   * Used by the stage monitor to show a "next up" preview.
+   */
+  const computeNextSlidePayload = useCallback(() => {
+    const currentItemSlides = schedule[activeScheduleIdx]?.slides || [];
+    if (activeSlideIdx < currentItemSlides.length - 1) {
+      const s = currentItemSlides[activeSlideIdx + 1];
+      return s ? { ...s, item: schedule[activeScheduleIdx] } : null;
+    }
+    if (activeScheduleIdx < schedule.length - 1) {
+      const nextItem = schedule[activeScheduleIdx + 1];
+      const s = nextItem?.slides?.[0];
+      return s ? { ...s, item: nextItem } : null;
+    }
+    return null;
+  }, [schedule, activeScheduleIdx, activeSlideIdx]);
 
   const goLiveProgram = useCallback((slide) => {
     setLiveProgram(slide);
@@ -384,9 +477,12 @@ export function AppProvider({ children }) {
     setIsClear(false);
     const newStage = stageMirrorProgram ? slide : liveStage;
     if (stageMirrorProgram) setLiveStage(slide);
+    // Attach the next slide so the stage/confidence monitor can show a preview
+    const nextSlide = computeNextSlidePayload();
+    const stageWithNext = { ...newStage, nextSlide };
     if (isElectron) {
       window.electronAPI.sendSlideProgram(slide);
-      window.electronAPI.sendSlideStage(newStage);
+      window.electronAPI.sendSlideStage(stageWithNext);
       sendOutputState(slide, newStage);
     } else {
       persistBrowserLive({
@@ -396,9 +492,9 @@ export function AppProvider({ children }) {
         isClear: false,
       });
       broadcast('slide-program', slide);
-      broadcast('slide-stage', stageMirrorProgram ? slide : liveStage);
+      broadcast('slide-stage', stageWithNext);
     }
-  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState]);
+  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState, computeNextSlidePayload]);
 
   /** Send a different slide to the stage output (ignored while stage mirrors program) */
   const goLiveStage = useCallback((slide) => {
@@ -456,9 +552,11 @@ export function AppProvider({ children }) {
     setIsBlackout(false);
     setIsClear(false);
 
+    const nextSlide = computeNextSlidePayload();
+    const stageWithNext = { ...slide, nextSlide };
     if (isElectron) {
       window.electronAPI.sendSlideProgram(slide);
-      window.electronAPI.sendSlideStage(slide);
+      window.electronAPI.sendSlideStage(stageWithNext);
       sendOutputState(slide, slide);
     } else {
       persistBrowserLive({
@@ -470,11 +568,11 @@ export function AppProvider({ children }) {
         isClear: false,
       });
       broadcast('slide-program', slide);
-      broadcast('slide-stage', slide);
+      broadcast('slide-stage', stageWithNext);
       Object.keys(outputs).forEach((id) => broadcast('output-target', { id, slide }));
       ['announcement', 'background', 'confidence'].forEach((role) => broadcast('output-role-target', { role, slide }));
     }
-  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast]);
+  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast, computeNextSlidePayload]);
 
   const goLive = goLiveProgram;
 
@@ -676,6 +774,24 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  const sendYouTubeControl = useCallback((func, args = []) => {
+    const payload = { func, args };
+    if (isElectron) {
+      window.electronAPI.sendYouTubeControl(payload);
+    } else {
+      broadcastRef.current?.postMessage(makeBroadcastMsg('youtube-control', payload));
+    }
+  }, [isElectron]);
+
+  const sendVideoControl = useCallback((func, args = []) => {
+    const payload = { func, args };
+    if (isElectron) {
+      window.electronAPI.sendVideoControl(payload);
+    } else {
+      broadcastRef.current?.postMessage(makeBroadcastMsg('video-control', payload));
+    }
+  }, [isElectron]);
+
   const currentItem = schedule[activeScheduleIdx] || null;
   const currentSlides = currentItem?.slides || [];
   const currentSlide = currentSlides[activeSlideIdx] || null;
@@ -737,9 +853,12 @@ export function AppProvider({ children }) {
       undoSchedule, redoSchedule,
       addSong, updateSong, deleteSong,
       addToSchedule, removeFromSchedule, updateScheduleItem, reorderSchedule, clearSchedule,
+      saveServiceOrder, loadServiceOrder, deleteSavedService,
       goLive, goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, toggleBlackout, toggleClear,
       openPresentation, closePresentation, openStage, closeStage,
       openStream, closeStream, pushLowerThird, sendStreamConfig,
+      sendYouTubeControl,
+      sendVideoControl,
       nextSlide, prevSlide,
     }}>
       {children}

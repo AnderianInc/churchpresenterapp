@@ -1,0 +1,38 @@
+#!/bin/sh
+# Pre-push checks:
+#   1. Block direct pushes to the protected main branch.
+#   2. Run tests (which also catches ESLint/compile errors) before any push.
+
+protected="main"
+
+while read local_ref local_sha remote_ref remote_sha; do
+  branch=$(echo "$remote_ref" | sed 's|refs/heads/||')
+  if [ "$branch" = "$protected" ]; then
+    echo ""
+    echo "  ✗  Direct push to '$protected' is not allowed."
+    echo "     Create a branch, open a pull request, and merge through GitHub."
+    echo ""
+    exit 1
+  fi
+done
+
+# Run the test suite — this also runs ESLint and catches compilation errors.
+# Set CI=true so react-scripts treats warnings as errors and exits non-zero on failure.
+echo ""
+echo "  ▶  Running tests before push…"
+echo ""
+
+CI=true npm test -- --watchAll=false --passWithNoTests 2>&1
+STATUS=$?
+
+if [ $STATUS -ne 0 ]; then
+  echo ""
+  echo "  ✗  Tests failed (exit $STATUS). Fix the issues above before pushing."
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "  ✓  Tests passed."
+echo ""
+exit 0

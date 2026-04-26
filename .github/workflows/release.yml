@@ -29,8 +29,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Refresh bundled Bible translations
-        run: node scripts/update-bible-translations.js
+      - name: Refresh bundled Bible indexes
+        run: |
+          node scripts/build-offline-index.js
+          node scripts/update-online-index.js
 
       - name: Run tests
         run: npm test -- --watchAll=false --passWithNoTests --ci
@@ -77,8 +79,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Refresh bundled Bible translations
-        run: node scripts/update-bible-translations.js
+      - name: Refresh bundled Bible indexes
+        run: |
+          node scripts/build-offline-index.js
+          node scripts/update-online-index.js
 
       - name: Run tests
         run: npm test -- --watchAll=false --passWithNoTests --ci
@@ -119,8 +123,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Refresh bundled Bible translations
-        run: node scripts/update-bible-translations.js
+      - name: Refresh bundled Bible indexes
+        run: |
+          node scripts/build-offline-index.js
+          node scripts/update-online-index.js
 
       - name: Install Linux build dependencies
         run: |

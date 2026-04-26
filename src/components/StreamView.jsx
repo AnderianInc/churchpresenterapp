@@ -58,22 +58,30 @@ export default function StreamView() {
       }
       if (!cameraDeviceId) return;
 
-      try {
-        setCameraError('');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: { exact: cameraDeviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        });
-        if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        if (!active) return;
-        console.error('[StreamView] Camera error:', err);
-        setCameraError(err.message || 'Failed to access camera.');
-      }
+try {
+  setCameraError('');
+  let stream;
+  try {
+    // First attempt: preferred device with ideal (not exact) constraints
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { ideal: cameraDeviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false,
+    });
+  } catch (firstErr) {
+    console.warn('[StreamView] Preferred camera failed, falling back to any camera:', firstErr.message);
+    // Fallback: any available camera
+    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  }
+  if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+  streamRef.current = stream;
+  if (videoRef.current) {
+    videoRef.current.srcObject = stream;
+  }
+} catch (err) {
+  if (!active) return;
+  console.error('[StreamView] Camera error:', err);
+  setCameraError(err.message || 'Failed to access camera.');
+}
     }
 
     startCamera();

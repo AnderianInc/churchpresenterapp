@@ -1,16 +1,16 @@
-import { searchByReference, searchByKeyword, loadBibleTranslation } from '../data/bible';
+import {
+  searchByReference,
+  searchByKeyword,
+  loadBibleTranslation,
+  parseBebliaXml,
+  BOOK_NAMES_BY_NUMBER,
+  canonicalBook,
+} from '../data/bible';
 
 /**
  * Seed a minimal KJV and NIV corpus before any test runs.
  * searchByReference / searchByKeyword are synchronous and read from BIBLE_TEXTS
- * in-memory — they never fetch on their own.  The async fetch helpers
- * (fetchBibleBookIfNeeded, fetchBibleTranslationFromAsset) are tested by the
- * integration paths in BiblePanel; these unit tests only exercise the pure
- * search logic.
- *
- * Key format used by parseBiblePackageJson from the bundled offline files:
- *   "Psalms 23:1"  (book name comes from payload.book = "Psalms")
- *   "John 3:16"    (book name comes from payload.book = "John")
+ * in-memory — they never fetch on their own.
  */
 beforeAll(() => {
   loadBibleTranslation('KJV', {
@@ -142,5 +142,134 @@ describe('searchByKeyword', () => {
     // "the" appears in nearly everything — should be capped
     const results = searchByKeyword('the');
     expect(results.length).toBeLessThanOrEqual(30);
+  });
+});
+
+// ── BOOK_NAMES_BY_NUMBER ──────────────────────────────────────────────────────
+
+describe('BOOK_NAMES_BY_NUMBER', () => {
+  it('maps all 66 canonical book numbers', () => {
+    expect(Object.keys(BOOK_NAMES_BY_NUMBER)).toHaveLength(66);
+  });
+
+  it('maps OT boundary books correctly', () => {
+    expect(BOOK_NAMES_BY_NUMBER[1]).toBe('Genesis');
+    expect(BOOK_NAMES_BY_NUMBER[39]).toBe('Malachi');
+  });
+
+  it('maps NT boundary books correctly', () => {
+    expect(BOOK_NAMES_BY_NUMBER[40]).toBe('Matthew');
+    expect(BOOK_NAMES_BY_NUMBER[66]).toBe('Revelation');
+  });
+
+  it('maps mid-Bible books correctly', () => {
+    expect(BOOK_NAMES_BY_NUMBER[19]).toBe('Psalms');
+    expect(BOOK_NAMES_BY_NUMBER[43]).toBe('John');
+    expect(BOOK_NAMES_BY_NUMBER[45]).toBe('Romans');
+  });
+});
+
+// ── canonicalBook ─────────────────────────────────────────────────────────────
+
+describe('canonicalBook', () => {
+  it('resolves full book names exactly', () => {
+    expect(canonicalBook('Genesis')).toBe('Genesis');
+    expect(canonicalBook('Revelation')).toBe('Revelation');
+  });
+
+  it('resolves common abbreviations', () => {
+    expect(canonicalBook('ps')).toBe('Psalms');
+    expect(canonicalBook('gen')).toBe('Genesis');
+    expect(canonicalBook('rev')).toBe('Revelation');
+    expect(canonicalBook('matt')).toBe('Matthew');
+  });
+
+  it('is case-insensitive for abbreviations', () => {
+    expect(canonicalBook('GEN')).toBe('Genesis');
+    expect(canonicalBook('Ps')).toBe('Psalms');
+  });
+
+  it('passes through unknown names unchanged', () => {
+    expect(canonicalBook('UnknownBook')).toBe('UnknownBook');
+  });
+});
+
+// ── parseBebliaXml ────────────────────────────────────────────────────────────
+
+describe('parseBebliaXml', () => {
+  // Build minimal XML strings for testing both format variants.
+
+  const numberedXml = `<?xml version="1.0" encoding="UTF-8"?>
+<bible translation="Test KJV">
+  <testament name="New">
+    <book number="43">
+      <chapter number="3">
+        <verse number="16">For God so loved the world.</verse>
+        <verse number="17">For God sent not his Son to condemn the world.</verse>
+      </chapter>
+    </book>
+    <book number="45">
+      <chapter number="8">
+        <verse number="28">And we know that all things work together for good.</verse>
+      </chapter>
+    </book>
+  </testament>
+</bible>`;
+
+  const namedXml = `<?xml version="1.0" encoding="UTF-8"?>
+<bible>
+  <testament name="Old">
+    <book name="Psalms">
+      <chapter number="23">
+        <verse number="1">The LORD is my shepherd.</verse>
+        <verse number="2">He makes me lie down.</verse>
+      </chapter>
+    </book>
+  </testament>
+</bible>`;
+
+  it('parses numbered-book format (Holy-Bible-XML-Format style)', () => {
+    const passages = parseBebliaXml(numberedXml);
+    expect(passages['John 3:16']).toBe('For God so loved the world.');
+    expect(passages['John 3:17']).toBe('For God sent not his Son to condemn the world.');
+    expect(passages['Romans 8:28']).toBe('And we know that all things work together for good.');
+  });
+
+  it('resolves book numbers to canonical names', () => {
+    const passages = parseBebliaXml(numberedXml);
+    // book 43 = John, book 45 = Romans
+    expect(Object.keys(passages)).toContain('John 3:16');
+    expect(Object.keys(passages)).toContain('Romans 8:28');
+  });
+
+  it('parses named-book format', () => {
+    const passages = parseBebliaXml(namedXml);
+    expect(passages['Psalms 23:1']).toBe('The LORD is my shepherd.');
+    expect(passages['Psalms 23:2']).toBe('He makes me lie down.');
+  });
+
+  it('returns empty object for empty string', () => {
+    expect(parseBebliaXml('')).toEqual({});
+  });
+
+  it('returns empty object for malformed XML', () => {
+    const result = parseBebliaXml('<not valid xml>>>');
+    // Should not throw — may return {} or partial results
+    expect(typeof result).toBe('object');
+  });
+
+  it('ignores book entries with unknown number', () => {
+    const xml = `<bible><testament name="Old"><book number="999"><chapter number="1"><verse number="1">Test.</verse></chapter></book></testament></bible>`;
+    const passages = parseBebliaXml(xml);
+    // book 999 is not in BOOK_NAMES_BY_NUMBER — no entries should be created
+    expect(Object.keys(passages)).toHaveLength(0);
+  });
+
+  it('searches parsed numbered-book content via loadBibleTranslation + searchByReference', () => {
+    const passages = parseBebliaXml(numberedXml);
+    loadBibleTranslation('offline:TestKJV', passages);
+    const results = searchByReference('John 3:16', 'offline:TestKJV');
+    expect(results).toHaveLength(1);
+    expect(results[0].text).toBe('For God so loved the world.');
   });
 });
