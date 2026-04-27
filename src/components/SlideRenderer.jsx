@@ -101,7 +101,7 @@ export default function SlideRenderer({
       {/* YouTube background
             fullscreen + ytPlayerId → empty div; the YT IFrame API player is injected here
                                        by the parent (OutputView) which manages the player lifecycle
-            fullscreen, no ytPlayerId → raw iframe (e.g. ConfidencePanel's SlideSection)
+            fullscreen, no ytPlayerId → raw iframe (e.g. ConfidenceMonitor's SlideCanvas)
             thumbnail               → static hqdefault.jpg image
       */}
       {bgType === 'youtube' && effectiveBg.value && (
@@ -113,7 +113,7 @@ export default function SlideRenderer({
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
             />
           ) : fullscreen ? (
-            // Fallback raw iframe (no YT API, e.g. ConfidencePanel)
+            // Fallback raw iframe (no YT API, e.g. ConfidenceMonitor)
             <iframe
               ref={internalIframeRef}
               src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=1&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}

@@ -1,146 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { readLiveState } from '../store/liveStateSync';
 import { BROADCAST_CHANNEL } from '../store/AppContext';
-
-// ── Slide panel (current or next) ─────────────────────────────────────────────
-
-function SlidePanel({ slide, isBlackout, label, accent, dimmed }) {
-  const bg = slide?.item?.background?.value || (dimmed ? '#0a0c12' : '#0d1117');
-  const textColor = slide?.item?.textColor || '#ffffff';
-  const fontFamily = slide?.item?.fontFamily || 'Georgia';
-
-  const textOpacity = dimmed ? 0.55 : 1;
-
-  return (
-    <div style={{
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-      position: 'relative',
-      background: isBlackout ? '#000' : bg,
-    }}>
-      {/* Background image */}
-      {slide?.item?.background?.type === 'image' && !isBlackout && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${slide.item.background.value})`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: `brightness(${(slide.item.background.brightness || 0.4) * (dimmed ? 0.6 : 1)})`,
-          zIndex: 0,
-        }} />
-      )}
-      {/* Background video */}
-      {slide?.item?.background?.type === 'video' && !isBlackout && (
-        <video
-          autoPlay muted loop playsInline
-          src={slide.item.background.value}
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
-            filter: `brightness(${dimmed ? 0.25 : 0.4})`,
-            zIndex: 0,
-          }}
-        />
-      )}
-
-      {/* Slide content */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '6% 8%',
-        textAlign: 'center',
-        position: 'relative',
-        zIndex: 1,
-        overflow: 'hidden',
-      }}>
-        {isBlackout ? (
-          <div style={{ color: 'rgba(255,255,255,0.15)', fontSize: 13 }}>BLACKOUT</div>
-        ) : slide ? (
-          <>
-            <div style={{
-              fontSize: 'clamp(18px, 3vw, 42px)',
-              color: textColor,
-              fontFamily,
-              lineHeight: 1.55,
-              whiteSpace: 'pre-line',
-              textShadow: '0 2px 12px rgba(0,0,0,0.8)',
-              maxWidth: '90%',
-              textAlign: slide.textAlign || 'center',
-              opacity: textOpacity,
-            }}>
-              {slide.lines}
-            </div>
-            {slide.chords && !dimmed && (
-              <div style={{
-                marginTop: 20, width: '90%', padding: '12px 16px',
-                background: 'rgba(0,0,0,0.45)', borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}>
-                <pre style={{
-                  margin: 0,
-                  fontSize: 'clamp(11px, 1.4vw, 17px)',
-                  color: 'rgba(255,220,100,0.9)',
-                  fontFamily: 'monospace',
-                  lineHeight: 1.8,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}>{slide.chords}</pre>
-              </div>
-            )}
-          </>
-        ) : (
-          <div style={{ color: 'rgba(255,255,255,0.12)', textAlign: 'center' }}>
-            {dimmed
-              ? <span style={{ fontSize: 13 }}>No next slide</span>
-              : <><div style={{ fontSize: 40, marginBottom: 10 }}>✝</div><div style={{ fontSize: 13 }}>Waiting for content</div></>
-            }
-          </div>
-        )}
-      </div>
-
-      {/* Label bar at the bottom */}
-      <div style={{
-        flexShrink: 0,
-        padding: '5px 12px',
-        background: 'rgba(0,0,0,0.55)',
-        borderTop: `1px solid ${accent}33`,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        zIndex: 2,
-        position: 'relative',
-      }}>
-        <span style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: '1.2px',
-          textTransform: 'uppercase',
-          color: accent,
-          fontFamily: 'Inter, sans-serif',
-        }}>{label}</span>
-        {slide?.label && (
-          <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', fontFamily: 'Inter, sans-serif' }}>
-            {slide.label}
-          </span>
-        )}
-        {slide?.item?.title && (
-          <span style={{
-            fontSize: 10, color: 'rgba(255,255,255,0.25)',
-            fontFamily: 'Inter, sans-serif',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            marginLeft: 'auto',
-          }}>
-            {slide.item.title}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
+import { SlideCanvas } from './SlideCanvas';
 
 // ── Main StageView ────────────────────────────────────────────────────────────
 
@@ -272,24 +133,22 @@ export default function StageView() {
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
         {/* CURRENT slide panel */}
-        <SlidePanel
+        <SlideCanvas
           slide={isBlackout ? null : slide}
           isBlackout={isBlackout}
           label="Current"
           accent="#4f8ef7"
-          dimmed={false}
         />
 
         {/* Divider */}
         <div style={{ width: 2, background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
 
         {/* NEXT slide panel */}
-        <SlidePanel
+        <SlideCanvas
           slide={nextSlide}
-          isBlackout={false}
           label="Next"
           accent="rgba(255,255,255,0.35)"
-          dimmed={true}
+          dimmed
         />
 
         {/* Right info sidebar */}

@@ -10,6 +10,11 @@ const AUTO_SUGGEST_WORDS   = 40;
 const AUTO_SUGGEST_DELAY   = 45000;
 
 function wordCount(text) { return text.trim().split(/\s+/).filter(Boolean).length; }
+
+function bestWebmMimeType() {
+  return ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
+    .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+}
 function mergeRefs(existing, incoming) {
   const seen = new Set(existing.map(r => r.reference));
   return [...existing, ...incoming.filter(r => !seen.has(r.reference))];
@@ -519,8 +524,7 @@ try {
         const result = await window.electronAPI.startRtmp({ destId: dest.id, rtmpUrl: dest.rtmpUrl + dest.streamKey });
         if (result?.error) { setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error); return; }
       }
-      const mimeType = ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
-  .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
+      const mimeType = bestWebmMimeType();
       const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
       recorderRef.current = recorder;
       recorder.ondataavailable = (e) => {
@@ -564,24 +568,17 @@ try {
     // In Electron: auto-select the best capture source (Stream View → Presentation → screen)
     // so no Chrome picker is shown. In browser: fall through to getDisplayMedia normally.
     if (window.electronAPI?.getCapturableSources) {
-     try {
-  const sources = await window.electronAPI.getCapturableSources();
-  console.log('[recording] capturable sources:', sources.map(s => s.name));
-
-  // Get all Church Presenter windows, skip the first one (main window = us)
-  const appWindows = sources.filter(s => s.name === 'Church Presenter' && s.type === 'window');
-
-  const source =
-    sources.find(s => s.name?.includes('Stream View')) ||
-    sources.find(s => s.name === 'Church Presenter' && s.type === 'window') ||
-    sources.find(s => s.name?.includes('Presentation') && s.type === 'window') ||
-    sources.find(s => s.type === 'screen');
-  console.log('[recording] selected source:', source?.name);
-  if (source) await window.electronAPI.setRecordingSource(source.id);
-  else console.warn('[recording] no suitable source found, handler will auto-pick');
-} catch (err) {
-  console.error('[recording] getCapturableSources failed:', err.message);
-}
+      try {
+        const sources = await window.electronAPI.getCapturableSources();
+        const source =
+          sources.find(s => s.name?.includes('Stream View')) ||
+          sources.find(s => s.name === 'Church Presenter' && s.type === 'window') ||
+          sources.find(s => s.name?.includes('Presentation') && s.type === 'window') ||
+          sources.find(s => s.type === 'screen');
+        if (source) await window.electronAPI.setRecordingSource(source.id);
+      } catch (err) {
+        console.error('[recording] getCapturableSources failed:', err.message);
+      }
     }
 
     let stream;
@@ -598,9 +595,7 @@ try {
     }
 
     localStreamRef.current = stream;
-    const mimeType = ['video/webm;codecs=vp8', 'video/webm;codecs=vp9', 'video/webm']
-  .find(t => MediaRecorder.isTypeSupported(t)) || 'video/webm';
-  console.log('[recording] using mimeType:', mimeType);
+    const mimeType = bestWebmMimeType();
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
     localRecorderRef.current = recorder;
 

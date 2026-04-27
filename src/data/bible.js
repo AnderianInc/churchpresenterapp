@@ -225,7 +225,9 @@ export async function loadOfflineTranslation(id, filename) {
   // Cache in localStorage (best-effort — may fail if storage is full)
   try {
     localStorage.setItem(cacheKey, JSON.stringify(passages));
-  } catch { /* quota exceeded — skip caching */ }
+  } catch (err) {
+    console.warn(`[bible] localStorage quota exceeded — offline cache skipped for "${id}". Consider removing unused translations.`, err);
+  }
 
   BIBLE_TEXTS[`offline:${id}`] = passages;
   return passages;

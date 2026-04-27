@@ -141,20 +141,17 @@ function createMainWindow() {
 
   mainWindow.webContents.session.setDisplayMediaRequestHandler(async (request, callback) => {
     // Consume whichever pending source was set (RTMP takes priority)
-    console.log('[capture] handler fired, pendingRtmp:', pendingRtmpSourceId, 'pendingRecording:', pendingRecordingSourceId);
-  
     const sourceId = pendingRtmpSourceId || pendingRecordingSourceId;
     pendingRtmpSourceId = null;
     pendingRecordingSourceId = null;
 
     const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-    console.log('[capture] available sources:', sources.map(s => s.name));
-  
+
     if (sourceId) {
       const source = sources.find(s => s.id === sourceId);
       if (source) { callback({ video: source }); return; }
     }
-    const appWindows = sources.filter(s => s.name?.includes('Church Presenter') && s.id.startsWith('window:'));
+
     // No pre-selected source: auto-pick the best presentation surface.
     // Priority: Stream View → any Church Presenter window → primary screen.
     const auto =
@@ -163,18 +160,8 @@ function createMainWindow() {
       sources.find(s => s.id.startsWith('screen:'));
 
     if (auto) { callback({ video: auto }); return; }
-
-    // Absolute fallback — pick whatever is available to avoid an unhandled crash
     if (sources.length > 0) { callback({ video: sources[0] }); return; }
-
-    // AFTER — pick the primary screen as absolute fallback
-const primaryScreen = sources.find(s => s.id.startsWith('screen:0')) || sources[0];
-if (primaryScreen) {
-  console.log('[capture] fallback to:', primaryScreen.name);
-  callback({ video: primaryScreen });
-} else {
-  callback({});  // truly nothing available
-}
+    callback({});
   });
 
   mainWindow.on('closed', () => {
@@ -601,7 +588,6 @@ ipcMain.handle('set-rtmp-source', async (_, sourceId) => {
 // Returns all capturable windows and screens (for recording source auto-detection)
 ipcMain.handle('get-capturable-sources', async () => {
   const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
-  console.log('[main] desktopCapturer sources:', sources.map(s => ({ name: s.name, id: s.id })));
   return sources.map(s => ({ id: s.id, name: s.name, type: s.id.startsWith('screen:') ? 'screen' : 'window' }));
 });
 
@@ -935,10 +921,8 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') {
     const { systemPreferences, shell } = require('electron');
     const status = systemPreferences.getMediaAccessStatus('screen');
-    console.log('[permissions] screen recording status:', status);
-    
-    if (status !== 'granted') {
-      // Open System Settings to Privacy & Security
+    // Only prompt when permission has never been set — 'denied' means the user consciously declined
+    if (status === 'not-determined') {
       shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
     }
   }
