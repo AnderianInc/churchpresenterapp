@@ -11,6 +11,7 @@ import BiblePanel from './BiblePanel';
 import MediaPanel from './MediaPanel';
 import AnnouncementPanel from './AnnouncementPanel';
 import StreamPanel from './StreamPanel';
+import TimerPanel from './TimerPanel';
 import OutputManager from './OutputManager';
 import SettingsPanel from './SettingsPanel';
 import SongEditorModal from './SongEditorModal';
@@ -520,6 +521,7 @@ export default function MainLayout() {
         {activeView === 'media' && <MediaPanel />}
         {activeView === 'announcements' && <AnnouncementPanel />}
         {activeView === 'stream' && <StreamPanel />}
+        {activeView === 'timers' && <TimerPanel />}
         {activeView === 'outputs' && <OutputManager />}
         {activeView === 'schedule' && (
           <div style={{

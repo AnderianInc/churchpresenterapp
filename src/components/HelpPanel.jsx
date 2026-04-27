@@ -29,6 +29,7 @@ const sections = [
     body: [
       'Click Outputs in the toolbar (next to Stage and Go Live) to open the Output Manager.',
       'Create output windows for Program, Stage, Announcements, Background, or Confidence — each can target a different display.',
+      'Confidence Monitor opens a four-quadrant stage display (current slide, next slide, timers, announcements) — ideal for a monitor facing the worship team.',
       '"Send Preview" pushes the currently selected slide to that output.',
       '"Sync Program" mirrors whatever is live on the main program output.',
       'Name each display (e.g. "Main Projector", "Stage TV") and save routing presets for fast Sunday setup.',
@@ -39,8 +40,37 @@ const sections = [
     icon: '🖥',
     body: [
       'Click Stage in the toolbar to open a dedicated monitor for the worship team.',
-      'Stage shows lyrics, song key, tempo, and a live clock.',
+      'Stage shows a split-screen: current live slide on the left, next slide dimmed on the right.',
+      'A live clock is always shown in the header.',
       'By default stage mirrors the program output. Uncheck "Stage mirrors program" in the Preview area to send different content to stage.',
+    ],
+  },
+  {
+    title: 'Confidence Monitor',
+    icon: '🗂',
+    body: [
+      'The Confidence Monitor is a four-quadrant full-screen display designed for a monitor facing the worship team or stage crew.',
+      'Upper-left: current live slide (text and background).',
+      'Upper-right: next slide, shown dimmed so the team can prepare.',
+      'Lower-left: Timers — wall clock always visible, plus any countdown or stopwatch timers you have running.',
+      'Lower-right: Stage Announcements — private messages from the operator, visible only on this display.',
+      'To open one: click Outputs in the toolbar → Add Output → set role to Confidence Monitor → assign it to your stage TV.',
+      'Timer and announcement data are broadcast automatically when you use the ⏱ Timers tab.',
+    ],
+  },
+  {
+    title: 'Timers & Stage Announcements',
+    icon: '⏱',
+    body: [
+      'Click ⏱ Timers in the nav bar to open the Timers panel.',
+      'Three timer types: Countdown (counts down from a set duration), Stopwatch (counts up), Clock (shows the current wall clock).',
+      'Add a timer: type an optional name, choose the type, set minutes and seconds (for countdown), then click + Add.',
+      'Start a countdown or stopwatch with ▶ Start. Pause with ⏸, restart with ↺.',
+      'The progress bar turns amber at 20% remaining and red when expired — matching the display on the Confidence Monitor.',
+      'Stage Announcement: type a short message in the text box and click Send to Stage. It appears immediately in the lower-right quadrant of every open Confidence Monitor.',
+      'Announcements are private — they are never shown on audience-facing output windows.',
+      'Press Cmd+Enter (Mac) or Ctrl+Enter (Windows) to send an announcement without reaching for the mouse.',
+      'Click ✕ Clear to dismiss the current announcement from all Confidence Monitors.',
     ],
   },
   {
@@ -128,10 +158,11 @@ const sections = [
     title: 'Settings',
     icon: '⚙',
     body: [
-      'Open ⚙ Settings from the nav bar. Settings are organized into three tabs:',
+      'Open ⚙ Settings from the nav bar. Settings are organized into tabs:',
       '🔑 API Keys — Genius (lyrics import), Planning Center (song library import), Anthropic (AI verse suggestions). All keys are stored locally and never uploaded.',
       '📡 Social Media — Add and manage RTMP streaming destinations (Facebook Live, YouTube Live, Instagram, custom RTMP). Configure stream keys here, then go live from the 📡 Stream panel.',
-      '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults. Grant mic and camera access here to unlock device selection.',
+      '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults.',
+      'Timers and the Confidence Monitor require no settings configuration — open ⏱ Timers in the nav bar to get started immediately.',
     ],
   },
   {
