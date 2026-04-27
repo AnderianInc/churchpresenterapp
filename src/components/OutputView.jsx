@@ -216,7 +216,8 @@ export default function OutputView() {
     const createPlayer = () => {
       if (aborted) return;
       // The div#YT_PLAYER_DIV_ID must be in the DOM (rendered by SlideRenderer)
-      if (!document.getElementById(YT_PLAYER_DIV_ID)) {
+      const container = document.getElementById(YT_PLAYER_DIV_ID);
+      if (!container) {
         setTimeout(createPlayer, 150);
         return;
       }
@@ -224,13 +225,19 @@ export default function OutputView() {
         try { ytPlayerRef.current.destroy(); } catch (_) {}
         ytPlayerRef.current = null;
       }
-      ytPlayerRef.current = new window.YT.Player(YT_PLAYER_DIV_ID, {
+      // Create the player inside an imperatively-managed child div so that the
+      // YT API's DOM replacement doesn't touch the React-managed container element,
+      // preventing "removeChild" reconciliation errors on slide navigation.
+      container.textContent = '';
+      const playerTarget = document.createElement('div');
+      container.appendChild(playerTarget);
+      ytPlayerRef.current = new window.YT.Player(playerTarget, {
         height: '100%',
         width: '100%',
         videoId,
         playerVars: {
-          autoplay: 1,
-          mute: 1,       // start muted (autoplay policy); operator unmutes via controls
+          autoplay: 0,   // don't autoplay — operator starts playback manually
+          mute: 1,       // start muted; operator unmutes via controls
           loop: 1,
           playlist: videoId,
           controls: 0,
