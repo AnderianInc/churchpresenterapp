@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useApp, BROADCAST_CHANNEL } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import { parsePptx } from '../utils/pptxParser';
-import { parseYouTubeMessage, shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
+import { shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
 
 const PRESET_BACKGROUNDS = [
   { id: 'b1', name: 'Deep Navy', type: 'color', value: '#0a0f1e', category: 'solid' },

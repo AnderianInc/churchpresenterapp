@@ -67,6 +67,10 @@ IPC channels:
 - `send-output-state` → `receive-output`
 - `send-lower-third` → `receive-lower-third` (stream window only)
 - `send-stream-config` → `receive-stream-config` (stream window only)
+- `send-timer-state` → `receive-timer-state` (all output windows)
+- `send-stage-announcement` → `receive-stage-announcement` (all output windows)
+- `send-youtube-control` → `receive-youtube-control` (postMessage relay to iframes)
+- `send-video-control` → `receive-video-control` (native `<video>` element control)
 
 ### UI Panels (`src/components/`)
 
@@ -77,9 +81,10 @@ IPC channels:
 | `MediaPanel` | 🖼️ Media | Backgrounds and video import |
 | `AnnouncementPanel` | 📢 Announcements | Announcement slide builder |
 | `StreamPanel` | 📡 Stream | Sermon Assistant (mic, transcript, AI verse suggestions, → LT), camera source, lower-third, social streaming |
+| `TimerPanel` | ⏱ Timers | Countdown, stopwatch, and clock timers with operator start/pause/reset; stage announcement composer |
 | `OutputManager` | 📺 Outputs | Output routing panel (previews, labels, presets) |
-| `SettingsPanel` | ⚙ Settings (floating overlay) | 3-tab panel: API Keys / Social Media / Devices; opens as a non-blocking floating dock over the main UI |
-| `HelpPanel` | ❔ Help | Keyboard shortcut reference |
+| `SettingsPanel` | ⚙ Settings (floating overlay) | 4-tab panel: API Keys / Social Media / Devices / Outputs reference; opens as a non-blocking floating dock |
+| `HelpPanel` | ❔ Help | Keyboard shortcut reference including Confidence Monitor, Timers, and Stage Announcements sections |
 | `SongImportModal` | — | Song import modal (PCO, OpenLyrics, paste) |
 
 **Settings is a floating overlay** — triggered by the ⚙ Settings toolbar button; renders at `position: fixed` (z-index 300) with a semi-transparent backdrop. Clicking outside dismisses it without affecting any other panel.
@@ -520,6 +525,64 @@ In browser mode, relay via BroadcastChannel `video-control` messages (same patte
 - [x] F3: Audited `nextSlide` propagation — `sendOutputState` carries `liveNextSlide`, `receive-output` sets `nextSlide` state, `ConfidencePanel` renders it; flow is correct by design
 - [x] F4: `goLiveAll` already calls `setLiveProgram` + `setIsLive` + `setIsBlackout(false)` + `setIsClear(false)` — no fix needed
 - [x] F5: Video background playback controls — IPC channel `send-video-control` / `receive-video-control`, floating `VideoController` in `MainLayout.jsx`, `videoRef` wired through `SlideRenderer` in `OutputView`
+
+---
+
+---
+
+### P10.5 — Timer System, Confidence Monitor & YouTube Fixes ✅ Complete
+
+This milestone adds the operator timer system, rebuilds the Confidence Monitor as a purpose-built four-quadrant display, and replaces the fragile `YT.Player` API with the YouTube embed postMessage protocol to eliminate the `removeChild` crash and enable uniform control across all output windows.
+
+---
+
+#### Timer System & Stage Announcements
+
+- [x] **`src/utils/timerEngine.js`** — pure-JS timer state module (no React): `TIMER_TYPES` (COUNTDOWN, STOPWATCH, CLOCK), `createTimer`, `startTimer`, `pauseTimer`, `resetTimer`, `getElapsedMs`, `getRemainingMs`, `isExpired`, `formatMs`, `formatClock`
+- [x] **`src/components/TimerPanel.jsx`** — operator timer panel (`⏱ Timers` nav tab):
+  - Add Timer form: name, type, duration (for countdown); Add button
+  - Active timer list with Start / Pause / Reset controls per timer
+  - Progress bar turns amber at <20% remaining; red at expiry
+  - Stage Announcement textarea with Cmd+Enter (Mac) / Ctrl+Enter (Windows) keyboard shortcut for mouse-free send; Clear button
+  - Broadcasts timer state via `BroadcastChannel` (`timer-state`) and Electron IPC (`send-timer-state`)
+  - Broadcasts stage announcements via `BroadcastChannel` (`stage-announcement`) and Electron IPC (`send-stage-announcement`)
+- [x] **`src/components/Toolbar.jsx`** — added `⏱ Timers` nav tab
+- [x] **`src/components/MainLayout.jsx`** — renders `<TimerPanel />` when `activeView === 'timers'`
+
+#### Confidence Monitor (Four-Quadrant Display)
+
+- [x] **`src/components/ConfidenceMonitor.jsx`** — rebuilt as a full-screen four-quadrant grid display for a stage-facing TV:
+  - Upper-left (`SlideCanvas`, accent `#4f8ef7`): current live slide with background, text, and label bar
+  - Upper-right (`SlideCanvas`, dimmed): next slide at reduced opacity so the worship team can prepare
+  - Lower-left (`TimerQuadrant`): wall clock always prominent; active countdown/stopwatch timers with progress bars and colour coding (amber / red)
+  - Lower-right (`AnnouncementQuadrant`): stage announcement from the operator; "No announcement" placeholder when empty
+  - Header bar: CP logo, "Confidence Monitor" label, live wall clock
+  - Subscribes to `timer-state` and `stage-announcement` via BroadcastChannel and Electron IPC
+  - Forwards `youtube-control` messages to embedded iframes via postMessage (always stays muted)
+- [x] **`src/components/SlideCanvas.jsx`** — shared slide preview component used by both `StageView` and `ConfidenceMonitor`:
+  - Handles color, gradient, image, video, and YouTube background types
+  - `dimmed` prop at 55% opacity for the Next quadrant
+  - Label bar with accent colour, section label, and item title
+  - `autoplay=0` and `enablejsapi=1` in YouTube iframe URL (no unexpected autoplay)
+
+#### YouTube PostMessage Controls (Fixes)
+
+- [x] **Removed `YT.Player` API entirely** from `OutputView.jsx` and `ConfidenceMonitor.jsx` — the YT.Player API physically replaces React-managed DOM nodes with iframes, breaking React's fiber reconciliation and causing `removeChild: node is not a child` errors on slide navigation
+- [x] **YouTube embed postMessage protocol** — all YouTube control now uses `iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args }), '*')` with `enablejsapi=1` in the embed URL; no DOM manipulation, no crash
+- [x] **Uniform cross-window control** — `document.querySelectorAll('iframe').forEach(...)` ensures commands reach every output window including Confidence Monitor; no special-casing needed
+- [x] **Single audio source enforcement** — `sendYouTubeCommand` and `execYtCommand` both guard: `if (role !== 'presentation' && (func === 'unMute' || func === 'setVolume')) return;` — only the Program output can unmute; all other windows stay muted, eliminating competing audio
+- [x] **State relay back to operator** — `OutputView` listens for `infoDelivery` postMessage events from the YouTube embed and relays `isPlaying`, `isMuted`, `volume` state to the operator window via BroadcastChannel `youtube-state` / Electron IPC `sendYouTubeState`
+- [x] **Autoplay suppressed** — `autoplay=0` in all YouTube iframe URLs; video loads paused; operator must explicitly click Play in the YouTube controller
+
+#### Documentation Updates (delivered with P10.5)
+
+- [x] **`src/components/SettingsPanel.jsx`** — added `📺 Outputs` reference tab explaining Confidence Monitor quadrant layout, Timer types, and Stage Announcement workflow
+- [x] **`src/components/HelpPanel.jsx`** — added "Confidence Monitor" and "Timers & Stage Announcements" accordion sections
+- [x] **`CHANGELOG.md`** — updated with full `[1.0.0] — 2026-04-28` release entry covering all features, fixes, infrastructure, and test count
+
+#### Tests
+
+- [x] **`src/__tests__/timerEngine.test.js`** — pure-function coverage: `createTimer`, `startTimer`, `pauseTimer`, `resetTimer`, `getElapsedMs`, `getRemainingMs`, `isExpired`, `formatMs`, `formatClock`; 365 total passing tests
 
 ---
 

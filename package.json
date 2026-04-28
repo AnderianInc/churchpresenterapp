@@ -34,9 +34,11 @@
     "appId": "com.church.churchpresenter",
     "productName": "Church Presenter",
     "copyright": "Copyright © 2024 Church Presenter Contributors",
+    "extraMetadata": {
+      "main": "build/electron.js"
+    },
     "files": [
       "build/**/*",
-      "electron/**/*",
       "src/data/defaultSongs.js",
       "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,LICENSE}",
       "!**/node_modules/.cache"
@@ -53,7 +55,6 @@
         { "target": "dmg", "arch": ["arm64", "x64"] },
         { "target": "zip", "arch": ["arm64", "x64"] }
       ],
-      "icon": "build-resources/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build-resources/entitlements.mac.plist",
@@ -75,7 +76,6 @@
       "target": [
         { "target": "nsis", "arch": ["x64"] }
       ],
-      "icon": "build-resources/icon.ico",
       "publisherName": "Church Presenter Contributors",
       "verifyUpdateCodeSignature": false
     },
@@ -83,8 +83,6 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "allowElevation": true,
-      "installerIcon": "build-resources/icon.ico",
-      "uninstallerIcon": "build-resources/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Church Presenter"
@@ -94,7 +92,6 @@
         { "target": "AppImage", "arch": ["x64"] },
         { "target": "deb", "arch": ["x64"] }
       ],
-      "icon": "build-resources/icon.png",
       "category": "AudioVideo",
       "description": "Free offline-first church presentation software",
       "maintainer": "Church Presenter Contributors"
