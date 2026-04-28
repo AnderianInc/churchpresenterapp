@@ -172,8 +172,23 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
     return () => clearInterval(id);
   }, []);
 
-  // Subscribe to timer-state and stage-announcement broadcasts
+  // Subscribe to timer-state, stage-announcement, and youtube-control broadcasts
   useEffect(() => {
+    // Relay operator YouTube commands to the embed iframe via postMessage.
+    // Confidence monitor always stays muted — only play/pause/stop are forwarded.
+    const execYtCommand = (payload) => {
+      const { func, args = [] } = payload || {};
+      if (func === 'unMute' || func === 'setVolume') return;
+      const cmdArgs = Array.isArray(args) && args.length > 0 ? args : '';
+      document.querySelectorAll('iframe').forEach(iframe => {
+        try {
+          iframe.contentWindow?.postMessage(
+            JSON.stringify({ event: 'command', func, args: cmdArgs }), '*'
+          );
+        } catch (_) {}
+      });
+    };
+
     let ch;
     if (typeof BroadcastChannel !== 'undefined') {
       ch = new BroadcastChannel(BROADCAST_CHANNEL);
@@ -181,6 +196,7 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         const { type, payload } = e.data || {};
         if (type === 'timer-state') setTimers(payload || []);
         if (type === 'stage-announcement') setAnnouncement(payload?.text ? payload : null);
+        if (type === 'youtube-control') execYtCommand(payload);
       };
     }
     if (window.electronAPI?.onReceiveTimerState) {
@@ -189,10 +205,14 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
     if (window.electronAPI?.onReceiveStageAnnouncement) {
       window.electronAPI.onReceiveStageAnnouncement((p) => setAnnouncement(p?.text ? p : null));
     }
+    if (window.electronAPI?.onReceiveYouTubeControl) {
+      window.electronAPI.onReceiveYouTubeControl(execYtCommand);
+    }
     return () => {
       ch?.close();
       window.electronAPI?.removeAllListeners?.('receive-timer-state');
       window.electronAPI?.removeAllListeners?.('receive-stage-announcement');
+      window.electronAPI?.removeAllListeners?.('receive-youtube-control');
     };
   }, []);
 

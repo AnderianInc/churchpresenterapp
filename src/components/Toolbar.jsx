@@ -97,6 +97,7 @@ export default function Toolbar({ onNewSong, onOpenSettings }) {
         <button style={tabStyle('media')} onClick={() => setActiveView('media')}>🖼️ Media</button>
         <button style={tabStyle('announcements')} onClick={() => setActiveView('announcements')}>📢 Announcements</button>
         <button style={tabStyle('stream')} onClick={() => setActiveView('stream')}>📡 Stream</button>
+        <button style={tabStyle('timers')} onClick={() => setActiveView('timers')}>⏱ Timers</button>
       </div>
 
       <div style={{ flex: 1 }} />

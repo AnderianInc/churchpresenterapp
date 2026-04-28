@@ -54,12 +54,12 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
         />
       )}
 
-      {/* YouTube background — live iframe for current, static thumbnail for dimmed (next) */}
+      {/* YouTube background — postMessage-controlled iframe for current, thumbnail for dimmed */}
       {slide?.item?.background?.type === 'youtube' && slide.item.background.value && !isBlackout && (
         <>
           {!dimmed ? (
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${slide.item.background.value}?autoplay=1&mute=1&loop=1&playlist=${slide.item.background.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3`}
+              src={`https://www.youtube-nocookie.com/embed/${slide.item.background.value}?autoplay=0&mute=1&loop=1&playlist=${slide.item.background.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',
                 border: 'none', pointerEvents: 'none', zIndex: 0,

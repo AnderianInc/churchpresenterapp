@@ -17,6 +17,7 @@ const TABS = [
   { id: 'keys',    label: '🔑 API Keys' },
   { id: 'social',  label: '📡 Social Media' },
   { id: 'devices', label: '🎙 Devices' },
+  { id: 'outputs', label: '📺 Outputs' },
   { id: 'help',    label: '❔ Help' },
 ];
 
@@ -706,6 +707,74 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
         {/* ── Devices tab ───────────────────────────────────────────────── */}
         {activeTab === 'devices' && (
           <DevicesTab settings={settings} saveSettings={saveSettings} />
+        )}
+
+        {/* ── Outputs tab ───────────────────────────────────────────────── */}
+        {activeTab === 'outputs' && (
+          <>
+            <Section title="Confidence Monitor">
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>🗂</span>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Four-Quadrant Stage Display</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Current slide · Next slide · Timers · Announcements</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {[
+                    { pos: 'Upper-left',  label: 'Current', desc: 'The slide currently live on program — full brightness.' },
+                    { pos: 'Upper-right', label: 'Next',    desc: 'The slide coming up next — dimmed so it\'s readable but distinct.' },
+                    { pos: 'Lower-left',  label: 'Timers',  desc: 'Wall clock always shown. Active countdown/stopwatch timers appear here with progress bars.' },
+                    { pos: 'Lower-right', label: 'Stage',   desc: 'Operator announcements sent from the ⏱ Timers panel. Visible here only.' },
+                  ].map(({ pos, label, desc }) => (
+                    <div key={pos} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ flexShrink: 0, width: 78, fontSize: 10, color: 'var(--text-dim)', paddingTop: 1 }}>{pos}</div>
+                      <div>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text)' }}>{label} — </span>
+                        <span style={{ fontSize: 11, color: 'var(--text-dim)' }}>{desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: '7px 9px', borderRadius: 5, background: 'rgba(79,142,247,0.07)', border: '1px solid rgba(79,142,247,0.18)', fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                  To open: click <strong style={{ color: 'var(--text)' }}>📺 Outputs</strong> in the toolbar → <strong style={{ color: 'var(--text)' }}>Add Output</strong> → set role to <strong style={{ color: 'var(--text)' }}>Confidence Monitor</strong> → assign it to your stage TV display.
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Timers">
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>⏱</span>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Timer Types</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>No setup required — open ⏱ Timers in the nav bar</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {[
+                    { type: 'Countdown', desc: 'Counts down from a set duration. Progress bar turns amber at 20% remaining and red at zero.' },
+                    { type: 'Stopwatch', desc: 'Counts up from zero. Start, pause, and reset as needed.' },
+                    { type: 'Clock',     desc: 'Shows the current wall clock time. Always live — no start/stop needed.' },
+                  ].map(({ type, desc }) => (
+                    <div key={type} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                      <div style={{ flexShrink: 0, width: 78, fontSize: 10, fontWeight: 600, color: 'var(--text)', paddingTop: 1 }}>{type}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>{desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Section>
+
+            <Section title="Stage Announcements">
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+                <p style={{ margin: '0 0 6px' }}>Type a short message in the <strong style={{ color: 'var(--text)' }}>Stage Announcement</strong> box in the ⏱ Timers panel and click <strong style={{ color: 'var(--text)' }}>Send to Stage</strong>.</p>
+                <p style={{ margin: '0 0 6px' }}>The message appears immediately in the lower-right quadrant of every open Confidence Monitor.</p>
+                <p style={{ margin: 0 }}>Announcements are <strong style={{ color: 'var(--text)' }}>private</strong> — they never appear on audience-facing Program, Announcement, or Background outputs. Press <kbd style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 3, padding: '1px 5px', fontSize: 10 }}>⌘ Enter</kbd> / <kbd style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 3, padding: '1px 5px', fontSize: 10 }}>Ctrl Enter</kbd> to send without the mouse.</p>
+              </div>
+            </Section>
+          </>
         )}
 
         {/* ── Help tab ──────────────────────────────────────────────────── */}

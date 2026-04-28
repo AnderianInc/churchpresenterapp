@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SlideRenderer from './SlideRenderer';
-import { SlideCanvas } from './SlideCanvas';
 import ConfidenceMonitor from './ConfidenceMonitor';
 import { readLiveState } from '../store/liveStateSync';
 import { makeBroadcastMsg, BROADCAST_CHANNEL } from '../store/AppContext';
@@ -41,45 +40,6 @@ function resolveSlideForRole(role, outputId, payload) {
   return payload.programSlide;
 }
 
-
-// ── YouTube IFrame API helpers ────────────────────────────────────────────────
-
-const YT_PLAYER_DIV_ID = 'yt-output-player';
-
-/** Load the YouTube IFrame Player API script once per page load. */
-function loadYtApiScript() {
-  if (window.YT || document.getElementById('yt-api-script')) return;
-  const s = document.createElement('script');
-  s.id = 'yt-api-script';
-  s.src = 'https://www.youtube.com/iframe_api';
-  s.async = true;
-  document.head.appendChild(s);
-}
-
-/**
- * Register a callback to run once the YouTube IFrame API is ready.
- * Uses a global listener registry so it survives React StrictMode's
- * double-invocation of effects without chaining window.onYouTubeIframeAPIReady.
- * Returns an unregister function — call it from the effect cleanup.
- */
-function registerYtReadyCallback(cb) {
-  if (window.YT?.Player) {
-    const t = setTimeout(cb, 50);
-    return () => clearTimeout(t);
-  }
-  if (!window.__ytReadyListeners) {
-    window.__ytReadyListeners = [];
-    window.onYouTubeIframeAPIReady = () => {
-      const fns = window.__ytReadyListeners ?? [];
-      window.__ytReadyListeners = [];
-      fns.forEach(fn => fn());
-    };
-  }
-  window.__ytReadyListeners.push(cb);
-  return () => {
-    window.__ytReadyListeners = (window.__ytReadyListeners ?? []).filter(fn => fn !== cb);
-  };
-}
 
 /** Relay a YouTube player state update to the operator window. */
 function relayYtState(payload) {
@@ -172,121 +132,52 @@ export default function OutputView() {
   const [isClear, setIsClear] = useState(false);
   const [roleLabel, setRoleLabel] = useState(role.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
 
-  // YouTube IFrame Player API player instance
-  const ytPlayerRef = useRef(null);
-  const ytVideoIdRef = useRef(null);
-
   // Native <video> element ref (for video background control)
   const videoRef = useRef(null);
 
-  // Current YouTube video ID from the live slide (null when no YouTube bg)
-  const currentYtId = (slide?.item?.background?.type === 'youtube' && !isBlackout)
-    ? (slide.item.background.value || null)
-    : null;
-
-  // ── Load the YT IFrame API script once (non-confidence windows only) ────────
-  useEffect(() => {
-    if (role === 'confidence') return;
-    loadYtApiScript();
+  // ── YouTube control via embed postMessage (works in every output window) ──────
+  // Only the program output receives audio — other outputs always stay muted so
+  // there is no overlapping sound from stage/confidence/announcement windows.
+  const sendYouTubeCommand = useCallback(({ func, args = [] }) => {
+    if (role !== 'presentation' && (func === 'unMute' || func === 'setVolume')) return;
+    const cmdArgs = Array.isArray(args) && args.length > 0 ? args : '';
+    document.querySelectorAll('iframe').forEach(iframe => {
+      try {
+        iframe.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func, args: cmdArgs }), '*'
+        );
+      } catch (_) {}
+    });
   }, [role]);
 
-  // ── Create / destroy YT.Player when the active YouTube video changes ─────────
+  // Relay YouTube iframe state back to the operator window
   useEffect(() => {
     if (role === 'confidence') return;
-
-    if (!currentYtId) {
-      // No YouTube slide active — stop and destroy the player
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.stopVideo(); } catch (_) {}
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-        ytVideoIdRef.current = null;
+    const handleMsg = (e) => {
+      if (!e.origin?.includes('youtube')) return;
+      let data;
+      try { data = JSON.parse(typeof e.data === 'string' ? e.data : '{}'); } catch { return; }
+      if (!data?.event) return;
+      if (data.event === 'onReady') {
+        document.querySelectorAll('iframe').forEach(iframe => {
+          try { iframe.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 1 }), '*'); } catch (_) {}
+        });
+        relayYtState({ isPlaying: false, isMuted: true, volume: 100 });
       }
-      return;
-    }
-
-    // Same video already playing — no need to recreate
-    if (ytVideoIdRef.current === currentYtId && ytPlayerRef.current) return;
-    ytVideoIdRef.current = currentYtId;
-
-    const videoId = currentYtId; // capture for closure
-
-    let aborted = false;
-
-    const createPlayer = () => {
-      if (aborted) return;
-      // The div#YT_PLAYER_DIV_ID must be in the DOM (rendered by SlideRenderer)
-      if (!document.getElementById(YT_PLAYER_DIV_ID)) {
-        setTimeout(createPlayer, 150);
-        return;
-      }
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-      }
-      ytPlayerRef.current = new window.YT.Player(YT_PLAYER_DIV_ID, {
-        height: '100%',
-        width: '100%',
-        videoId,
-        playerVars: {
-          autoplay: 1,
-          mute: 1,       // start muted (autoplay policy); operator unmutes via controls
-          loop: 1,
-          playlist: videoId,
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          playsinline: 1,
-          iv_load_policy: 3,
-        },
-        events: {
-          onReady: (e) => {
-            // Relay initial mute/volume; isPlaying comes from onStateChange
-            relayYtState({ isMuted: true, volume: e.target.getVolume() });
-          },
-          onStateChange: (e) => {
-            const YTState = window.YT?.PlayerState;
-            const isPlaying = e.data === YTState?.PLAYING || e.data === YTState?.BUFFERING;
-            try {
-              relayYtState({
-                isPlaying,
-                isMuted: e.target.isMuted(),
-                volume: e.target.getVolume(),
-              });
-            } catch (_) {}
-          },
-        },
-      });
-    };
-
-    // StrictMode-safe: uses a global listener registry instead of chaining
-    // window.onYouTubeIframeAPIReady, so effects can be registered/cleaned up
-    // multiple times without losing the callback.
-    const unregister = registerYtReadyCallback(createPlayer);
-
-    return () => {
-      aborted = true;
-      unregister();
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.stopVideo(); } catch (_) {}
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-        ytVideoIdRef.current = null;
+      if (data.event === 'infoDelivery' && data.info) {
+        const { playerState, muted, volume } = data.info;
+        if (playerState !== undefined || muted !== undefined || volume !== undefined) {
+          relayYtState({
+            isPlaying: playerState === 1 || playerState === 3,
+            isMuted: muted ?? true,
+            volume: volume ?? 100,
+          });
+        }
       }
     };
-  }, [currentYtId, role]);
-
-  // ── YouTube control commands from operator window ─────────────────────────
-  const sendYouTubeCommand = useCallback((payload) => {
-    const { func, args } = payload;
-    const player = ytPlayerRef.current;
-    if (player && typeof player[func] === 'function') {
-      try {
-        player[func](...(Array.isArray(args) ? args : []));
-        return;
-      } catch (_) {}
-    }
-  }, []);
+    window.addEventListener('message', handleMsg);
+    return () => window.removeEventListener('message', handleMsg);
+  }, [role]);
 
   // ── Video element control commands from operator window ───────────────────
   const sendVideoCommand = useCallback((payload) => {
@@ -427,7 +318,6 @@ export default function OutputView() {
           slide={{ ...slide, lines: '', chords: '' }}
           item={slide?.item}
           fullscreen
-          ytPlayerId={YT_PLAYER_DIV_ID}
           videoRef={videoRef}
         />
         <HoverToolbar outputId={outputId} />
@@ -455,7 +345,7 @@ export default function OutputView() {
       <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2, color: 'rgba(255,255,255,0.7)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.14em' }}>
         {roleLabel}
       </div>
-      <SlideRenderer slide={slide} item={slide?.item} fullscreen ytPlayerId={YT_PLAYER_DIV_ID} videoRef={videoRef} />
+      <SlideRenderer slide={slide} item={slide?.item} fullscreen videoRef={videoRef} />
       <HoverToolbar outputId={outputId} />
     </div>
   );
