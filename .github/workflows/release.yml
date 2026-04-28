@@ -40,15 +40,19 @@ jobs:
 
       - name: Build macOS installer
         env:
-          # Code-signing (set in GitHub repo Secrets for signed production builds)
-          # Leave unset for unsigned builds — the app will still run with Gatekeeper bypass.
-          CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
-          # Notarization (required for Gatekeeper approval without bypass on macOS 13+)
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npx electron-builder --mac --publish never
+          _CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          _CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          _APPLE_ID: ${{ secrets.APPLE_ID }}
+          _APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          _APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "$_CSC_LINK" ]; then
+            export CSC_LINK="$_CSC_LINK" CSC_KEY_PASSWORD="$_CSC_KEY_PASSWORD"
+            export APPLE_ID="$_APPLE_ID" APPLE_APP_SPECIFIC_PASSWORD="$_APPLE_APP_SPECIFIC_PASSWORD" APPLE_TEAM_ID="$_APPLE_TEAM_ID"
+          else
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+          fi
+          npx electron-builder --mac --publish never
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -88,10 +92,14 @@ jobs:
 
       - name: Build Windows installer
         env:
-          # Code-signing (optional — requires a code-signing certificate)
-          WIN_CSC_LINK: ${{ secrets.WIN_CERT_P12_BASE64 }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
-        run: npx electron-builder --win --publish never
+          _WIN_CSC_LINK: ${{ secrets.WIN_CERT_P12_BASE64 }}
+          _WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+        run: |
+          if ($env:_WIN_CSC_LINK) {
+            $env:WIN_CSC_LINK = $env:_WIN_CSC_LINK
+            $env:WIN_CSC_KEY_PASSWORD = $env:_WIN_CSC_KEY_PASSWORD
+          }
+          npx electron-builder --win --publish never
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
