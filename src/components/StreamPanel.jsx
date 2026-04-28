@@ -108,6 +108,7 @@ function SermonSection({ pushLowerThird, setLtText, setLtLabel, setLtSource }) {
       };
       tick();
     } catch { /* level meter fails gracefully */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const stopLevelMeter = useCallback(() => {
@@ -197,6 +198,7 @@ function SermonSection({ pushLowerThird, setLtText, setLtLabel, setLtSource }) {
     setSermonListening(true);
     recognition.start();
     startLevelMeter(settings?.preferredMicId || '');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings?.preferredMicId, setSermonListening, setSermonTranscript, setSermonInterim, startLevelMeter]);
 
   const stopListening = useCallback(() => {
