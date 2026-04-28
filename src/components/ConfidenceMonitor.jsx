@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SlideCanvas } from './SlideCanvas';
 import { BROADCAST_CHANNEL } from '../store/AppContext';
 import {
@@ -9,38 +9,6 @@ import {
   formatMs,
   formatClock,
 } from '../utils/timerEngine';
-
-// ── YouTube IFrame API helpers (confidence window has its own player) ─────────
-
-const YT_CM_PLAYER_ID = 'yt-cm-player';
-
-function loadYtApiScript() {
-  if (window.YT || document.getElementById('yt-api-script')) return;
-  const s = document.createElement('script');
-  s.id = 'yt-api-script';
-  s.src = 'https://www.youtube.com/iframe_api';
-  s.async = true;
-  document.head.appendChild(s);
-}
-
-function registerYtReadyCallback(cb) {
-  if (window.YT?.Player) {
-    const t = setTimeout(cb, 50);
-    return () => clearTimeout(t);
-  }
-  if (!window.__ytReadyListeners) {
-    window.__ytReadyListeners = [];
-    window.onYouTubeIframeAPIReady = () => {
-      const fns = window.__ytReadyListeners ?? [];
-      window.__ytReadyListeners = [];
-      fns.forEach(fn => fn());
-    };
-  }
-  window.__ytReadyListeners.push(cb);
-  return () => {
-    window.__ytReadyListeners = (window.__ytReadyListeners ?? []).filter(fn => fn !== cb);
-  };
-}
 
 // ── Bottom-left quadrant: timer display ───────────────────────────────────────
 
@@ -198,82 +166,27 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
   const [announcement, setAnnouncement] = useState(null);
   const [clock, setClock]             = useState(formatClock());
 
-  const ytPlayerRef   = useRef(null);
-  const ytVideoIdRef  = useRef(null);
-
-  // Current YouTube video ID from the live slide
-  const currentYtId = (slide?.item?.background?.type === 'youtube' && !isBlackout)
-    ? (slide.item.background.value || null)
-    : null;
-
   // Clock for header bar
   useEffect(() => {
     const id = setInterval(() => setClock(formatClock()), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // Load the YT IFrame API once
-  useEffect(() => { loadYtApiScript(); }, []);
-
-  // Create / destroy YT.Player when the YouTube video changes
-  useEffect(() => {
-    if (!currentYtId) {
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.stopVideo(); } catch (_) {}
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-        ytVideoIdRef.current = null;
-      }
-      return;
-    }
-
-    if (ytVideoIdRef.current === currentYtId && ytPlayerRef.current) return;
-    ytVideoIdRef.current = currentYtId;
-
-    const videoId = currentYtId;
-    let aborted = false;
-
-    const createPlayer = () => {
-      if (aborted) return;
-      const container = document.getElementById(YT_CM_PLAYER_ID);
-      if (!container) { setTimeout(createPlayer, 150); return; }
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-      }
-      container.textContent = '';
-      const playerTarget = document.createElement('div');
-      container.appendChild(playerTarget);
-      ytPlayerRef.current = new window.YT.Player(playerTarget, {
-        height: '100%', width: '100%', videoId,
-        playerVars: {
-          autoplay: 0, mute: 1, loop: 1, playlist: videoId,
-          controls: 0, disablekb: 1, modestbranding: 1, playsinline: 1, iv_load_policy: 3,
-        },
-      });
-    };
-
-    const unregister = registerYtReadyCallback(createPlayer);
-    return () => {
-      aborted = true;
-      unregister();
-      if (ytPlayerRef.current) {
-        try { ytPlayerRef.current.stopVideo(); } catch (_) {}
-        try { ytPlayerRef.current.destroy(); } catch (_) {}
-        ytPlayerRef.current = null;
-        ytVideoIdRef.current = null;
-      }
-    };
-  }, [currentYtId]);
-
   // Subscribe to timer-state, stage-announcement, and youtube-control broadcasts
   useEffect(() => {
+    // Relay operator YouTube commands to the embed iframe via postMessage.
+    // Confidence monitor always stays muted — only play/pause/stop are forwarded.
     const execYtCommand = (payload) => {
-      const { func, args } = payload || {};
-      const player = ytPlayerRef.current;
-      if (player && typeof player[func] === 'function') {
-        try { player[func](...(Array.isArray(args) ? args : [])); } catch (_) {}
-      }
+      const { func, args = [] } = payload || {};
+      if (func === 'unMute' || func === 'setVolume') return;
+      const cmdArgs = Array.isArray(args) && args.length > 0 ? args : '';
+      document.querySelectorAll('iframe').forEach(iframe => {
+        try {
+          iframe.contentWindow?.postMessage(
+            JSON.stringify({ event: 'command', func, args: cmdArgs }), '*'
+          );
+        } catch (_) {}
+      });
     };
 
     let ch;
@@ -348,7 +261,7 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         {/* Upper-left: Current slide */}
         <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <QuadrantLabel text="Current" accent="#4f8ef7" />
-          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" ytPlayerId={YT_CM_PLAYER_ID} />
+          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" />
         </div>
 
         {/* Upper-right: Next slide */}

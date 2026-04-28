@@ -10,7 +10,7 @@ import React from 'react';
  * @param {boolean} dimmed       - Reduced opacity mode for the "Next" panel.
  * @param {string}  flex         - CSS flex value for the outer container (default '1').
  */
-export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1', ytPlayerId }) {
+export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1' }) {
   const bg = slide?.item?.background?.value || (dimmed ? '#0a0c12' : '#0d1117');
   const textColor = slide?.item?.textColor || '#ffffff';
   const fontFamily = slide?.item?.fontFamily || 'Georgia';
@@ -54,24 +54,19 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
         />
       )}
 
-      {/* YouTube background — live iframe for current, static thumbnail for dimmed (next) */}
+      {/* YouTube background — postMessage-controlled iframe for current, thumbnail for dimmed */}
       {slide?.item?.background?.type === 'youtube' && slide.item.background.value && !isBlackout && (
         <>
           {!dimmed ? (
-            ytPlayerId ? (
-              // Placeholder div — parent manages a YT.Player instance injected here
-              <div id={ytPlayerId} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0 }} />
-            ) : (
-              <iframe
-                src={`https://www.youtube-nocookie.com/embed/${slide.item.background.value}?autoplay=0&mute=1&loop=1&playlist=${slide.item.background.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3`}
-                style={{
-                  position: 'absolute', inset: 0, width: '100%', height: '100%',
-                  border: 'none', pointerEvents: 'none', zIndex: 0,
-                }}
-                allow="autoplay; encrypted-media"
-                title="YouTube background"
-              />
-            )
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${slide.item.background.value}?autoplay=0&mute=1&loop=1&playlist=${slide.item.background.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}
+              style={{
+                position: 'absolute', inset: 0, width: '100%', height: '100%',
+                border: 'none', pointerEvents: 'none', zIndex: 0,
+              }}
+              allow="autoplay; encrypted-media"
+              title="YouTube background"
+            />
           ) : (
             <div style={{
               position: 'absolute', inset: 0,
