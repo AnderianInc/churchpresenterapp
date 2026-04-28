@@ -34,9 +34,11 @@
     "appId": "com.church.churchpresenter",
     "productName": "Church Presenter",
     "copyright": "Copyright © 2024 Church Presenter Contributors",
+    "extraMetadata": {
+      "main": "build/electron.js"
+    },
     "files": [
       "build/**/*",
-      "electron/**/*",
       "src/data/defaultSongs.js",
       "!**/node_modules/*/{CHANGELOG.md,README.md,readme.md,LICENSE}",
       "!**/node_modules/.cache"
