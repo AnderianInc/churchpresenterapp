@@ -1,10 +1,11 @@
 const { app, BrowserWindow, ipcMain, screen, dialog, desktopCapturer, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { pathToFileURL } = require('url');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = !app.isPackaged;
 
 // Data directory
 const dataDir = path.join(app.getPath('userData'), 'data');
@@ -134,7 +135,7 @@ function createMainWindow() {
 
   const startUrl = isDev
     ? 'http://localhost:3000'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   mainWindow.loadURL(startUrl);
   if (isDev) mainWindow.webContents.openDevTools({ mode: 'detach' });
@@ -201,7 +202,7 @@ function createPresentationWindow(displayIndex = 1) {
 
   const startUrl = isDev
     ? 'http://localhost:3000/presentation'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   presentationWindow.loadURL(startUrl + (isDev ? '' : '#/presentation'));
 
@@ -227,7 +228,7 @@ function createStageWindow() {
 
   const startUrl = isDev
     ? 'http://localhost:3000/stage'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   stageWindow.loadURL(startUrl + (isDev ? '' : '#/stage'));
 
@@ -257,7 +258,7 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
 
   const startUrl = isDev
     ? 'http://localhost:3000'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   const route = isDev
     ? `/output?role=${encodeURIComponent(role)}&id=${encodeURIComponent(id)}`
@@ -293,7 +294,7 @@ function createStreamWindow(displayIndex = 0) {
 
   const startUrl = isDev
     ? 'http://localhost:3000/stream'
-    : `file://${path.join(__dirname, '../build/index.html')}`;
+    : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   streamWindow.loadURL(startUrl + (isDev ? '' : '#/stream'));
 

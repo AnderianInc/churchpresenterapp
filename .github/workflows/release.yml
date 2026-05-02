@@ -158,6 +158,7 @@ jobs:
           name: linux-installers
           path: |
             dist/*.AppImage
+            dist/*.deb
           if-no-files-found: warn
 
   # ── Create GitHub Release ─────────────────────────────────────────────────
