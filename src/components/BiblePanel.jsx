@@ -32,12 +32,12 @@ function buildOfflineFavorite(entry) {
 }
 
 // Ensure a BIBLE_TEXTS key is loaded for the given favorite
-async function ensureLoaded(fav) {
+async function ensureLoaded(fav, localDir) {
   if (fav.isImported) return; // already in memory from init
   const bareId = fav.id.startsWith('offline:') ? fav.id.slice('offline:'.length) : fav.id;
   const textKey = `offline:${bareId}`;
   if (!Object.keys(BIBLE_TEXTS[textKey] || {}).length) {
-    await loadOfflineTranslation(bareId, fav.filename);
+    await loadOfflineTranslation(bareId, fav.filename, localDir || null);
   }
 }
 
@@ -72,7 +72,7 @@ const chipStyle = (active) => ({
 
 // ── Translation Browser overlay ───────────────────────────────────────────────
 
-function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onToggleFavorite, onClose, defaultTab }) {
+function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onToggleFavorite, onClose, defaultTab, bibleXmlDir, onSetBibleXmlDir }) {
   const [tab, setTab] = useState(defaultTab || 'online');
   const [query, setQuery] = useState('');
   const inputRef = useRef(null);
@@ -149,6 +149,7 @@ function TranslationBrowser({ onlineVersions, offlineVersions, favoriteIds, onTo
 
       {/* XML import (offline tab only) */}
       {tab === 'offline' && <ImportXmlButton offlineVersions={offlineVersions} />}
+      {tab === 'offline' && <BibleFolderPicker bibleXmlDir={bibleXmlDir} onSetBibleXmlDir={onSetBibleXmlDir} />}
 
       {/* List */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '6px 8px' }}>
@@ -267,6 +268,59 @@ function ImportXmlButton({ offlineVersions }) {
       {status && (
         <div style={{ fontSize: 10, marginTop: 4, color: status.startsWith('✓') ? 'var(--green)' : 'var(--yellow)' }}>
           {status}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BibleFolderPicker({ bibleXmlDir, onSetBibleXmlDir }) {
+  const [status, setStatus] = useState('');
+  const isElectron = !!window.electronAPI?.selectDirectory;
+  if (!isElectron) return null;
+
+  const handleBrowse = async () => {
+    const dir = await window.electronAPI.selectDirectory();
+    if (!dir) return;
+    onSetBibleXmlDir(dir);
+    setStatus('✓ Folder saved');
+    setTimeout(() => setStatus(''), 3000);
+  };
+
+  const handleClear = () => { onSetBibleXmlDir(''); setStatus(''); };
+
+  return (
+    <div style={{ padding: '6px 10px', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4, lineHeight: 1.5 }}>
+        Bible XML folder — point to your local{' '}
+        <a href="https://github.com/Beblia/Holy-Bible-XML-Format" target="_blank" rel="noopener noreferrer"
+          style={{ color: 'var(--accent)', textDecoration: 'none' }}
+          onClick={e => e.stopPropagation()}>Beblia collection ↗</a>
+        {' '}to enable all 1,000+ offline translations.
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button onClick={handleBrowse} style={{
+          background: 'var(--bg-hover)', border: '1px solid var(--border)',
+          color: 'var(--text-muted)', padding: '4px 10px', borderRadius: 4,
+          cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', flexShrink: 0,
+        }}>Browse…</button>
+        {bibleXmlDir && (
+          <span style={{ fontSize: 10, color: 'var(--text-dim)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            title={bibleXmlDir}>{bibleXmlDir}</span>
+        )}
+        {bibleXmlDir && (
+          <button onClick={handleClear} style={{
+            background: 'none', border: 'none', color: 'var(--text-dim)',
+            cursor: 'pointer', fontSize: 12, padding: '0 2px', lineHeight: 1, flexShrink: 0,
+          }} title="Clear">×</button>
+        )}
+      </div>
+      {status && (
+        <div style={{ fontSize: 10, marginTop: 4, color: 'var(--green)' }}>{status}</div>
+      )}
+      {!bibleXmlDir && (
+        <div style={{ fontSize: 10, marginTop: 4, color: 'var(--yellow)' }}>
+          No folder set — only individually imported XML files will work offline.
         </div>
       )}
     </div>
@@ -470,7 +524,7 @@ export default function BiblePanel() {
       const textKey = favTextKey(fav);
       const displayLabel = favDisplayLabel(fav);
       try {
-        await ensureLoaded(fav);
+        await ensureLoaded(fav, settings?.bibleXmlDir || '');
         const hits = searchByReference(query, textKey);
         for (const r of hits) {
           allResults.push({ ...r, version: displayLabel });
@@ -493,7 +547,7 @@ export default function BiblePanel() {
     for (const fav of versionsToUse) {
       const textKey = favTextKey(fav);
       try {
-        await ensureLoaded(fav);
+        await ensureLoaded(fav, settings?.bibleXmlDir || '');
         const hits = searchByKeyword(query, textKey);
         hits.forEach(h => matchingRefs.add(h.reference));
       } catch (err) {
@@ -572,7 +626,7 @@ export default function BiblePanel() {
           const matchingRefs = new Set();
           for (const fav of versionsToSearch) {
             try {
-              await ensureLoaded(fav);
+              await ensureLoaded(fav, settings?.bibleXmlDir || '');
               searchByKeyword(query, favTextKey(fav)).forEach(h => matchingRefs.add(h.reference));
             } catch { /* skip */ }
           }
@@ -588,7 +642,7 @@ export default function BiblePanel() {
           const getVerse = async (fav, ref) => {
             if (!fav) return null;
             try {
-              await ensureLoaded(fav);
+              await ensureLoaded(fav, settings?.bibleXmlDir || '');
               const hits = searchByReference(ref, favTextKey(fav));
               return hits[0] ? { ...hits[0], version: favDisplayLabel(fav) } : null;
             } catch { return null; }
@@ -777,6 +831,8 @@ export default function BiblePanel() {
           onToggleFavorite={toggleFavorite}
           onClose={() => setShowTranslationBrowser(false)}
           defaultTab={bibleMode}
+          bibleXmlDir={settings?.bibleXmlDir || ''}
+          onSetBibleXmlDir={dir => saveSettings({ bibleXmlDir: dir })}
         />
       )}
 

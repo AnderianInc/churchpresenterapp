@@ -19,7 +19,7 @@ const files = {
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [], imageFavorites: [], savedServices: [] }),
+  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], bibleXmlDir: '', preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [], imageFavorites: [], savedServices: [] }),
 };
 
 function writeJsonFile(filePath, data) {

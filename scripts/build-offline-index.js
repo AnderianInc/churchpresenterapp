@@ -21,8 +21,12 @@ const OUT_DIR  = path.join(__dirname, '../public/bibles');
 const OUT_FILE = path.join(OUT_DIR, 'offline-index.json');
 
 if (!fs.existsSync(XML_DIR)) {
-  console.error(`Error: XML directory not found: ${XML_DIR}`);
-  process.exit(1);
+  console.warn(`Warning: Bible XML directory not found: ${XML_DIR}`);
+  console.warn('Skipping index rebuild — the committed offline-index.json will be used.');
+  console.warn('To rebuild, download the Beblia collection from:');
+  console.warn('  https://github.com/Beblia/Holy-Bible-XML-Format');
+  console.warn('Then extract it so the folder appears at public/Holy-Bible-XML-Format-master/');
+  process.exit(0);
 }
 
 if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
