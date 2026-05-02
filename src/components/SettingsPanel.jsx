@@ -519,21 +519,80 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
         {activeTab === 'keys' && (
           <>
             <Section title="Bible Search">
+              {/* ── Online (HelloAO) ──────────────────────────────────────── */}
               <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <span style={{ fontSize: 16 }}>📖</span>
+                  <span style={{ fontSize: 16 }}>🌐</span>
                   <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Bible.helloao.org</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Bible.helloao.org — Online</div>
                     <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Free online Bible API — no key required</div>
                   </div>
                   <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>READY</span>
                 </div>
+                <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+                  Reference lookup across 1,000+ translations. Requires internet. No setup needed.
+                </div>
+              </div>
+
+              {/* ── Offline (Beblia) ──────────────────────────────────────── */}
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span style={{ fontSize: 16 }}>📖</span>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Offline Bible — Beblia Collection</div>
+                    <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>1,000+ translations for offline keyword &amp; reference search</div>
+                  </div>
+                  {settings?.bibleXmlDir ? (
+                    <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SET</span>
+                  ) : (
+                    <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--text-dim)', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>NOT SET</span>
+                  )}
+                </div>
+
+                {/* Current folder path */}
+                {settings?.bibleXmlDir && (
+                  <div style={{ fontSize: 10, color: 'var(--green)', background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 4, padding: '4px 8px', marginBottom: 8, wordBreak: 'break-all' }}>
+                    {settings.bibleXmlDir}
+                  </div>
+                )}
+
+                {/* Browse button — Electron only */}
+                {isElectron && (
+                  <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                    <button
+                      onClick={async () => {
+                        const dir = await window.electronAPI?.selectDirectory();
+                        if (dir) saveSettings({ bibleXmlDir: dir });
+                      }}
+                      style={{
+                        background: 'var(--bg-hover)', border: '1px solid var(--border)',
+                        color: 'var(--text-muted)', padding: '5px 12px', borderRadius: 5,
+                        cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                      }}
+                    >Browse…</button>
+                    {settings?.bibleXmlDir && (
+                      <button
+                        onClick={() => saveSettings({ bibleXmlDir: '' })}
+                        style={{
+                          background: 'none', border: '1px solid var(--border)',
+                          color: 'var(--text-dim)', padding: '5px 10px', borderRadius: 5,
+                          cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                        }}
+                      >Clear</button>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
-                  <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
-                    Online reference lookup works with no setup. For <strong style={{ color: 'var(--text)' }}>text (keyword) search</strong> across multiple versions,
-                    download a Beblia XML Bible from{' '}
+                  <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.7 }}>
+                    <strong style={{ color: 'var(--text-muted)' }}>KJV and NIV are bundled</strong> — no setup needed.<br />
+                    To enable all 1,000+ offline translations:<br />
+                    1. Download the zip from{' '}
                     <ExternalLink href="https://github.com/Beblia/Holy-Bible-XML-Format">github.com/Beblia/Holy-Bible-XML-Format</ExternalLink>
-                    {' '}and import it via the Bible panel (📖 → Translations → Offline → Import XML).
+                    {' '}(Code → Download ZIP).<br />
+                    2. Extract the zip anywhere on your computer.<br />
+                    3. Click <strong style={{ color: 'var(--text-muted)' }}>Browse…</strong> above and select the extracted <em>Holy-Bible-XML-Format-master</em> folder.<br />
+                    4. In the Bible panel, open Browse Translations → Offline, star any translation, and search — it loads from your folder automatically.
                   </div>
                 </div>
               </div>
