@@ -518,7 +518,7 @@ export default function BiblePanel() {
   };
 
   // ── Offline search (reference) ────────────────────────────────────────────
-  const searchOfflineByRef = async (query, versionsToUse) => {
+  const searchOfflineByRef = useCallback(async (query, versionsToUse) => {
     const allResults = [];
     for (const fav of versionsToUse) {
       const textKey = favTextKey(fav);
@@ -534,12 +534,12 @@ export default function BiblePanel() {
       }
     }
     return allResults;
-  };
+  }, [settings?.bibleXmlDir]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Offline keyword search — cross-version ────────────────────────────────
   // Finds matching references in all favorited versions, then fetches that verse
   // from EVERY favorited version so each reference appears in all translations.
-  const searchOfflineByKeyword = async (query, versionsToUse) => {
+  const searchOfflineByKeyword = useCallback(async (query, versionsToUse) => {
     if (!versionsToUse.length) return [];
 
     // Step 1: collect matching references from all versions
@@ -572,7 +572,7 @@ export default function BiblePanel() {
       }
     }
     return allResults;
-  };
+  }, [settings?.bibleXmlDir]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Main search ───────────────────────────────────────────────────────────
   const runSearch = useCallback(async (q = search) => {
@@ -709,7 +709,8 @@ export default function BiblePanel() {
       setLoading(false);
     }
   }, [search, bibleMode, offlineFavorites, onlineFavorites, onlineVersions, allOfflineVersions,
-      parallelMode, parallelVerAId, parallelVerBId, activeFavorites]);
+      parallelMode, parallelVerAId, parallelVerBId, activeFavorites,
+      searchOfflineByRef, searchOfflineByKeyword, settings?.bibleXmlDir]);
 
   // ── Keyboard submit ───────────────────────────────────────────────────────
   const handleKey = (e) => { if (e.key === 'Enter') runSearch(); };
