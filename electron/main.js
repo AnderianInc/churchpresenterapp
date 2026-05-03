@@ -7,6 +7,12 @@ const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
 const isDev = !app.isPackaged;
 
+// Suppress VTCompressionSessionCreate (-12908) errors on macOS by falling back
+// to software video encoding. This avoids log noise when hardware encoder is busy.
+if (process.platform === 'darwin') {
+  app.commandLine.appendSwitch('disable-accelerated-video-encode');
+}
+
 // Data directory
 const dataDir = path.join(app.getPath('userData'), 'data');
 
@@ -428,6 +434,12 @@ ipcMain.handle('minimize-output-window', async (_, id) => {
   const entry = outputWindows.get(id);
   if (entry?.window && !entry.window.isDestroyed()) entry.window.minimize();
   return true;
+});
+
+ipcMain.handle('toggle-fullscreen', async (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win || win.isDestroyed()) return;
+  win.setFullScreen(!win.isFullScreen());
 });
 
 ipcMain.handle('move-output-window', async (_, { id, displayIndex }) => {

@@ -12,7 +12,7 @@ function formatDate(iso) {
   } catch { return iso; }
 }
 
-export default function SchedulePanel() {
+export default function SchedulePanel({ onEditSong }) {
   const {
     schedule, settings, activeScheduleIdx, setActiveScheduleIdx,
     setActiveSlideIdx, removeFromSchedule, clearSchedule, reorderSchedule,
@@ -233,6 +233,15 @@ export default function SchedulePanel() {
                 {item.author || item.reference || ''} · {item.slides?.length || 0} slides
               </div>
             </div>
+            {item.type === 'song' && onEditSong && (
+              <button
+                onClick={e => { e.stopPropagation(); onEditSong(item, item.scheduleId); }}
+                title="Edit song slides"
+                style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 13, padding: '2px 4px', borderRadius: 3, flexShrink: 0 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
+              >✎</button>
+            )}
             <button onClick={e => { e.stopPropagation(); removeFromSchedule(item.scheduleId); }}
               style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 14, padding: '2px 4px', borderRadius: 3, flexShrink: 0 }}
               onMouseEnter={e => e.currentTarget.style.color = 'var(--red)'}

@@ -42,7 +42,7 @@ const AlignBtn = ({ align, current, onClick }) => {
   );
 };
 
-export default function SongEditorModal({ song, onClose }) {
+export default function SongEditorModal({ song, onClose, onAfterSave }) {
   const { addSong, updateSong } = useApp();
   const isNew = !song;
 
@@ -124,6 +124,7 @@ export default function SongEditorModal({ song, onClose }) {
     };
     if (isNew) addSong(songData);
     else updateSong(song.id, songData);
+    onAfterSave?.(songData);
     onClose();
   };
 

@@ -90,6 +90,22 @@ export default function StageView() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key !== 'F11') return;
+      e.preventDefault();
+      if (window.electronAPI?.toggleFullscreen) {
+        window.electronAPI.toggleFullscreen();
+      } else if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   if (isClear) {
     return (
       <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
