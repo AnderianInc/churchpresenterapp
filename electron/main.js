@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, screen, dialog, desktopCapturer, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, screen, dialog, desktopCapturer, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -6,6 +6,9 @@ const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
 const isDev = !app.isPackaged;
+const isMac = process.platform === 'darwin';
+
+app.name = 'Church Presenter';
 
 // Suppress VTCompressionSessionCreate (-12908) errors on macOS by falling back
 // to software video encoding. This avoids log noise when hardware encoder is busy.
@@ -223,13 +226,16 @@ function createStageWindow() {
     width: 1024,
     height: 768,
     backgroundColor: '#000000',
-    frame: false,
+    frame: true,
+    title: '',
+    ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
+  stageWindow.setMenuBarVisibility(false);
 
   const startUrl = isDev
     ? 'http://localhost:3000/stage'
@@ -288,7 +294,9 @@ function createStreamWindow(displayIndex = 0) {
     x, y,
     width: 1280,
     height: 720,
-    frame: false,
+    frame: true,
+    title: '',
+    ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -296,6 +304,7 @@ function createStreamWindow(displayIndex = 0) {
       nodeIntegration: false,
     },
   });
+  streamWindow.setMenuBarVisibility(false);
 
   const startUrl = isDev
     ? 'http://localhost:3000/stream'
@@ -930,8 +939,41 @@ ipcMain.on('open-recording-folder', (_, folderPath) => {
 });
 
 app.whenReady().then(() => {
+  // Replace default "Electron" menu with a minimal Church Presenter menu
+  const menuTemplate = [
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    }] : []),
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' }, { role: 'redo' }, { type: 'separator' },
+        { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' },
+      ],
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        ...(isMac ? [{ role: 'zoom' }, { type: 'separator' }, { role: 'front' }] : [{ role: 'close' }]),
+      ],
+    },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+
   if (process.platform === 'darwin') {
-    const { systemPreferences, shell } = require('electron');
+    const { systemPreferences } = require('electron');
     const status = systemPreferences.getMediaAccessStatus('screen');
     // Only prompt when permission has never been set — 'denied' means the user consciously declined
     if (status === 'not-determined') {

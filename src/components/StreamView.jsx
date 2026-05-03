@@ -103,6 +103,14 @@ try {
       fontFamily: 'system-ui, sans-serif',
     }}>
 
+      {/* Draggable strip for macOS titleBarStyle:'hidden' traffic-light area */}
+      {window.electronAPI?.platform === 'darwin' && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 28,
+          WebkitAppRegion: 'drag', zIndex: 10, pointerEvents: 'none',
+        }} />
+      )}
+
       {/* ── Video feed ─────────────────────────────────────────────────────── */}
       {cameraDeviceId && !cameraError && (
         <video

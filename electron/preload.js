@@ -89,4 +89,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setRecordingSource: (sourceId) => ipcRenderer.invoke('set-recording-source', sourceId),
 
   isElectron: true,
+  platform: process.platform,
 });
