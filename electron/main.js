@@ -217,8 +217,7 @@ function createStageWindow() {
     width: 1024,
     height: 768,
     backgroundColor: '#000000',
-    frame: true,
-    title: 'Stage Display',
+    frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -245,9 +244,10 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
 
   const outputWindow = new BrowserWindow({
     x, y, width, height,
-    fullscreen: true,
+    fullscreen: false,
+    resizable: true,
+    movable: true,
     frame: false,
-    title: title || `Output ${role}`,
     backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -282,8 +282,7 @@ function createStreamWindow(displayIndex = 0) {
     x, y,
     width: 1280,
     height: 720,
-    frame: true,
-    title: 'Stream View — Church Presenter',
+    frame: false,
     backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
