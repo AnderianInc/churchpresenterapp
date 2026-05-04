@@ -61,14 +61,27 @@ export default function PresentationView() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  // Thin drag strip so macOS titleBarStyle:'hidden' traffic lights stay accessible
+  const macDragStrip = window.electronAPI?.platform === 'darwin' && (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, height: 28,
+      WebkitAppRegion: 'drag', zIndex: 9999, pointerEvents: 'none',
+    }} />
+  );
+
   if (isBlackout) {
-    return <div style={{ width: '100vw', height: '100vh', background: '#000000' }} />;
+    return (
+      <div style={{ width: '100vw', height: '100vh', background: '#000000', position: 'relative' }}>
+        {macDragStrip}
+      </div>
+    );
   }
 
   // Clear: show the item background without text
   if (isClear && slide) {
     return (
       <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+        {macDragStrip}
         <SlideRenderer slide={{ ...slide, lines: '', chords: '' }} item={slide.item} fullscreen />
       </div>
     );
@@ -76,7 +89,8 @@ export default function PresentationView() {
 
   if (!slide) {
     return (
-      <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {macDragStrip}
         <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>✝</div>
           <div style={{ fontSize: 16, fontFamily: 'Georgia', letterSpacing: '0.1em' }}>Waiting for content</div>
@@ -87,6 +101,7 @@ export default function PresentationView() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {macDragStrip}
       <SlideRenderer slide={slide} item={slide.item} fullscreen />
     </div>
   );

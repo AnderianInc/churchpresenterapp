@@ -199,8 +199,9 @@ function createPresentationWindow(displayIndex = 1) {
 
   presentationWindow = new BrowserWindow({
     x, y, width, height,
-    fullscreen: true,
-    frame: false,
+    frame: true,
+    title: '',
+    ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -208,6 +209,7 @@ function createPresentationWindow(displayIndex = 1) {
       nodeIntegration: false,
     },
   });
+  presentationWindow.setMenuBarVisibility(false);
 
   const startUrl = isDev
     ? 'http://localhost:3000/presentation'
@@ -256,10 +258,11 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
 
   const outputWindow = new BrowserWindow({
     x, y, width, height,
-    fullscreen: false,
     resizable: true,
     movable: true,
-    frame: false,
+    frame: true,
+    title: '',
+    ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     backgroundColor: '#000000',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -267,6 +270,7 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
       nodeIntegration: false,
     },
   });
+  outputWindow.setMenuBarVisibility(false);
 
   const startUrl = isDev
     ? 'http://localhost:3000'
@@ -942,7 +946,7 @@ app.whenReady().then(() => {
   // Replace default "Electron" menu with a minimal Church Presenter menu
   const menuTemplate = [
     ...(isMac ? [{
-      label: app.name,
+      label: 'Church Presenter',
       submenu: [
         { role: 'about' },
         { type: 'separator' },

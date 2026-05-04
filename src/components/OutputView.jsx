@@ -300,10 +300,19 @@ export default function OutputView() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
+  // Thin drag strip so macOS titleBarStyle:'hidden' traffic lights stay accessible
+  const macDragStrip = window.electronAPI?.platform === 'darwin' && (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, height: 28,
+      WebkitAppRegion: 'drag', zIndex: 9999, pointerEvents: 'none',
+    }} />
+  );
+
   // ── Confidence monitor: four-quadrant view ───────────────────────────────
   if (role === 'confidence') {
     return (
       <>
+        {macDragStrip}
         <ConfidenceMonitor
           slide={isClear ? null : slide}
           nextSlide={nextSlide}
@@ -318,6 +327,7 @@ export default function OutputView() {
   if (isBlackout) {
     return (
       <>
+        {macDragStrip}
         <div style={{ width: '100vw', height: '100vh', background: '#000000' }} />
         <HoverToolbar outputId={outputId} />
       </>
@@ -328,6 +338,7 @@ export default function OutputView() {
   if (isClear && slide) {
     return (
       <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+        {macDragStrip}
         <SlideRenderer
           slide={{ ...slide, lines: '', chords: '' }}
           item={slide?.item}
@@ -342,6 +353,7 @@ export default function OutputView() {
   if (!slide) {
     return (
       <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {macDragStrip}
         <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.15)' }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>✝</div>
           <div style={{ fontSize: 16, fontFamily: 'Georgia', letterSpacing: '0.1em' }}>Waiting for content</div>
@@ -353,6 +365,7 @@ export default function OutputView() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {macDragStrip}
       <SlideRenderer slide={slide} item={slide?.item} fullscreen videoRef={videoRef} />
       <HoverToolbar outputId={outputId} />
     </div>
