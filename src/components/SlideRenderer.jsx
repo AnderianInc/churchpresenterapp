@@ -34,9 +34,15 @@ export default function SlideRenderer({
   const textAlign = slide?.textAlign || 'center';
   const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
 
+  // In Electron, rewrite file:// video URLs to media:// so they go through the
+  // registered protocol handler that adds proper byte-range streaming support.
+  const rawVideoSrc = bgType === 'video' ? (effectiveBg?.value || null) : null;
+  const videoSrc = rawVideoSrc && window.electronAPI
+    ? rawVideoSrc.replace(/^file:/, 'media:')
+    : rawVideoSrc;
+
   // Video error state — cleared whenever the source changes
   const [videoError, setVideoError] = useState(null);
-  const videoSrc = bgType === 'video' ? effectiveBg?.value : null;
   useEffect(() => { setVideoError(null); }, [videoSrc]);
 
   const handleVideoError = (e) => {
@@ -105,7 +111,7 @@ export default function SlideRenderer({
             muted
             loop={videoLoop}
             playsInline
-            src={effectiveBg.value}
+            src={videoSrc}
             onError={handleVideoError}
             style={{
               position: 'absolute', inset: 0,

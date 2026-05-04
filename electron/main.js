@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, screen, dialog, desktopCapturer, shell } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, screen, dialog, desktopCapturer, shell, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -10,19 +10,26 @@ const isMac = process.platform === 'darwin';
 
 app.name = 'Church Presenter';
 
+// Register media:// as a privileged scheme so <video>/<audio> elements can
+// stream local files with proper byte-range support via net.fetch.
+// Must be called before app.whenReady().
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'media', privileges: { secure: true, supportFetchAPI: true, stream: true, bypassCSP: true, corsEnabled: true } },
+]);
+
 // Suppress VTCompressionSessionCreate (-12908) errors on macOS by falling back
 // to software video encoding. This avoids log noise when hardware encoder is busy.
+// Platform video codec flags
 if (process.platform === 'darwin') {
+  // Suppress hardware encode errors; keep hardware DECODING enabled for H.264/HEVC
   app.commandLine.appendSwitch('disable-accelerated-video-encode');
-  // Enable HEVC/H.265 decoding via VideoToolbox on macOS 11+
+  app.commandLine.appendSwitch('enable-accelerated-video-decode');
   app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,PlatformHEVCSwDecoderSupport');
 }
-
 if (process.platform === 'win32') {
-  // Enable H.265/HEVC and improve H.264 support via Windows Media Foundation
-  app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,MediaFoundationH264Encoding');
-  // Allow Chromium to use hardware video decoders on Windows
+  // Use Windows Media Foundation for H.264 and HEVC hardware decoding
   app.commandLine.appendSwitch('enable-accelerated-video-decode');
+  app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,MediaFoundationH264Encoding');
 }
 
 // Data directory
@@ -904,7 +911,9 @@ ipcMain.handle('copy-media-file', async (_, srcPath) => {
   const destName = `${require('crypto').randomUUID()}${ext}`;
   const destPath = path.join(mediaDir, destName);
   fs.copyFileSync(srcPath, destPath);
-  return `file://${destPath}`;
+  // Use media:// scheme (registered above) so <video> gets proper byte-range
+  // streaming support. pathToFileURL handles Windows backslash paths correctly.
+  return pathToFileURL(destPath).href.replace(/^file:/, 'media:');
 });
 
 // IPC - Save a local recording to disk via a native save dialog
@@ -984,6 +993,13 @@ app.whenReady().then(() => {
     },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));
+
+  // media:// → file:// proxy so <video> gets byte-range streaming support.
+  // net.fetch with a file:// URL handles Accept-Ranges correctly in Electron 25+.
+  protocol.handle('media', (request) => {
+    const fileUrl = request.url.replace(/^media:/, 'file:');
+    return net.fetch(fileUrl);
+  });
 
   if (process.platform === 'darwin') {
     const { systemPreferences } = require('electron');
