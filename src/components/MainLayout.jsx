@@ -472,9 +472,10 @@ const styles = {
 };
 
 export default function MainLayout() {
-  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl } = useApp();
+  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl, updateScheduleItem } = useApp();
   const [songEditorOpen, setSongEditorOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
+  const [editingScheduleId, setEditingScheduleId] = useState(null);
   const [settingsInitialTab, setSettingsInitialTab] = useState('keys');
 
   const openSettings = useCallback((tab = 'keys') => {
@@ -482,8 +483,8 @@ export default function MainLayout() {
     setSettingsOpen(true);
   }, [setSettingsOpen]);
 
-  const openNewSong = () => { setEditingSong(null); setSongEditorOpen(true); };
-  const openEditSong = (song) => { setEditingSong(song); setSongEditorOpen(true); };
+  const openNewSong = () => { setEditingSong(null); setEditingScheduleId(null); setSongEditorOpen(true); };
+  const openEditSong = (song, scheduleId = null) => { setEditingSong(song); setEditingScheduleId(scheduleId); setSongEditorOpen(true); };
 
   const handleGoLive = useCallback(() => {
     if (currentSlide && currentItem) goLive({ ...currentSlide, item: currentItem });
@@ -511,7 +512,7 @@ export default function MainLayout() {
     <div style={styles.app}>
       <Toolbar onNewSong={openNewSong} onOpenSettings={openSettings} />
       <div style={styles.main}>
-        <SchedulePanel />
+        <SchedulePanel onEditSong={openEditSong} />
         <div style={styles.center}>
           <SlideEditor />
           <PreviewArea />
@@ -536,7 +537,8 @@ export default function MainLayout() {
       {songEditorOpen && (
         <SongEditorModal
           song={editingSong}
-          onClose={() => setSongEditorOpen(false)}
+          onClose={() => { setSongEditorOpen(false); setEditingScheduleId(null); }}
+          onAfterSave={editingScheduleId ? (data) => updateScheduleItem(editingScheduleId, data) : undefined}
         />
       )}
 

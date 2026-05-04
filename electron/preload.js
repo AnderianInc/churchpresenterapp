@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openOutputWindow: (options) => ipcRenderer.invoke('open-output-window', options),
   closeOutputWindow: (id) => ipcRenderer.invoke('close-output-window', id),
   minimizeOutputWindow: (id) => ipcRenderer.invoke('minimize-output-window', id),
+  toggleFullscreen: () => ipcRenderer.invoke('toggle-fullscreen'),
   moveOutputWindow: (payload) => ipcRenderer.invoke('move-output-window', payload),
   updateOutputWindowRole: (payload) => ipcRenderer.invoke('update-output-window-role', payload),
   getOutputWindows: () => ipcRenderer.invoke('get-output-windows'),
@@ -88,4 +89,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setRecordingSource: (sourceId) => ipcRenderer.invoke('set-recording-source', sourceId),
 
   isElectron: true,
+  platform: process.platform,
 });

@@ -195,7 +195,7 @@ const OFFLINE_XML_BASE = '/Holy-Bible-XML-Format-master';
  * @param {string} filename e.g. "EnglishKJBible.xml"
  * @returns {Promise<{[ref: string]: string}>} flat passages dict
  */
-export async function loadOfflineTranslation(id, filename) {
+export async function loadOfflineTranslation(id, filename, localDir = null) {
   const cacheKey = `${OFFLINE_CACHE_PREFIX}${id}`;
 
   // Try localStorage cache
@@ -210,12 +210,31 @@ export async function loadOfflineTranslation(id, filename) {
     }
   } catch { /* localStorage unavailable or parse error — fetch fresh */ }
 
-  // Fetch from public/Holy-Bible-XML-Format-master/
-  const publicUrl = process.env.PUBLIC_URL || '';
-  const url = `${publicUrl}${OFFLINE_XML_BASE}/${encodeURIComponent(filename)}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error(`Could not load offline translation: ${filename}`);
-  const xml = await r.text();
+  let xml;
+  if (localDir && window.electronAPI?.readFileText) {
+    // Electron packaged app: read directly from user's local Beblia folder
+    const sep = localDir.endsWith('/') || localDir.endsWith('\\') ? '' : '/';
+    xml = await window.electronAPI.readFileText(localDir + sep + filename);
+    if (!xml) {
+      throw new Error(
+        `Could not read "${filename}" from the configured Bible folder.\n` +
+        `Check the folder path in Settings → Bible XML Folder.`
+      );
+    }
+  } else {
+    // Browser / dev mode: fetch from public/Holy-Bible-XML-Format-master/
+    const publicUrl = process.env.PUBLIC_URL || '';
+    const url = `${publicUrl}${OFFLINE_XML_BASE}/${encodeURIComponent(filename)}`;
+    const r = await fetch(url);
+    if (!r.ok) {
+      throw new Error(
+        window.electronAPI
+          ? `Bible XML files not found. Open Settings → Bible XML Folder and point to your Beblia collection.`
+          : `Could not load offline translation: ${filename}`
+      );
+    }
+    xml = await r.text();
+  }
 
   const passages = parseBebliaXml(xml);
   if (Object.keys(passages).length === 0) {

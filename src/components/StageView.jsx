@@ -90,6 +90,22 @@ export default function StageView() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key !== 'F11') return;
+      e.preventDefault();
+      if (window.electronAPI?.toggleFullscreen) {
+        window.electronAPI.toggleFullscreen();
+      } else if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   if (isClear) {
     return (
       <div style={{ width: '100vw', height: '100vh', background: '#111111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -104,10 +120,13 @@ export default function StageView() {
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
       fontFamily: 'Inter, sans-serif',
     }}>
-      {/* Top bar */}
+      {/* Top bar — extra left padding on macOS to clear the traffic-light buttons */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '7px 20px', background: '#12151c', borderBottom: '1px solid rgba(255,255,255,0.07)',
+        padding: '7px 20px',
+        paddingLeft: window.electronAPI?.platform === 'darwin' ? 80 : 20,
+        background: '#12151c', borderBottom: '1px solid rgba(255,255,255,0.07)',
+        WebkitAppRegion: 'drag',
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

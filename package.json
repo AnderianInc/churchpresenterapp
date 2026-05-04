@@ -25,6 +25,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "@electron/notarize": "^2.3.2",
     "concurrently": "^8.2.0",
     "electron": "^28.0.0",
     "electron-builder": "^24.6.4",
@@ -33,6 +34,7 @@
   "build": {
     "appId": "com.church.churchpresenter",
     "productName": "Church Presenter",
+    "afterSign": "scripts/notarize.js",
     "copyright": "Copyright © 2024 Church Presenter Contributors",
     "extraMetadata": {
       "main": "build/electron.js"
