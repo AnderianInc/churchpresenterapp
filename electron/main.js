@@ -14,6 +14,15 @@ app.name = 'Church Presenter';
 // to software video encoding. This avoids log noise when hardware encoder is busy.
 if (process.platform === 'darwin') {
   app.commandLine.appendSwitch('disable-accelerated-video-encode');
+  // Enable HEVC/H.265 decoding via VideoToolbox on macOS 11+
+  app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,PlatformHEVCSwDecoderSupport');
+}
+
+if (process.platform === 'win32') {
+  // Enable H.265/HEVC and improve H.264 support via Windows Media Foundation
+  app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,MediaFoundationH264Encoding');
+  // Allow Chromium to use hardware video decoders on Windows
+  app.commandLine.appendSwitch('enable-accelerated-video-decode');
 }
 
 // Data directory
