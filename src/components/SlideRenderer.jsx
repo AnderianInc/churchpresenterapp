@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { bgToCss } from './BackgroundPicker';
 
 /**
@@ -33,6 +33,28 @@ export default function SlideRenderer({
   const lines = slide?.lines || '';
   const textAlign = slide?.textAlign || 'center';
   const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+
+  // In Electron, rewrite file:// video URLs to media:// so they go through the
+  // registered protocol handler that adds proper byte-range streaming support.
+  const rawVideoSrc = bgType === 'video' ? (effectiveBg?.value || null) : null;
+  const videoSrc = rawVideoSrc && window.electronAPI
+    ? rawVideoSrc.replace(/^file:/, 'media:')
+    : rawVideoSrc;
+
+  // Video error state — cleared whenever the source changes
+  const [videoError, setVideoError] = useState(null);
+  useEffect(() => { setVideoError(null); }, [videoSrc]);
+
+  const handleVideoError = (e) => {
+    const code = e.target?.error?.code;
+    const messages = {
+      1: 'Video playback was aborted.',
+      2: 'Could not load video — network or file-path error.',
+      3: 'Video could not be decoded — file may be corrupt.',
+      4: 'Video format / codec not supported. Convert the file to H.264 MP4 or VP9 WebM and re-import.',
+    };
+    setVideoError(messages[code] || 'Unknown video error.');
+  };
 
   // Internal video ref — merged with external if provided
   const internalVideoRef = useRef(null);
@@ -82,19 +104,48 @@ export default function SlideRenderer({
 
       {/* Video background */}
       {bgType === 'video' && (
-        <video
-          ref={internalVideoRef}
-          autoPlay
-          muted
-          loop={videoLoop}
-          playsInline
-          src={effectiveBg.value}
-          style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
-            filter: `brightness(${dimLevel})`,
-          }}
-        />
+        <>
+          <video
+            ref={internalVideoRef}
+            autoPlay
+            muted
+            loop={videoLoop}
+            playsInline
+            src={videoSrc}
+            onError={handleVideoError}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%', objectFit: 'cover',
+              filter: `brightness(${dimLevel})`,
+              display: videoError ? 'none' : 'block',
+            }}
+          />
+          {videoError && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: '#0a0a0a',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center',
+              zIndex: 2,
+            }}>
+              {fullscreen && (
+                <div style={{
+                  position: 'absolute', bottom: 0, left: 0, right: 0,
+                  background: 'rgba(239,68,68,0.12)',
+                  borderTop: '1px solid rgba(239,68,68,0.35)',
+                  color: '#fca5a5',
+                  padding: '10px 20px',
+                  fontSize: 13,
+                  fontFamily: 'Inter, monospace',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <span style={{ fontSize: 16 }}>⚠</span>
+                  <span>{videoError}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* YouTube background
