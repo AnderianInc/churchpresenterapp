@@ -228,19 +228,18 @@ export default function OutputView() {
     setIsClear(initial.isClear);
 
     if (window.electronAPI) {
-      window.electronAPI.onReceiveOutput((data) => {
-        setSlide(resolveSlideForRole(role, outputId, data));
-        setNextSlide(data.nextSlide ?? null);
-        setIsBlackout(!!data.isBlackout);
-        setIsClear(!!data.isClear);
-      });
-      window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand);
-      window.electronAPI.onReceiveVideoControl(sendVideoCommand);
-      return () => {
-        window.electronAPI.removeAllListeners('receive-output');
-        window.electronAPI.removeAllListeners('receive-youtube-control');
-        window.electronAPI.removeAllListeners('receive-video-control');
-      };
+      const offs = [
+        window.electronAPI.onReceiveOutput((data) => {
+          setSlide(resolveSlideForRole(role, outputId, data));
+          setNextSlide(data.nextSlide ?? null);
+          setRoleLabel((data.outputs?.[outputId]?.role || role).replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
+          setIsBlackout(!!data.isBlackout);
+          setIsClear(!!data.isClear);
+        }),
+        window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand),
+        window.electronAPI.onReceiveVideoControl(sendVideoCommand),
+      ];
+      return () => offs.forEach(f => f());
     }
 
     if (typeof BroadcastChannel === 'undefined') return undefined;

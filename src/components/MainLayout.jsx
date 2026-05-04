@@ -204,12 +204,13 @@ function YouTubeController({ liveYt, sendYouTubeControl, setActiveView }) {
         if (type === 'youtube-state') handleState(payload);
       };
     }
+    let offYt;
     if (window.electronAPI?.onReceiveYouTubeState) {
-      window.electronAPI.onReceiveYouTubeState(handleState);
+      offYt = window.electronAPI.onReceiveYouTubeState(handleState);
     }
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-youtube-state');
+      offYt?.();
     };
   }, []);
 
@@ -357,12 +358,13 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
         if (type === 'video-state') handleState(payload);
       };
     }
+    let offVideo;
     if (window.electronAPI?.onReceiveVideoState) {
-      window.electronAPI.onReceiveVideoState(handleState);
+      offVideo = window.electronAPI.onReceiveVideoState(handleState);
     }
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-video-state');
+      offVideo?.();
     };
   }, []);
 

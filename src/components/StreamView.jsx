@@ -22,16 +22,14 @@ export default function StreamView() {
   // ── IPC / BroadcastChannel listeners ───────────────────────────────────────
   useEffect(() => {
     if (isElectron) {
-      window.electronAPI.onReceiveStreamConfig(({ cameraDeviceId: id }) => {
-        setCameraDeviceId(id || null);
-      });
-      window.electronAPI.onReceiveLowerThird((data) => setLowerThird(data));
-      window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v));
-      return () => {
-        window.electronAPI.removeAllListeners('receive-stream-config');
-        window.electronAPI.removeAllListeners('receive-lower-third');
-        window.electronAPI.removeAllListeners('receive-blackout');
-      };
+      const offs = [
+        window.electronAPI.onReceiveStreamConfig(({ cameraDeviceId: id }) => {
+          setCameraDeviceId(id || null);
+        }),
+        window.electronAPI.onReceiveLowerThird((data) => setLowerThird(data)),
+        window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v)),
+      ];
+      return () => offs.forEach(f => f());
     } else {
       const channel = new BroadcastChannel(BROADCAST_CHANNEL);
       channel.onmessage = (e) => {

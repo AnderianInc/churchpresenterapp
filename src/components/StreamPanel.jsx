@@ -505,8 +505,8 @@ try {
       if (data.type === 'error') setRtmpError(`Stream error: ${data.error}`);
       if (data.type === 'closed' && data.code !== 0) setRtmpError(`FFmpeg exited (code ${data.code})`);
     };
-    window.electronAPI.onRtmpStatus(handler);
-    return () => window.electronAPI.removeAllListeners('rtmp-status');
+    const off = window.electronAPI.onRtmpStatus(handler);
+    return off;
   }, [isElectron]);
 
   const startSocialStream = useCallback(async () => {

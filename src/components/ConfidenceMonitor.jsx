@@ -199,20 +199,14 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         if (type === 'youtube-control') execYtCommand(payload);
       };
     }
-    if (window.electronAPI?.onReceiveTimerState) {
-      window.electronAPI.onReceiveTimerState(setTimers);
-    }
-    if (window.electronAPI?.onReceiveStageAnnouncement) {
-      window.electronAPI.onReceiveStageAnnouncement((p) => setAnnouncement(p?.text ? p : null));
-    }
-    if (window.electronAPI?.onReceiveYouTubeControl) {
-      window.electronAPI.onReceiveYouTubeControl(execYtCommand);
-    }
+    const offs = [
+      window.electronAPI?.onReceiveTimerState?.(setTimers),
+      window.electronAPI?.onReceiveStageAnnouncement?.((p) => setAnnouncement(p?.text ? p : null)),
+      window.electronAPI?.onReceiveYouTubeControl?.(execYtCommand),
+    ].filter(Boolean);
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-timer-state');
-      window.electronAPI?.removeAllListeners?.('receive-stage-announcement');
-      window.electronAPI?.removeAllListeners?.('receive-youtube-control');
+      offs.forEach(f => f());
     };
   }, []);
 

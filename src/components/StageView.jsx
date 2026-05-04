@@ -30,22 +30,20 @@ export default function StageView() {
   // Slide receive
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.onReceiveSlide((data) => {
-        // nextSlide is attached to the payload by AppContext when broadcasting
-        setNextSlide(data?.nextSlide ?? null);
-        // Strip nextSlide from the current slide display object
-        const { nextSlide: _ns, ...currentSlide } = data || {};
-        setSlide(Object.keys(currentSlide).length ? currentSlide : null);
-        setIsBlackout(false);
-        setIsClear(false);
-      });
-      window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v));
-      window.electronAPI.onReceiveClear((v) => setIsClear(v));
-      return () => {
-        window.electronAPI.removeAllListeners('receive-slide');
-        window.electronAPI.removeAllListeners('receive-blackout');
-        window.electronAPI.removeAllListeners('receive-clear');
-      };
+      const offs = [
+        window.electronAPI.onReceiveSlide((data) => {
+          // nextSlide is attached to the payload by AppContext when broadcasting
+          setNextSlide(data?.nextSlide ?? null);
+          // Strip nextSlide from the current slide display object
+          const { nextSlide: _ns, ...currentSlide } = data || {};
+          setSlide(Object.keys(currentSlide).length ? currentSlide : null);
+          setIsBlackout(false);
+          setIsClear(false);
+        }),
+        window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v)),
+        window.electronAPI.onReceiveClear((v) => setIsClear(v)),
+      ];
+      return () => offs.forEach(f => f());
     } else {
       const initial = readLiveState();
       const eff = initial.stageMirror !== false

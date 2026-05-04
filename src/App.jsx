@@ -5,6 +5,7 @@ import PresentationView from './components/PresentationView';
 import StageView from './components/StageView';
 import OutputView from './components/OutputView';
 import StreamView from './components/StreamView';
+import PerfOverlay from './components/PerfOverlay';
 import './styles/global.css';
 
 function AppRouter() {
@@ -28,6 +29,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppRouter />
+      <PerfOverlay />
     </AppProvider>
   );
 }

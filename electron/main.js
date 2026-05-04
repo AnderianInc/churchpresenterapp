@@ -5,6 +5,7 @@ const { pathToFileURL } = require('url');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
+const perf = require('./perf.js');
 const isDev = !app.isPackaged;
 const isMac = process.platform === 'darwin';
 
@@ -163,6 +164,7 @@ function createMainWindow() {
     : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   mainWindow.loadURL(startUrl);
+  mainWindow.webContents.once('did-finish-load', () => perf.recordStartup());
   if (isDev) mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   mainWindow.webContents.session.setDisplayMediaRequestHandler(async (request, callback) => {
@@ -556,10 +558,14 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
 
 // IPC - Slide broadcast (program vs stage are independent streams)
 ipcMain.on('send-slide-program', (_, slideData) => {
-  if (presentationWindow) presentationWindow.webContents.send('receive-slide', slideData);
+  perf.recordSlideChange();
+  // Stamp wall-clock send time so receiving windows can measure IPC latency
+  const stamped = slideData ? { ...slideData, _sentAt: Date.now() } : slideData;
+  if (presentationWindow) presentationWindow.webContents.send('receive-slide', stamped);
 });
 ipcMain.on('send-slide-stage', (_, slideData) => {
-  if (stageWindow) stageWindow.webContents.send('receive-slide', slideData);
+  const stamped = slideData ? { ...slideData, _sentAt: Date.now() } : slideData;
+  if (stageWindow) stageWindow.webContents.send('receive-slide', stamped);
 });
 
 ipcMain.on('send-blackout', (_, isBlackout) => {
@@ -961,6 +967,8 @@ ipcMain.on('open-recording-folder', (_, folderPath) => {
 });
 
 app.whenReady().then(() => {
+  perf.start(app);
+
   // Replace default "Electron" menu with a minimal Church Presenter menu
   const menuTemplate = [
     ...(isMac ? [{
@@ -1012,6 +1020,8 @@ app.whenReady().then(() => {
   ensureDataDir();
   createMainWindow();
 });
+
+app.on('before-quit', () => perf.stop());
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
