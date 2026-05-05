@@ -191,13 +191,15 @@ export default function OutputView() {
       case 'setVolume': video.volume = Math.max(0, Math.min(1, (args[0] ?? 100) / 100)); break;
       case 'mute':      video.muted = true; break;
       case 'unmute':    video.muted = false; break;
+      case 'seek':      video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
       default: break;
     }
-    // Relay updated state back to operator
     relayVideoState({
       isPlaying: !video.paused,
       isMuted: video.muted,
       volume: Math.round(video.volume * 100),
+      currentTime: video.currentTime,
+      duration: video.duration || 0,
     });
   }, []);
 
@@ -209,14 +211,21 @@ export default function OutputView() {
       isPlaying: !video.paused,
       isMuted: video.muted,
       volume: Math.round(video.volume * 100),
+      currentTime: video.currentTime,
+      duration: video.duration || 0,
     });
+    // timeupdate fires ~4×/s — sufficient for a seek bar without flooding IPC
     video.addEventListener('play', relay);
     video.addEventListener('pause', relay);
     video.addEventListener('volumechange', relay);
+    video.addEventListener('timeupdate', relay);
+    video.addEventListener('durationchange', relay);
     return () => {
       video.removeEventListener('play', relay);
       video.removeEventListener('pause', relay);
       video.removeEventListener('volumechange', relay);
+      video.removeEventListener('timeupdate', relay);
+      video.removeEventListener('durationchange', relay);
     };
   }, [slide]);
 
