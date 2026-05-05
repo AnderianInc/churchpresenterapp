@@ -16,6 +16,14 @@ import OutputManager from './OutputManager';
 import SettingsPanel from './SettingsPanel';
 import SongEditorModal from './SongEditorModal';
 
+function fmtTime(sec) {
+  const s = Math.floor(sec % 60);
+  const m = Math.floor(sec / 60) % 60;
+  const h = Math.floor(sec / 3600);
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+
 // ── Draggable / resizable floating window shell ───────────────────────────────
 function FloatingWindow({ title, icon, onClose, children, initialW = 360, initialH }) {
   const defaultH = initialH ?? Math.min(700, window.innerHeight - 70);
@@ -204,12 +212,13 @@ function YouTubeController({ liveYt, sendYouTubeControl, setActiveView }) {
         if (type === 'youtube-state') handleState(payload);
       };
     }
+    let offYt;
     if (window.electronAPI?.onReceiveYouTubeState) {
-      window.electronAPI.onReceiveYouTubeState(handleState);
+      offYt = window.electronAPI.onReceiveYouTubeState(handleState);
     }
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-youtube-state');
+      offYt?.();
     };
   }, []);
 
@@ -276,6 +285,19 @@ function YouTubeController({ liveYt, sendYouTubeControl, setActiveView }) {
 
           <button
             onClick={() => {
+              lastActionRef.current = Date.now();
+              sendYouTubeControl('seekTo', [0, true]);
+              setIsPlaying(true);
+              sendYouTubeControl('playVideo', []);
+            }}
+            style={{ ...ctrlBtn(false), flex: 'none', padding: '5px 12px' }}
+            title="Restart from beginning"
+            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+          >↩</button>
+
+          <button
+            onClick={() => {
               const next = !isMuted;
               lastActionRef.current = Date.now();
               setIsMuted(next);
@@ -324,7 +346,10 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
   const [isMuted, setIsMuted] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true); // video autoPlays on mount
   const [volume, setVolume] = useState(80);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [dismissed, setDismissed] = useState(false);
+  const isSeekingRef = useRef(false);
   const lastActionRef = useRef(0);
   const prevValueRef = useRef(null);
 
@@ -335,6 +360,8 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
       setIsMuted(true);
       setIsPlaying(true);
       setVolume(80);
+      setCurrentTime(0);
+      setDuration(0);
       lastActionRef.current = 0;
       setDismissed(false);
     }
@@ -347,6 +374,10 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
       if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
       if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
       if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
+      if (!isSeekingRef.current) {
+        if (payload.currentTime !== undefined) setCurrentTime(payload.currentTime);
+        if (payload.duration !== undefined && payload.duration > 0) setDuration(payload.duration);
+      }
     };
 
     let ch;
@@ -357,12 +388,13 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
         if (type === 'video-state') handleState(payload);
       };
     }
+    let offVideo;
     if (window.electronAPI?.onReceiveVideoState) {
-      window.electronAPI.onReceiveVideoState(handleState);
+      offVideo = window.electronAPI.onReceiveVideoState(handleState);
     }
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-video-state');
+      offVideo?.();
     };
   }, []);
 
@@ -389,7 +421,7 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
       icon="🎬"
       onClose={() => setDismissed(true)}
       initialW={300}
-      initialH={170}
+      initialH={220}
     >
       <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {/* Live badge */}
@@ -427,6 +459,35 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
             onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
           >{isMuted ? '🔇' : '🔊'}</button>
         </div>
+
+        {/* Seek slider */}
+        {duration > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44, flexShrink: 0 }}>
+              {fmtTime(currentTime)}
+            </span>
+            <input
+              type="range" min={0} max={duration} step={0.5}
+              value={currentTime}
+              style={{
+                ...sliderTrackStyle,
+                background: `linear-gradient(to right, #4f8ef7 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.15) ${(currentTime / duration) * 100}%)`,
+              }}
+              onMouseDown={() => { isSeekingRef.current = true; }}
+              onMouseUp={(e) => {
+                const t = Number(e.target.value);
+                isSeekingRef.current = false;
+                setCurrentTime(t);
+                lastActionRef.current = Date.now();
+                sendVideoControl('seek', [t]);
+              }}
+              onChange={(e) => setCurrentTime(Number(e.target.value))}
+            />
+            <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44, flexShrink: 0, textAlign: 'right' }}>
+              {fmtTime(duration)}
+            </span>
+          </div>
+        )}
 
         {/* Volume slider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

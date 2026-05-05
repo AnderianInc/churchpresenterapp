@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, memo } from 'react';
 import { bgToCss } from './BackgroundPicker';
 
 /**
@@ -12,7 +12,7 @@ import { bgToCss } from './BackgroundPicker';
  *   Pass videoLoop={false} to disable looping.
  *   Pass videoBrightness to override the dim filter (default 0.45).
  */
-export default function SlideRenderer({
+function SlideRenderer({
   slide,
   item,
   scale = 1,
@@ -63,7 +63,10 @@ export default function SlideRenderer({
       if (typeof externalVideoRef === 'function') externalVideoRef(internalVideoRef.current);
       else externalVideoRef.current = internalVideoRef.current;
     }
-  });
+  // externalVideoRef is a ref object or callback — safe to list; bgType gates whether the
+  // video element is mounted so we re-sync whenever the background type changes too.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bgType, externalVideoRef]);
 
   // Internal iframe ref — merged with external if provided
   const internalIframeRef = useRef(null);
@@ -72,7 +75,8 @@ export default function SlideRenderer({
       if (typeof externalIframeRef === 'function') externalIframeRef(internalIframeRef.current);
       else externalIframeRef.current = internalIframeRef.current;
     }
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bgType, externalIframeRef]);
 
   const containerStyle = fullscreen ? {
     width: '100vw', height: '100vh',
@@ -205,3 +209,5 @@ export default function SlideRenderer({
     </div>
   );
 }
+
+export default memo(SlideRenderer);

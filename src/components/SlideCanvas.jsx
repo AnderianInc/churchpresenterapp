@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 /**
  * Shared slide preview panel used by both StageView and ConfidenceMonitor.
@@ -10,17 +10,43 @@ import React from 'react';
  * @param {boolean} dimmed       - Reduced opacity mode for the "Next" panel.
  * @param {string}  flex         - CSS flex value for the outer container (default '1').
  */
-export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1' }) {
-  const bg = slide?.item?.background?.value || (dimmed ? '#0a0c12' : '#0d1117');
-  const textColor = slide?.item?.textColor || '#ffffff';
+export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1', videoRef }) {
+  const effectiveBg = slide?.background || slide?.item?.background;
+  const bgType  = effectiveBg?.type;
+  const bgValue = effectiveBg?.value;
+
+  // Rewrite file:// → media:// for byte-range video streaming in Electron output windows
+  const videoSrc = bgType === 'video' && bgValue
+    ? (window.electronAPI ? bgValue.replace(/^file:/, 'media:') : bgValue)
+    : null;
+
+  // Internal ref for the dimmed/next preview — we need to explicitly pause it
+  // because changing autoPlay={false} on an already-playing element does nothing.
+  const dimmedVideoRef = useRef(null);
+  useEffect(() => {
+    if (!dimmed) return;
+    const v = dimmedVideoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.pause();
+    const keepPaused = () => v.pause();
+    v.addEventListener('canplay', keepPaused);
+    v.addEventListener('play', keepPaused);
+    return () => {
+      v.removeEventListener('canplay', keepPaused);
+      v.removeEventListener('play', keepPaused);
+    };
+  }, [dimmed, videoSrc]);
+
+  const textColor  = slide?.item?.textColor  || '#ffffff';
   const fontFamily = slide?.item?.fontFamily || 'Georgia';
   const textOpacity = dimmed ? 0.55 : 1;
 
   const resolvedBg = isBlackout
     ? '#000'
-    : slide?.item?.background?.type === 'color'
-      ? (slide.item.background.value || bg)
-      : bg;
+    : bgType === 'color'
+      ? (bgValue || '#0d1117')
+      : (dimmed ? '#0a0c12' : '#0d1117');
 
   return (
     <div style={{
@@ -30,21 +56,26 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
       background: resolvedBg,
     }}>
       {/* Background image */}
-      {slide?.item?.background?.type === 'image' && !isBlackout && (
+      {bgType === 'image' && bgValue && !isBlackout && (
         <div style={{
           position: 'absolute', inset: 0,
-          backgroundImage: `url(${slide.item.background.value})`,
+          backgroundImage: `url(${bgValue})`,
           backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: `brightness(${(slide.item.background.brightness || 0.4) * (dimmed ? 0.55 : 1)})`,
+          filter: `brightness(${(effectiveBg.brightness || 0.4) * (dimmed ? 0.55 : 1)})`,
           zIndex: 0,
         }} />
       )}
 
-      {/* Background video */}
-      {slide?.item?.background?.type === 'video' && !isBlackout && (
+      {/* Background video — autoPlay only for the live (non-dimmed) panel */}
+      {bgType === 'video' && videoSrc && !isBlackout && (
         <video
-          autoPlay muted loop playsInline
-          src={slide.item.background.value}
+          ref={dimmed ? dimmedVideoRef : videoRef}
+          autoPlay={!dimmed}
+          muted
+          loop={!dimmed}
+          playsInline
+          preload="metadata"
+          src={videoSrc}
           style={{
             position: 'absolute', inset: 0,
             width: '100%', height: '100%', objectFit: 'cover',
@@ -54,12 +85,12 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
         />
       )}
 
-      {/* YouTube background — postMessage-controlled iframe for current, thumbnail for dimmed */}
-      {slide?.item?.background?.type === 'youtube' && slide.item.background.value && !isBlackout && (
+      {/* YouTube background — iframe for current, thumbnail for dimmed */}
+      {bgType === 'youtube' && bgValue && !isBlackout && (
         <>
           {!dimmed ? (
             <iframe
-              src={`https://www.youtube-nocookie.com/embed/${slide.item.background.value}?autoplay=0&mute=1&loop=1&playlist=${slide.item.background.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}
+              src={`https://www.youtube-nocookie.com/embed/${bgValue}?autoplay=0&mute=1&loop=1&playlist=${bgValue}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1`}
               style={{
                 position: 'absolute', inset: 0, width: '100%', height: '100%',
                 border: 'none', pointerEvents: 'none', zIndex: 0,
@@ -70,7 +101,7 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
           ) : (
             <div style={{
               position: 'absolute', inset: 0,
-              backgroundImage: `url(https://img.youtube.com/vi/${slide.item.background.value}/hqdefault.jpg)`,
+              backgroundImage: `url(https://img.youtube.com/vi/${bgValue}/hqdefault.jpg)`,
               backgroundSize: 'cover', backgroundPosition: 'center',
               filter: 'brightness(0.25)',
               zIndex: 0,

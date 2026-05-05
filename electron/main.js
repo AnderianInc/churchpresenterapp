@@ -5,6 +5,8 @@ const { pathToFileURL } = require('url');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
+const perf   = require('./perf.js');
+const logger = require('./logger.js');
 const isDev = !app.isPackaged;
 const isMac = process.platform === 'darwin';
 
@@ -163,6 +165,7 @@ function createMainWindow() {
     : pathToFileURL(path.join(__dirname, '../build/index.html')).href;
 
   mainWindow.loadURL(startUrl);
+  mainWindow.webContents.once('did-finish-load', () => perf.recordStartup());
   if (isDev) mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   mainWindow.webContents.session.setDisplayMediaRequestHandler(async (request, callback) => {
@@ -347,15 +350,15 @@ function recoverCorruptFile(key, filePath, reason) {
   const backupPath = filePath.replace('.json', `_corrupt_${Date.now()}.json`);
   try {
     if (fs.existsSync(filePath)) fs.renameSync(filePath, backupPath);
-    console.warn(`[persistence] "${key}" was corrupt (${reason}). Backed up to ${backupPath}, restoring defaults.`);
+    logger.warn('persistence', `"${key}" was corrupt — backed up, restoring defaults`, { reason, backupPath });
   } catch (backupErr) {
-    console.error(`[persistence] Could not back up corrupt "${key}":`, backupErr.message);
+    logger.error('persistence', `Could not back up corrupt "${key}"`, backupErr.message);
   }
   const safeDefault = FILE_DEFAULTS[key]?.() ?? null;
   try {
     fs.writeFileSync(filePath, JSON.stringify(safeDefault, null, 2));
   } catch (writeErr) {
-    console.error(`[persistence] Could not write default for "${key}":`, writeErr.message);
+    logger.error('persistence', `Could not write default for "${key}"`, writeErr.message);
   }
   return safeDefault;
 }
@@ -556,10 +559,14 @@ ipcMain.handle('read-file-text', async (_, filePath) => {
 
 // IPC - Slide broadcast (program vs stage are independent streams)
 ipcMain.on('send-slide-program', (_, slideData) => {
-  if (presentationWindow) presentationWindow.webContents.send('receive-slide', slideData);
+  perf.recordSlideChange();
+  // Stamp wall-clock send time so receiving windows can measure IPC latency
+  const stamped = slideData ? { ...slideData, _sentAt: Date.now() } : slideData;
+  if (presentationWindow) presentationWindow.webContents.send('receive-slide', stamped);
 });
 ipcMain.on('send-slide-stage', (_, slideData) => {
-  if (stageWindow) stageWindow.webContents.send('receive-slide', slideData);
+  const stamped = slideData ? { ...slideData, _sentAt: Date.now() } : slideData;
+  if (stageWindow) stageWindow.webContents.send('receive-slide', stamped);
 });
 
 ipcMain.on('send-blackout', (_, isBlackout) => {
@@ -961,6 +968,9 @@ ipcMain.on('open-recording-folder', (_, folderPath) => {
 });
 
 app.whenReady().then(() => {
+  logger.start(app);
+  perf.start(app);
+
   // Replace default "Electron" menu with a minimal Church Presenter menu
   const menuTemplate = [
     ...(isMac ? [{
@@ -1012,6 +1022,8 @@ app.whenReady().then(() => {
   ensureDataDir();
   createMainWindow();
 });
+
+app.on('before-quit', () => { perf.stop(); logger.stop(); });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

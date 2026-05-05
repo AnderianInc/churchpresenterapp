@@ -130,6 +130,8 @@ export default function OutputView() {
   const [nextSlide, setNextSlide] = useState(null);
   const [isBlackout, setIsBlackout] = useState(false);
   const [isClear, setIsClear] = useState(false);
+  const [roleLabel, setRoleLabel] = useState(role.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
+  useEffect(() => { document.title = roleLabel; }, [roleLabel]);
 
   // Native <video> element ref (for video background control)
   const videoRef = useRef(null);
@@ -184,37 +186,48 @@ export default function OutputView() {
     const video = videoRef.current;
     if (!video) return;
     switch (func) {
-      case 'play':      video.play(); break;
-      case 'pause':     video.pause(); break;
-      case 'setVolume': video.volume = Math.max(0, Math.min(1, (args[0] ?? 100) / 100)); break;
-      case 'mute':      video.muted = true; break;
-      case 'unmute':    video.muted = false; break;
+      case 'play':   video.play(); break;
+      case 'pause':  video.pause(); break;
+      case 'mute':   video.muted = true; break;
+      case 'seek':   video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
+      // Audio commands only reach the program output — all other roles stay muted
+      case 'unmute':    if (role === 'presentation') video.muted = false; break;
+      case 'setVolume': if (role === 'presentation') video.volume = Math.max(0, Math.min(1, (args[0] ?? 100) / 100)); break;
       default: break;
     }
-    // Relay updated state back to operator
     relayVideoState({
       isPlaying: !video.paused,
       isMuted: video.muted,
       volume: Math.round(video.volume * 100),
+      currentTime: video.currentTime,
+      duration: video.duration || 0,
     });
   }, []);
 
   // Relay native video events so the operator controller stays in sync
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || slide?.item?.background?.type !== 'video') return;
+    const effectiveBgType = slide?.background?.type || slide?.item?.background?.type;
+    if (!video || effectiveBgType !== 'video') return;
     const relay = () => relayVideoState({
       isPlaying: !video.paused,
       isMuted: video.muted,
       volume: Math.round(video.volume * 100),
+      currentTime: video.currentTime,
+      duration: video.duration || 0,
     });
+    // timeupdate fires ~4×/s — sufficient for a seek bar without flooding IPC
     video.addEventListener('play', relay);
     video.addEventListener('pause', relay);
     video.addEventListener('volumechange', relay);
+    video.addEventListener('timeupdate', relay);
+    video.addEventListener('durationchange', relay);
     return () => {
       video.removeEventListener('play', relay);
       video.removeEventListener('pause', relay);
       video.removeEventListener('volumechange', relay);
+      video.removeEventListener('timeupdate', relay);
+      video.removeEventListener('durationchange', relay);
     };
   }, [slide]);
 
@@ -228,19 +241,18 @@ export default function OutputView() {
     setIsClear(initial.isClear);
 
     if (window.electronAPI) {
-      window.electronAPI.onReceiveOutput((data) => {
-        setSlide(resolveSlideForRole(role, outputId, data));
-        setNextSlide(data.nextSlide ?? null);
-        setIsBlackout(!!data.isBlackout);
-        setIsClear(!!data.isClear);
-      });
-      window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand);
-      window.electronAPI.onReceiveVideoControl(sendVideoCommand);
-      return () => {
-        window.electronAPI.removeAllListeners('receive-output');
-        window.electronAPI.removeAllListeners('receive-youtube-control');
-        window.electronAPI.removeAllListeners('receive-video-control');
-      };
+      const offs = [
+        window.electronAPI.onReceiveOutput((data) => {
+          setSlide(resolveSlideForRole(role, outputId, data));
+          setNextSlide(data.nextSlide ?? null);
+          setRoleLabel((data.outputs?.[outputId]?.role || role).replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
+          setIsBlackout(!!data.isBlackout);
+          setIsClear(!!data.isClear);
+        }),
+        window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand),
+        window.electronAPI.onReceiveVideoControl(sendVideoCommand),
+      ];
+      return () => offs.forEach(f => f());
     }
 
     if (typeof BroadcastChannel === 'undefined') return undefined;
@@ -317,6 +329,7 @@ export default function OutputView() {
           slide={isClear ? null : slide}
           nextSlide={nextSlide}
           isBlackout={isBlackout}
+          videoRef={videoRef}
         />
         <HoverToolbar outputId={outputId} />
       </>

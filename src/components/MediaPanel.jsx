@@ -520,12 +520,13 @@ function YouTubePanel({ addToSchedule, settings, saveSettings, liveProgram, send
         if (type === 'youtube-state') handleState(payload);
       };
     }
+    let offYt;
     if (window.electronAPI?.onReceiveYouTubeState) {
-      window.electronAPI.onReceiveYouTubeState(handleState);
+      offYt = window.electronAPI.onReceiveYouTubeState(handleState);
     }
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-youtube-state');
+      offYt?.();
     };
   }, []);
 

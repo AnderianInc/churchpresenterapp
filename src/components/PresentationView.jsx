@@ -2,26 +2,28 @@ import React, { useState, useEffect } from 'react';
 import SlideRenderer from './SlideRenderer';
 import { readLiveState } from '../store/liveStateSync';
 import { BROADCAST_CHANNEL } from '../store/AppContext';
+import { perfMonitor } from '../utils/perfMonitor';
 
 export default function PresentationView() {
   const [slide, setSlide] = useState(null);
   const [isBlackout, setIsBlackout] = useState(false);
   const [isClear, setIsClear] = useState(false);
 
+  useEffect(() => { perfMonitor.start(); return () => perfMonitor.stop(); }, []);
+
   useEffect(() => {
     if (window.electronAPI) {
-      window.electronAPI.onReceiveSlide((data) => {
-        setSlide(data);
-        setIsBlackout(false);
-        setIsClear(false);
-      });
-      window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v));
-      window.electronAPI.onReceiveClear((v) => setIsClear(v));
-      return () => {
-        window.electronAPI.removeAllListeners('receive-slide');
-        window.electronAPI.removeAllListeners('receive-blackout');
-        window.electronAPI.removeAllListeners('receive-clear');
-      };
+      const offs = [
+        window.electronAPI.onReceiveSlide((data) => {
+          perfMonitor.recordSlideArrival(data?._sentAt);
+          setSlide(data);
+          setIsBlackout(false);
+          setIsClear(false);
+        }),
+        window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v)),
+        window.electronAPI.onReceiveClear((v) => setIsClear(v)),
+      ];
+      return () => offs.forEach(f => f());
     } else {
       const initial = readLiveState();
       if (initial.programSlide) setSlide(initial.programSlide);
@@ -31,7 +33,7 @@ export default function PresentationView() {
       const channel = new BroadcastChannel(BROADCAST_CHANNEL);
       channel.onmessage = (e) => {
         const { type, payload } = e.data;
-        if (type === 'slide-program') { setSlide(payload); setIsBlackout(false); setIsClear(false); }
+        if (type === 'slide-program') { perfMonitor.recordSlideArrival(payload?._sentAt); setSlide(payload); setIsBlackout(false); setIsClear(false); }
         if (type === 'blackout') setIsBlackout(payload);
         if (type === 'clear') setIsClear(payload);
         if (type === 'state-sync') {

@@ -198,23 +198,19 @@ export function AppProvider({ children }) {
   // Electron listeners
   useEffect(() => {
     if (!isElectron) return;
-    window.electronAPI.onPresentationClosed(() => setPresentationOpen(false));
-    window.electronAPI.onStageClosed(() => setStageOpen(false));
-    window.electronAPI.onStreamClosed(() => setStreamOpen(false));
-    window.electronAPI.onOutputWindowClosed((id) => {
-      setOutputWindows(prev => prev.filter(w => w.id !== id));
-    });
+    const offs = [
+      window.electronAPI.onPresentationClosed(() => setPresentationOpen(false)),
+      window.electronAPI.onStageClosed(() => setStageOpen(false)),
+      window.electronAPI.onStreamClosed(() => setStreamOpen(false)),
+      window.electronAPI.onOutputWindowClosed((id) => {
+        setOutputWindows(prev => prev.filter(w => w.id !== id));
+      }),
+    ];
     window.electronAPI.getOutputWindows().then(setOutputWindows).catch(() => {});
     window.electronAPI.getDisplays().then(setDisplays).catch(() => {});
     // Check FFmpeg availability for social streaming
     window.electronAPI.checkFfmpeg().then(r => setFfmpegAvailable(r?.available ?? false)).catch(() => setFfmpegAvailable(false));
-    return () => {
-      window.electronAPI.removeAllListeners('presentation-closed');
-      window.electronAPI.removeAllListeners('stage-closed');
-      window.electronAPI.removeAllListeners('stream-closed');
-      window.electronAPI.removeAllListeners('output-closed');
-      window.electronAPI.removeAllListeners('rtmp-status');
-    };
+    return () => offs.forEach(f => f());
   }, [isElectron]);
 
   useEffect(() => {
@@ -464,14 +460,15 @@ export function AppProvider({ children }) {
       window.electronAPI.sendSlideStage(stageWithNext);
       sendOutputState(slide, newStage);
     } else {
+      const sentAt = Date.now();
       persistBrowserLive({
         programSlide: slide,
         stageSlide: stageMirrorProgram ? slide : liveStage,
         isBlackout: false,
         isClear: false,
       });
-      broadcast('slide-program', slide);
-      broadcast('slide-stage', stageWithNext);
+      broadcast('slide-program', slide ? { ...slide, _sentAt: sentAt } : slide);
+      broadcast('slide-stage', stageWithNext ? { ...stageWithNext, _sentAt: sentAt } : stageWithNext);
     }
   }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState, liveNextSlide]);
 
@@ -793,9 +790,14 @@ export function AppProvider({ children }) {
     }
   }, [activeSlideIdx, activeScheduleIdx, schedule]);
 
+  // Re-broadcast output state when window configuration or routing changes.
+  // Debounced so rapid state transitions (e.g. schedule load) don't spam IPC.
+  const sendOutputStateDebounceRef = useRef(null);
   useEffect(() => {
     if (!isElectron) return;
-    sendOutputState();
+    clearTimeout(sendOutputStateDebounceRef.current);
+    sendOutputStateDebounceRef.current = setTimeout(() => sendOutputState(), 50);
+    return () => clearTimeout(sendOutputStateDebounceRef.current);
   }, [isElectron, sendOutputState]);
 
   return (

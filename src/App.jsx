@@ -5,7 +5,11 @@ import PresentationView from './components/PresentationView';
 import StageView from './components/StageView';
 import OutputView from './components/OutputView';
 import StreamView from './components/StreamView';
+import PerfOverlay from './components/PerfOverlay';
+import { errorLogger } from './utils/errorLogger';
 import './styles/global.css';
+
+errorLogger.install();
 
 function AppRouter() {
   const path = window.location.pathname + window.location.hash;
@@ -28,6 +32,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppRouter />
+      <PerfOverlay />
     </AppProvider>
   );
 }

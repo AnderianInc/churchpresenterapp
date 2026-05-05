@@ -161,7 +161,7 @@ function QuadrantLabel({ text, accent = 'rgba(255,255,255,0.25)' }) {
 // subscription), and subscribes internally to timer-state and stage-announcement
 // via BroadcastChannel / electronAPI — so no changes to OutputView are needed.
 
-export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
+export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoRef }) {
   const [timers, setTimers]           = useState([]);
   const [announcement, setAnnouncement] = useState(null);
   const [clock, setClock]             = useState(formatClock());
@@ -199,20 +199,14 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         if (type === 'youtube-control') execYtCommand(payload);
       };
     }
-    if (window.electronAPI?.onReceiveTimerState) {
-      window.electronAPI.onReceiveTimerState(setTimers);
-    }
-    if (window.electronAPI?.onReceiveStageAnnouncement) {
-      window.electronAPI.onReceiveStageAnnouncement((p) => setAnnouncement(p?.text ? p : null));
-    }
-    if (window.electronAPI?.onReceiveYouTubeControl) {
-      window.electronAPI.onReceiveYouTubeControl(execYtCommand);
-    }
+    const offs = [
+      window.electronAPI?.onReceiveTimerState?.(setTimers),
+      window.electronAPI?.onReceiveStageAnnouncement?.((p) => setAnnouncement(p?.text ? p : null)),
+      window.electronAPI?.onReceiveYouTubeControl?.(execYtCommand),
+    ].filter(Boolean);
     return () => {
       ch?.close();
-      window.electronAPI?.removeAllListeners?.('receive-timer-state');
-      window.electronAPI?.removeAllListeners?.('receive-stage-announcement');
-      window.electronAPI?.removeAllListeners?.('receive-youtube-control');
+      offs.forEach(f => f());
     };
   }, []);
 
@@ -261,7 +255,7 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         {/* Upper-left: Current slide */}
         <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <QuadrantLabel text="Current" accent="#4f8ef7" />
-          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" />
+          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" videoRef={videoRef} />
         </div>
 
         {/* Upper-right: Next slide */}
