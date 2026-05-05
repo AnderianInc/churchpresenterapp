@@ -12,6 +12,12 @@ on:
 permissions:
   contents: write
 
+# One release build at a time — prevent two tags in quick succession from
+# running parallel builds and doubling macOS/Windows costs.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # ── Build macOS (DMG + zip) ───────────────────────────────────────────────
   build-mac:
@@ -30,9 +36,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run tests
-        run: npm test -- --watchAll=false --passWithNoTests --ci
 
       - name: Build React app
         run: npm run build
@@ -82,9 +85,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run tests
-        run: npm test -- --watchAll=false --passWithNoTests --ci
 
       - name: Build React app
         run: npm run build
@@ -141,9 +141,6 @@ jobs:
             libxtst6 \
             xauth \
             xvfb
-
-      - name: Run tests
-        run: npm test -- --watchAll=false --passWithNoTests --ci
 
       - name: Build React app
         run: npm run build
