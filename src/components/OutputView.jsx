@@ -130,6 +130,8 @@ export default function OutputView() {
   const [nextSlide, setNextSlide] = useState(null);
   const [isBlackout, setIsBlackout] = useState(false);
   const [isClear, setIsClear] = useState(false);
+  const [roleLabel, setRoleLabel] = useState(role.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
+  useEffect(() => { document.title = roleLabel; }, [roleLabel]);
 
   // Native <video> element ref (for video background control)
   const videoRef = useRef(null);
