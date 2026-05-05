@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 /**
  * Shared slide preview panel used by both StageView and ConfidenceMonitor.
@@ -19,6 +19,24 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
   const videoSrc = bgType === 'video' && bgValue
     ? (window.electronAPI ? bgValue.replace(/^file:/, 'media:') : bgValue)
     : null;
+
+  // Internal ref for the dimmed/next preview — we need to explicitly pause it
+  // because changing autoPlay={false} on an already-playing element does nothing.
+  const dimmedVideoRef = useRef(null);
+  useEffect(() => {
+    if (!dimmed) return;
+    const v = dimmedVideoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.pause();
+    const keepPaused = () => v.pause();
+    v.addEventListener('canplay', keepPaused);
+    v.addEventListener('play', keepPaused);
+    return () => {
+      v.removeEventListener('canplay', keepPaused);
+      v.removeEventListener('play', keepPaused);
+    };
+  }, [dimmed, videoSrc]);
 
   const textColor  = slide?.item?.textColor  || '#ffffff';
   const fontFamily = slide?.item?.fontFamily || 'Georgia';
@@ -51,7 +69,7 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
       {/* Background video — autoPlay only for the live (non-dimmed) panel */}
       {bgType === 'video' && videoSrc && !isBlackout && (
         <video
-          ref={dimmed ? undefined : videoRef}
+          ref={dimmed ? dimmedVideoRef : videoRef}
           autoPlay={!dimmed}
           muted
           loop={!dimmed}

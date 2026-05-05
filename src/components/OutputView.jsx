@@ -186,12 +186,13 @@ export default function OutputView() {
     const video = videoRef.current;
     if (!video) return;
     switch (func) {
-      case 'play':      video.play(); break;
-      case 'pause':     video.pause(); break;
-      case 'setVolume': video.volume = Math.max(0, Math.min(1, (args[0] ?? 100) / 100)); break;
-      case 'mute':      video.muted = true; break;
-      case 'unmute':    video.muted = false; break;
-      case 'seek':      video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
+      case 'play':   video.play(); break;
+      case 'pause':  video.pause(); break;
+      case 'mute':   video.muted = true; break;
+      case 'seek':   video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
+      // Audio commands only reach the program output — all other roles stay muted
+      case 'unmute':    if (role === 'presentation') video.muted = false; break;
+      case 'setVolume': if (role === 'presentation') video.volume = Math.max(0, Math.min(1, (args[0] ?? 100) / 100)); break;
       default: break;
     }
     relayVideoState({
