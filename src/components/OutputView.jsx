@@ -202,7 +202,7 @@ export default function OutputView() {
       currentTime: video.currentTime,
       duration: video.duration || 0,
     });
-  }, []);
+  }, [role]);
 
   // Relay native video events so the operator controller stays in sync
   useEffect(() => {
