@@ -10,7 +10,7 @@ import React from 'react';
  * @param {boolean} dimmed       - Reduced opacity mode for the "Next" panel.
  * @param {string}  flex         - CSS flex value for the outer container (default '1').
  */
-export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1' }) {
+export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed = false, flex = '1', videoRef }) {
   const effectiveBg = slide?.background || slide?.item?.background;
   const bgType  = effectiveBg?.type;
   const bgValue = effectiveBg?.value;
@@ -48,10 +48,15 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
         }} />
       )}
 
-      {/* Background video */}
+      {/* Background video — autoPlay only for the live (non-dimmed) panel */}
       {bgType === 'video' && videoSrc && !isBlackout && (
         <video
-          autoPlay muted loop playsInline
+          ref={dimmed ? undefined : videoRef}
+          autoPlay={!dimmed}
+          muted
+          loop={!dimmed}
+          playsInline
+          preload="metadata"
           src={videoSrc}
           style={{
             position: 'absolute', inset: 0,

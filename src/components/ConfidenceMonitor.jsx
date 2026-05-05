@@ -161,7 +161,7 @@ function QuadrantLabel({ text, accent = 'rgba(255,255,255,0.25)' }) {
 // subscription), and subscribes internally to timer-state and stage-announcement
 // via BroadcastChannel / electronAPI — so no changes to OutputView are needed.
 
-export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
+export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoRef }) {
   const [timers, setTimers]           = useState([]);
   const [announcement, setAnnouncement] = useState(null);
   const [clock, setClock]             = useState(formatClock());
@@ -255,7 +255,7 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout }) {
         {/* Upper-left: Current slide */}
         <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <QuadrantLabel text="Current" accent="#4f8ef7" />
-          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" />
+          <SlideCanvas slide={slide} label="" accent="#4f8ef7" flex="1" videoRef={videoRef} />
         </div>
 
         {/* Upper-right: Next slide */}

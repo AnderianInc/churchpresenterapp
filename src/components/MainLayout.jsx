@@ -349,7 +349,7 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [dismissed, setDismissed] = useState(false);
-  const [isSeeking, setIsSeeking] = useState(false);
+  const isSeekingRef = useRef(false);
   const lastActionRef = useRef(0);
   const prevValueRef = useRef(null);
 
@@ -374,7 +374,7 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
       if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
       if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
       if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
-      if (!isSeeking) {
+      if (!isSeekingRef.current) {
         if (payload.currentTime !== undefined) setCurrentTime(payload.currentTime);
         if (payload.duration !== undefined && payload.duration > 0) setDuration(payload.duration);
       }
@@ -468,15 +468,15 @@ function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
             </span>
             <input
               type="range" min={0} max={duration} step={0.5}
-              value={isSeeking ? undefined : currentTime}
+              value={currentTime}
               style={{
                 ...sliderTrackStyle,
                 background: `linear-gradient(to right, #4f8ef7 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.15) ${(currentTime / duration) * 100}%)`,
               }}
-              onMouseDown={() => setIsSeeking(true)}
+              onMouseDown={() => { isSeekingRef.current = true; }}
               onMouseUp={(e) => {
                 const t = Number(e.target.value);
-                setIsSeeking(false);
+                isSeekingRef.current = false;
                 setCurrentTime(t);
                 lastActionRef.current = Date.now();
                 sendVideoControl('seek', [t]);

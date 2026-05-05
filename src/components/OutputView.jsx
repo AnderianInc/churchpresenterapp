@@ -206,7 +206,8 @@ export default function OutputView() {
   // Relay native video events so the operator controller stays in sync
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || slide?.item?.background?.type !== 'video') return;
+    const effectiveBgType = slide?.background?.type || slide?.item?.background?.type;
+    if (!video || effectiveBgType !== 'video') return;
     const relay = () => relayVideoState({
       isPlaying: !video.paused,
       isMuted: video.muted,
@@ -327,6 +328,7 @@ export default function OutputView() {
           slide={isClear ? null : slide}
           nextSlide={nextSlide}
           isBlackout={isBlackout}
+          videoRef={videoRef}
         />
         <HoverToolbar outputId={outputId} />
       </>
