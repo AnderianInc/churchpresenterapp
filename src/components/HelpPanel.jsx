@@ -11,6 +11,8 @@ const sections = [
       { key: 'Enter', desc: 'Send current slide live' },
       { key: 'B', desc: 'Toggle blackout' },
       { key: 'C', desc: 'Toggle clear (text only)' },
+      { key: 'F9', desc: 'Toggle performance overlay (debug)' },
+      { key: 'F11', desc: 'Toggle fullscreen (Stage / Output windows)' },
     ],
   },
   {
@@ -170,6 +172,20 @@ const sections = [
       '🎙 Devices — Set your preferred microphone for the Sermon Assistant level meter, preferred camera for the Stream panel, and presentation font/size defaults.',
       'Offline Bible folder: set it in ⚙ Settings → API Keys → Offline Bible — Beblia Collection → Browse… to enable all 1,000+ offline translations. See the Bible Search help topic above for the full setup steps.',
       'Timers and the Confidence Monitor require no settings configuration — open ⏱ Timers in the nav bar to get started immediately.',
+    ],
+  },
+  {
+    title: 'Performance & Diagnostics',
+    icon: '📊',
+    body: [
+      'Press F9 anywhere in the app to toggle the Performance Overlay — a draggable HUD showing live metrics.',
+      'Renderer section: FPS (frames per second), JS heap usage, slide-change latency (time from operator click to screen update), and session uptime.',
+      'Main process section: RSS memory, Node heap, CPU%, slide change count, and startup time.',
+      'Color coding — green: healthy, yellow: watch, red: investigate. Targets: ≥55 FPS, <200 MB heap growth per 2-hour session, <100 ms slide latency.',
+      'The overlay has zero cost when hidden — it only polls every 500 ms while visible.',
+      'Performance logs are written to <userData>/logs/perf.ndjson (rotated at 5 MB). Path shown in the overlay header.',
+      'macOS log path: ~/Library/Application Support/church-presenter/logs/perf.ndjson',
+      'Windows log path: %APPDATA%\\church-presenter\\logs\\perf.ndjson',
     ],
   },
   {
