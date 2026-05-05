@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useApp } from '../store/AppContext';
 import ExternalLink from './ExternalLink';
 import HelpPanel from './HelpPanel';
+import LogsTab from './LogsTab';
 
 const PLATFORM_PRESETS = {
   facebook:  { name: 'Facebook Live',   color: '#1877F2', icon: '📘', rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'social',  label: '📡 Social Media' },
   { id: 'devices', label: '🎙 Devices' },
   { id: 'outputs', label: '📺 Outputs' },
+  { id: 'logs',    label: '📋 Logs' },
   { id: 'help',    label: '❔ Help' },
 ];
 
@@ -513,7 +515,7 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: activeTab === 'help' ? 'hidden' : 'auto', padding: activeTab === 'help' ? 0 : 14, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflow: (activeTab === 'help' || activeTab === 'logs') ? 'hidden' : 'auto', padding: (activeTab === 'help' || activeTab === 'logs') ? 0 : 14, display: 'flex', flexDirection: 'column' }}>
 
         {/* ── API Keys tab ──────────────────────────────────────────────── */}
         {activeTab === 'keys' && (
@@ -834,6 +836,11 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
               </div>
             </Section>
           </>
+        )}
+
+        {/* ── Logs tab ──────────────────────────────────────────────────── */}
+        {activeTab === 'logs' && (
+          <LogsTab />
         )}
 
         {/* ── Help tab ──────────────────────────────────────────────────── */}

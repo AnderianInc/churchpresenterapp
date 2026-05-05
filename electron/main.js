@@ -5,7 +5,8 @@ const { pathToFileURL } = require('url');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
 const { defaultSongs } = require('./defaultData.js');
-const perf = require('./perf.js');
+const perf   = require('./perf.js');
+const logger = require('./logger.js');
 const isDev = !app.isPackaged;
 const isMac = process.platform === 'darwin';
 
@@ -349,15 +350,15 @@ function recoverCorruptFile(key, filePath, reason) {
   const backupPath = filePath.replace('.json', `_corrupt_${Date.now()}.json`);
   try {
     if (fs.existsSync(filePath)) fs.renameSync(filePath, backupPath);
-    console.warn(`[persistence] "${key}" was corrupt (${reason}). Backed up to ${backupPath}, restoring defaults.`);
+    logger.warn('persistence', `"${key}" was corrupt — backed up, restoring defaults`, { reason, backupPath });
   } catch (backupErr) {
-    console.error(`[persistence] Could not back up corrupt "${key}":`, backupErr.message);
+    logger.error('persistence', `Could not back up corrupt "${key}"`, backupErr.message);
   }
   const safeDefault = FILE_DEFAULTS[key]?.() ?? null;
   try {
     fs.writeFileSync(filePath, JSON.stringify(safeDefault, null, 2));
   } catch (writeErr) {
-    console.error(`[persistence] Could not write default for "${key}":`, writeErr.message);
+    logger.error('persistence', `Could not write default for "${key}"`, writeErr.message);
   }
   return safeDefault;
 }
@@ -967,6 +968,7 @@ ipcMain.on('open-recording-folder', (_, folderPath) => {
 });
 
 app.whenReady().then(() => {
+  logger.start(app);
   perf.start(app);
 
   // Replace default "Electron" menu with a minimal Church Presenter menu
@@ -1021,7 +1023,7 @@ app.whenReady().then(() => {
   createMainWindow();
 });
 
-app.on('before-quit', () => perf.stop());
+app.on('before-quit', () => { perf.stop(); logger.stop(); });
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

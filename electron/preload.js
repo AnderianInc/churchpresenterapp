@@ -108,6 +108,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getPerfLogPath:  () => ipcRenderer.invoke('perf:get-log-path'),
   getPerfLogDir:   () => ipcRenderer.invoke('perf:get-log-dir'),
 
+  // ── Error / application logging ────────────────────────────────────────────
+  logWrite:       (entry) => ipcRenderer.send('log:write', entry),
+  getLogEntries:  ()      => ipcRenderer.invoke('log:get-entries'),
+  getLogPath:     ()      => ipcRenderer.invoke('log:get-path'),
+  openLogFolder:  ()      => ipcRenderer.invoke('log:open-folder'),
+  clearLog:       ()      => ipcRenderer.invoke('log:clear'),
+
   isElectron: true,
   platform: process.platform,
 });

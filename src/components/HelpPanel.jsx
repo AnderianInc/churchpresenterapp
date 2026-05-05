@@ -184,8 +184,10 @@ const sections = [
       'Color coding — green: healthy, yellow: watch, red: investigate. Targets: ≥55 FPS, <200 MB heap growth per 2-hour session, <100 ms slide latency.',
       'The overlay has zero cost when hidden — it only polls every 500 ms while visible.',
       'Performance logs are written to <userData>/logs/perf.ndjson (rotated at 5 MB). Path shown in the overlay header.',
-      'macOS log path: ~/Library/Application Support/church-presenter/logs/perf.ndjson',
-      'Windows log path: %APPDATA%\\church-presenter\\logs\\perf.ndjson',
+      'Error log: ⚙ Settings → 📋 Logs shows all captured errors and warnings with timestamps, source, and stack traces. Use the filter buttons to focus on errors only.',
+      'Log actions: Refresh reloads from memory, Copy copies all visible entries to the clipboard, Open Folder reveals the log files on disk, Clear wipes the in-memory list.',
+      'macOS log path: ~/Library/Application Support/church-presenter/logs/app.log',
+      'Windows log path: %APPDATA%\\church-presenter\\logs\\app.log',
     ],
   },
   {
