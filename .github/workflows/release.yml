@@ -41,7 +41,7 @@ jobs:
         run: npm run build
 
       - name: Copy Electron main process files into build/
-        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
+        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData','perf','logger'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
 
       - name: Build macOS installer
         env:
@@ -90,7 +90,7 @@ jobs:
         run: npm run build
 
       - name: Copy Electron main process files into build/
-        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
+        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData','perf','logger'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
 
       - name: Build Windows installer
         env:
@@ -146,7 +146,7 @@ jobs:
         run: npm run build
 
       - name: Copy Electron main process files into build/
-        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
+        run: node -e "const fs=require('fs');fs.copyFileSync('electron/main.js','build/electron.js');['preload','validators','defaultData','perf','logger'].forEach(f=>fs.copyFileSync('electron/'+f+'.js','build/'+f+'.js'));"
 
       - name: Build Linux AppImage
         run: npx electron-builder --linux --publish never
