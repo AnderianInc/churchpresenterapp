@@ -11,6 +11,8 @@
     "electron": "wait-on http://localhost:3000 && electron .",
     "electron:dev": "concurrently \"BROWSER=none npm start\" \"npm run electron\"",
     "electron:build": "npm run build-offline-index && npm run update-online-index && npm run build && electron-builder",
+    "electron:build:mac:arm64": "npm run build-offline-index && npm run update-online-index && npm run build && electron-builder --mac --arm64",
+    "electron:build:mac:x64": "npm run build-offline-index && npm run update-online-index && npm run build && electron-builder --mac --x64",
     "test": "react-scripts test --watchAll=false",
     "test:watch": "react-scripts test",
     "build-offline-index": "node scripts/build-offline-index.js",
