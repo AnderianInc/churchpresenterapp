@@ -854,6 +854,49 @@ Add "Recording" accordion item to `src/components/HelpPanel.jsx`:
 
 ---
 
+### P12 — Operator UX, Content Authoring & Live Bug Fixes 🔲 Planned
+
+User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed authoring features and live-blocker bug fixes — bugs should land first since they affect service reliability.
+
+#### Bugs (block live use)
+
+- [ ] **B1: PPTX / PPT import produces blank slides.** Existing PowerPoint import path runs but slide content (text, images) does not appear. Investigate parser, image embedding, and slide-rendering pipeline. Verify both `.pptx` (Open XML) and legacy `.ppt` (binary) paths.
+- [ ] **B2: YouTube does not play in the packaged app.** Works in `electron:dev` but fails in built DMG/zip. Likely related to CSP, `webPreferences`, `webview`/iframe sandboxing, or media autoplay policies in production builds. Check console errors from the live built app via the in-app log viewer.
+- [ ] **B3: Clicking outside an open editor closes/discards the edit screen.** Outside-click should not dismiss editors that contain unsaved work. Either trap clicks while dirty or prompt to discard. Affects song editor, announcement editor, settings overlay edge cases.
+
+#### Authoring & Persistence
+
+- [ ] **F1: Autosave on active edits.** Replace explicit Save with debounced autosave (200–500 ms) on song editor, announcement editor, schedule changes, and settings. Must remain crash-safe (atomic write already in place via [electron/main.js](electron/main.js)). Show a small "Saved" / "Saving…" indicator.
+- [ ] **F2: Save & reuse presentation sets (named schedules).** Persist the current schedule as a named **Service Set** that can be loaded on future Sundays. Implies a Service Sets registry alongside `songs.json` / `schedules.json` (e.g. `service-sets.json`), CRUD UI in the schedule panel, and a "Load Set" picker. Optionally support duplicate / rename / delete.
+- [ ] **F3: Editable slide names.** Slides currently have implicit/auto names. Add inline rename in the song editor and library list. Persist the user-set name; preserve it through validators.
+- [ ] **F4: Edit slides while they are in the schedule.** Today edits must be made in the library and re-added. Allow opening the slide/song editor on a scheduled item and have changes propagate to the schedule view. Decide: edit the underlying library item vs. detach into a per-schedule override copy (recommend underlying with a "this affects all uses" warning, mirroring ProPresenter behavior).
+
+#### Multi-Slide Authoring
+
+- [ ] **F5: Create multiple slides in one go for Announcements and Media.** Today the Announcement and Media panels only support one slide per action. Add: multi-slide announcement composer (per-slide title/body, drag-reorder), and multi-select media import → one slide per asset. Both should appear in the schedule as a single grouped item with internal slides.
+
+#### Bible → Live
+
+- [ ] **F6: Stream Bible passages directly to live output AND add to slides.** Currently Bible search can be added to the schedule, but there is no quick "send this verse(s) directly to program" path comparable to a song slide. Build: verse-row "Go Live" action, persistent reference + translation overlay on the program output, and the existing "Add to slide" path retained as a separate action.
+
+#### Image Tooling
+
+- [ ] **F7: Crop images when adding to slides.** Inline crop modal (aspect ratio presets: free, 16:9, 4:3, 1:1; drag handles). Output cropped image is the asset stored in the slide background — original file should remain untouched. Persist via existing `copy-media-file` IPC.
+
+#### Implementation Order (proposed)
+
+1. **B3** — Outside-click discard (smallest blast radius, most disruptive to current operators)
+2. **B2** — YouTube in built app (live-blocker, needs prod debugging)
+3. **B1** — PPTX/PPT import (live-blocker, scoped to importer)
+4. **F1** — Autosave (foundation for F3/F4/F5)
+5. **F3, F4** — Slide rename + edit-in-schedule (small UI wins, build on F1)
+6. **F2** — Service Sets (medium-scope feature, depends on autosave for safety)
+7. **F5** — Multi-slide Announcements/Media
+8. **F6** — Bible → Live
+9. **F7** — Image crop
+
+---
+
 ## Known Gaps & Risks
 
 ### Resolved
@@ -882,6 +925,7 @@ Add "Recording" accordion item to `src/components/HelpPanel.jsx`:
 
 ## Tracking
 
-- **Last updated:** 2026-04-19
-- **Current focus:** P11 — Live Stream Recording (planned, not started)
-- **Status:** P0–P10 complete. P11 plan written; implementation pending.
+- **Last updated:** 2026-05-11
+- **Current focus:** P12 — Operator UX, Content Authoring & Live Bug Fixes (planned, not started). P11 still pending behind P12 since P12 items are blocking live Sunday use.
+- **Status:** P0–P10 complete. P11 plan written; deferred. P12 filed 2026-05-11 from live-use feedback.
+- **Release flow:** Manual per-OS builds via `npm run electron:build:mac:arm64` / `electron:build:mac:x64` (and equivalent for Windows/Linux), then attached to GitHub releases by hand. GitHub Actions release/CI pipelines are no longer in active use.
