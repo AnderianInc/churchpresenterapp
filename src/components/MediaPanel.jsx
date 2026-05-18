@@ -921,6 +921,9 @@ function PptxImporter({ addToSchedule }) {
       const title = slide.title
         ? `${baseName} — ${slide.title}`.slice(0, 80)
         : `${baseName} — Slide ${slide.num}`;
+      const background = slide.bgImage
+        ? { type: 'image', value: slide.bgImage, brightness: 1.0 }
+        : { type: 'color', value: slide.bgColor || '#0a0f1e' };
       addToSchedule({
         type: 'presentation',
         title,
@@ -930,10 +933,7 @@ function PptxImporter({ addToSchedule }) {
           label: slide.title || `Slide ${slide.num}`,
           lines: slide.lines,
         }],
-        background: {
-          type: 'color',
-          value: slide.bgColor || '#0a0f1e',
-        },
+        background,
         textColor: '#ffffff',
         fontSize: 36,
         fontFamily: 'Georgia',
