@@ -140,7 +140,7 @@ export default function SongEditorModal({ song, onClose, onAfterSave }) {
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    }}>
       <div style={{
         width: 920, maxWidth: '95vw', height: 640, maxHeight: '90vh',
         background: 'var(--bg-panel)', borderRadius: 10,

@@ -687,7 +687,6 @@ export default function SongImportModal({ onClose }) {
         position: 'fixed', inset: 0, zIndex: 1000,
         background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
         width: 820, maxWidth: '95vw', height: 600, maxHeight: '90vh',
