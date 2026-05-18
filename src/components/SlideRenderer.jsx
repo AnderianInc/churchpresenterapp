@@ -161,7 +161,7 @@ function SlideRenderer({
           {fullscreen ? (
             <iframe
               ref={internalIframeRef}
-              src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=0&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(window.location.origin && window.location.origin !== 'null' ? window.location.origin : window.location.href.split('/').slice(0, 3).join('/'))}`}
+              src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=0&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1${/^https?:\/\//.test(window.location.origin || '') ? `&origin=${encodeURIComponent(window.location.origin)}` : ''}`}
               style={{
                 position: 'absolute', inset: 0,
                 width: '100%', height: '100%',
