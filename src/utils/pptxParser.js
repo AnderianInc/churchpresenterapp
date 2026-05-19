@@ -189,12 +189,64 @@ function slideHasImageEls(doc) {
       || doc.getElementsByTagNameNS(P_NS, 'pic').length > 0;
 }
 
+// ── Regex fallback for text extraction ────────────────────────────────────────
+// If DOMParser returns nothing (parse error, weird namespace handling, etc.) we
+// still want a best-effort extraction from the raw XML string.
+
+const ENTITY_MAP = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'", '&#39;': "'" };
+
+function decodeXmlEntities(s) {
+  return s
+    .replace(/&(?:amp|lt|gt|quot|apos|#39);/g, m => ENTITY_MAP[m])
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+}
+
+function collectParagraphsRegex(xml) {
+  const paras = [];
+  const paraRe = /<a:p\b[^>]*>([\s\S]*?)<\/a:p>/g;
+  let pm;
+  while ((pm = paraRe.exec(xml)) !== null) {
+    const paraXml = pm[1];
+    const runRe = /<a:t\b[^>]*>([\s\S]*?)<\/a:t>/g;
+    const runs = [];
+    let rm;
+    while ((rm = runRe.exec(paraXml)) !== null) {
+      const decoded = decodeXmlEntities(rm[1]);
+      if (decoded) runs.push(decoded);
+    }
+    // <a:br/> within paragraph → newline
+    const lineWithBreaks = runs.join('');
+    if (lineWithBreaks.trim()) paras.push(lineWithBreaks.trim());
+  }
+  return paras;
+}
+
+function extractTitleRegex(xml) {
+  // Title placeholder shape: <p:sp>…<p:ph type="title|ctrTitle|subTitle"…/>…<p:txBody>…</p:txBody>…</p:sp>
+  const spRe = /<p:sp\b[\s\S]*?<\/p:sp>/g;
+  let m;
+  while ((m = spRe.exec(xml)) !== null) {
+    const spXml = m[0];
+    if (!/<p:ph\b[^>]*\btype="(?:title|ctrTitle|subTitle)"/.test(spXml)) continue;
+    const tbMatch = spXml.match(/<p:txBody\b[^>]*>([\s\S]*?)<\/p:txBody>/);
+    if (!tbMatch) continue;
+    const paras = collectParagraphsRegex(tbMatch[1]);
+    if (paras.length) return paras[0];
+  }
+  return null;
+}
+
 // ── Image extraction ──────────────────────────────────────────────────────────
 
+// Formats browsers can render natively. PowerPoint also embeds EMF/WMF
+// metafiles (vector clipart, chart backings) which we deliberately skip —
+// they'd render as a broken image if we tried.
 const IMG_EXT_MIME = {
   png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg',
   gif: 'image/gif', webp: 'image/webp', bmp: 'image/bmp', svg: 'image/svg+xml',
 };
+const RENDERABLE_EXTS = new Set(Object.keys(IMG_EXT_MIME));
 
 function bytesToBase64(bytes) {
   // Avoid stack overflow on large inputs by chunking
@@ -248,6 +300,7 @@ function extractPrimarySlideImage(slidePath, entries) {
 
   const rels = doc.getElementsByTagNameNS(REL_NS, 'Relationship');
   let best = null; // { path, bytes }
+  let skipped = 0;
   for (let i = 0; i < rels.length; i++) {
     const r = rels[i];
     const type = r.getAttribute('Type') || '';
@@ -257,10 +310,12 @@ function extractPrimarySlideImage(slidePath, entries) {
     const abs = resolveRelTarget(slidePath, target);
     const bytes = entries[abs];
     if (!bytes) continue;
+    const ext = (abs.split('.').pop() || '').toLowerCase();
+    if (!RENDERABLE_EXTS.has(ext)) { skipped++; continue; }
     if (!best || bytes.length > best.bytes.length) best = { path: abs, bytes };
   }
-  if (!best) return null;
-  return bytesToDataUrl(best.bytes, best.path);
+  if (!best) return { dataUrl: null, skipped };
+  return { dataUrl: bytesToDataUrl(best.bytes, best.path), skipped, path: best.path, byteLen: best.bytes.length };
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -329,18 +384,45 @@ export async function parsePptx(file) {
   }
 
   // ── Parse each slide ──────────────────────────────────────────────────────
+  const diagnostics = { fileName: file.name, slideOrderSource: relsBytes ? 'rels' : 'fallback', slides: [] };
   const slides = slideFileOrder.map((slidePath, idx) => {
     const raw = entries[slidePath];
-    if (!raw) return null;
+    if (!raw) {
+      diagnostics.slides.push({ idx: idx + 1, slidePath, error: 'slide bytes missing from zip' });
+      return null;
+    }
     const xml = decodeText(raw);
     const doc = parseXml(xml);
 
-    const title    = extractTitle(doc);
-    const paras    = collectParagraphs(doc);
+    // Text: try DOM first, fall back to regex if DOM produces nothing.
+    // Some real-world PPTX files have parse issues that DOMParser swallows
+    // silently — the regex is a safety net.
+    const domParas = doc ? collectParagraphs(doc) : [];
+    const regexParas = domParas.length === 0 ? collectParagraphsRegex(xml) : [];
+    const paras = domParas.length > 0 ? domParas : regexParas;
+
+    const domTitle = doc ? extractTitle(doc) : null;
+    const title = domTitle || (paras.length === 0 ? extractTitleRegex(xml) : null);
+
     const allText  = paras.join('\n');
-    const bgColor  = extractBgColor(doc);
-    const hasImage = slideHasImageEls(doc);
-    const bgImage  = hasImage ? extractPrimarySlideImage(slidePath, entries) : null;
+    const bgColor  = doc ? extractBgColor(doc) : null;
+    const hasImage = doc ? slideHasImageEls(doc) : /<a:blip\b|<p:pic\b/.test(xml);
+    const img = hasImage ? extractPrimarySlideImage(slidePath, entries) : null;
+    const bgImage = img && img.dataUrl ? img.dataUrl : null;
+
+    diagnostics.slides.push({
+      idx: idx + 1,
+      slidePath,
+      xmlLen: xml.length,
+      domOk: !!doc,
+      domParas: domParas.length,
+      regexParas: regexParas.length,
+      textChars: allText.length,
+      hasImage,
+      imgPath: img?.path || null,
+      imgByteLen: img?.byteLen || 0,
+      imgSkipped: img?.skipped || 0,
+    });
 
     return {
       num:      idx + 1,
@@ -353,7 +435,13 @@ export async function parsePptx(file) {
     };
   }).filter(Boolean);
 
-  return { fileName: file.name, slideCount: slides.length, slides };
+  // Print to console so users (and devs) can see what was extracted.
+  // Visible via DevTools or the in-app log viewer.
+  if (typeof console !== 'undefined' && console.log) {
+    console.log('[pptxParser] diagnostics:', diagnostics);
+  }
+
+  return { fileName: file.name, slideCount: slides.length, slides, diagnostics };
 }
 
 // ── Test helpers (exported for unit tests; not part of the public API) ────────
@@ -361,7 +449,10 @@ export async function parsePptx(file) {
 export const __test = {
   parseXml,
   collectParagraphs,
+  collectParagraphsRegex,
   extractTitle,
+  extractTitleRegex,
+  decodeXmlEntities,
   extractBgColor,
   slideHasImageEls,
   resolveRelTarget,

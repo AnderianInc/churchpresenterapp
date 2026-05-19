@@ -860,9 +860,9 @@ User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed author
 
 #### Bugs (block live use)
 
-- [ ] **B1: PPTX / PPT import produces blank slides.** Existing PowerPoint import path runs but slide content (text, images) does not appear. Investigate parser, image embedding, and slide-rendering pipeline. Verify both `.pptx` (Open XML) and legacy `.ppt` (binary) paths.
-- [ ] **B2: YouTube does not play in the packaged app.** Works in `electron:dev` but fails in built DMG/zip. Likely related to CSP, `webPreferences`, `webview`/iframe sandboxing, or media autoplay policies in production builds. Check console errors from the live built app via the in-app log viewer.
-- [ ] **B3: Clicking outside an open editor closes/discards the edit screen.** Outside-click should not dismiss editors that contain unsaved work. Either trap clicks while dirty or prompt to discard. Affects song editor, announcement editor, settings overlay edge cases.
+- [x] **B3: Clicking outside an open editor closes/discards the edit screen.** Fixed in `f1b52bd` — backdrop `onClick` removed from SongEditorModal and SongImportModal. Cancel/Save/Close buttons remain the only dismissal paths. Escape kept where wired (standard, user-initiated).
+- [x] **B2: YouTube does not play in the packaged app.** Fixed in `63249fe` — the embed URL's `&origin=` was being set to `file://` under the packaged renderer, which YouTube's IFrame API rejects, so `postMessage('playVideo')` was silently dropped. Now the `origin` query param is only appended when `window.location.origin` is `http(s)://`. Under `file://` it is omitted, so YouTube skips origin validation and accepts `'*'` postMessage.
+- [~] **B1: PPTX import produces blank slides.** Parser rewrite + image extraction landed in `ef8abc2`. Real-world test still revealed text-extraction gaps and unrenderable image formats. Defensive follow-up commit adds: (a) regex fallback that runs when DOMParser yields no paragraphs, (b) filter that skips EMF/WMF/PICT and other browser-unsupported image formats with the slide falling back to a colour background, (c) per-slide diagnostic line in the importer preview (`Text: N chars · Image: extracted | skipped (unrenderable format) | none`), (d) full diagnostic dump to console (`[pptxParser] diagnostics:`) viewable in DevTools / in-app log viewer. Needs verification on the same problem file before B1 is fully closed.
 
 #### Authoring & Persistence
 
@@ -925,7 +925,7 @@ User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed author
 
 ## Tracking
 
-- **Last updated:** 2026-05-11
-- **Current focus:** P12 — Operator UX, Content Authoring & Live Bug Fixes (planned, not started). P11 still pending behind P12 since P12 items are blocking live Sunday use.
-- **Status:** P0–P10 complete. P11 plan written; deferred. P12 filed 2026-05-11 from live-use feedback.
+- **Last updated:** 2026-05-18
+- **Current focus:** P12 — Operator UX, Content Authoring & Live Bug Fixes (in progress on `feat/p12-operator-ux`). Bugs B2 & B3 verified; B1 has a defensive follow-up awaiting verification. Starting F1 (autosave) next.
+- **Status:** P0–P10 complete. P11 plan written; deferred. P12 filed 2026-05-11 from live-use feedback; bug fixes underway.
 - **Release flow:** Manual per-OS builds via `npm run electron:build:mac:arm64` / `electron:build:mac:x64` (and equivalent for Windows/Linux), then attached to GitHub releases by hand. GitHub Actions release/CI pipelines are no longer in active use.

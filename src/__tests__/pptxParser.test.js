@@ -6,7 +6,11 @@
 
 import { __test } from '../utils/pptxParser';
 
-const { parseXml, collectParagraphs, extractTitle, extractBgColor, slideHasImageEls, resolveRelTarget, bytesToDataUrl } = __test;
+const {
+  parseXml, collectParagraphs, collectParagraphsRegex,
+  extractTitle, extractTitleRegex, extractBgColor,
+  slideHasImageEls, resolveRelTarget, bytesToDataUrl, decodeXmlEntities,
+} = __test;
 
 // Common XML wrapper — declares the namespaces used inside <p:sld>
 const wrap = (body) => `<?xml version="1.0" encoding="UTF-8"?>
@@ -162,6 +166,86 @@ describe('resolveRelTarget', () => {
 
   it('resolves a same-directory target', () => {
     expect(resolveRelTarget('ppt/slides/slide1.xml', 'media/img.jpg')).toBe('ppt/slides/media/img.jpg');
+  });
+});
+
+describe('collectParagraphsRegex (fallback)', () => {
+  it('extracts text without needing DOMParser', () => {
+    const xml = `<a:p><a:r><a:t>Hello world</a:t></a:r></a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['Hello world']);
+  });
+
+  it('joins multiple runs in one paragraph', () => {
+    const xml = `<a:p>
+      <a:r><a:rPr lang="en-US"/><a:t>Hello, </a:t></a:r>
+      <a:r><a:rPr lang="en-US" b="1"/><a:t>world!</a:t></a:r>
+    </a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['Hello, world!']);
+  });
+
+  it('emits one entry per <a:p>', () => {
+    const xml = `<a:p><a:r><a:t>First</a:t></a:r></a:p><a:p><a:r><a:t>Second</a:t></a:r></a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['First', 'Second']);
+  });
+
+  it('decodes &apos; and numeric entities', () => {
+    const xml = `<a:p><a:r><a:t>It&apos;s &quot;great&quot; &amp; cool &#x2014; yes</a:t></a:r></a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['It\'s "great" & cool — yes']);
+  });
+
+  it('handles attributes on <a:t> including xml:space="preserve"', () => {
+    const xml = `<a:p><a:r><a:t xml:space="preserve">  spaced  </a:t></a:r></a:p>`;
+    // trimmed line, but inner spaces preserved
+    expect(collectParagraphsRegex(xml)).toEqual(['spaced']);
+  });
+
+  it('handles newlines inside <a:t> content', () => {
+    const xml = `<a:p><a:r><a:t>Line A\nLine B</a:t></a:r></a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['Line A\nLine B']);
+  });
+
+  it('skips empty paragraphs', () => {
+    const xml = `<a:p><a:endParaRPr/></a:p><a:p><a:r><a:t>Only line</a:t></a:r></a:p>`;
+    expect(collectParagraphsRegex(xml)).toEqual(['Only line']);
+  });
+});
+
+describe('extractTitleRegex (fallback)', () => {
+  it('extracts text from a title placeholder shape', () => {
+    const xml = `<p:sp>
+      <p:nvSpPr><p:nvPr><p:ph type="title"/></p:nvPr></p:nvSpPr>
+      <p:txBody><a:p><a:r><a:t>Sermon Title</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+    <p:sp>
+      <p:txBody><a:p><a:r><a:t>Body text</a:t></a:r></a:p></p:txBody>
+    </p:sp>`;
+    expect(extractTitleRegex(xml)).toBe('Sermon Title');
+  });
+
+  it('matches ctrTitle and subTitle types', () => {
+    const xml = `<p:sp><p:nvSpPr><p:nvPr><p:ph type="ctrTitle"/></p:nvPr></p:nvSpPr>
+      <p:txBody><a:p><a:r><a:t>Centered Title</a:t></a:r></a:p></p:txBody></p:sp>`;
+    expect(extractTitleRegex(xml)).toBe('Centered Title');
+  });
+
+  it('returns null when no title placeholder is present', () => {
+    const xml = `<p:sp><p:txBody><a:p><a:r><a:t>Just body</a:t></a:r></a:p></p:txBody></p:sp>`;
+    expect(extractTitleRegex(xml)).toBeNull();
+  });
+});
+
+describe('decodeXmlEntities', () => {
+  it('decodes the five XML named entities', () => {
+    expect(decodeXmlEntities('&amp;&lt;&gt;&quot;&apos;')).toBe('&<>"\'');
+  });
+
+  it('decodes &#39; numeric escape for apostrophe', () => {
+    expect(decodeXmlEntities('it&#39;s')).toBe("it's");
+  });
+
+  it('decodes decimal and hexadecimal numeric entities', () => {
+    expect(decodeXmlEntities('&#8212;')).toBe('—');
+    expect(decodeXmlEntities('&#x2014;')).toBe('—');
   });
 });
 

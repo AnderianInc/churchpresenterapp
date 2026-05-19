@@ -1090,6 +1090,14 @@ function PptxImporter({ addToSchedule }) {
 function SlidePreviewRow({ slide, selected, onToggle, onAdd }) {
   const [hover, setHover] = useState(false);
   const previewText = slide.text ? slide.text.slice(0, 120) + (slide.text.length > 120 ? '…' : '') : '(no text)';
+  // Show what we actually managed to extract so it's obvious when a slide is
+  // coming through as text-less + image-less (the "blank slide" bug).
+  const diagBits = [
+    `Text: ${slide.text ? `${slide.text.length} chars` : 'none'}`,
+    slide.bgImage ? 'Image: extracted'
+      : slide.hasImage ? 'Image: skipped (unrenderable format)'
+      : 'Image: none',
+  ];
 
   return (
     <div
@@ -1134,6 +1142,9 @@ function SlidePreviewRow({ slide, selected, onToggle, onAdd }) {
         </div>
         <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.45, wordBreak: 'break-word' }}>
           {previewText}
+        </div>
+        <div style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.6, marginTop: 2 }}>
+          {diagBits.join(' · ')}
         </div>
       </div>
 
