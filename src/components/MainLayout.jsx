@@ -598,8 +598,8 @@ export default function MainLayout() {
       {songEditorOpen && (
         <SongEditorModal
           song={editingSong}
+          scheduleId={editingScheduleId}
           onClose={() => { setSongEditorOpen(false); setEditingScheduleId(null); }}
-          onAfterSave={editingScheduleId ? (data) => updateScheduleItem(editingScheduleId, data) : undefined}
         />
       )}
 

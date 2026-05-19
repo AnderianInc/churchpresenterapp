@@ -43,9 +43,10 @@ const AlignBtn = ({ align, current, onClick }) => {
   );
 };
 
-export default function SongEditorModal({ song, onClose, onAfterSave }) {
-  const { addSong, updateSong } = useApp();
+export default function SongEditorModal({ song, scheduleId = null, onClose, onAfterSave }) {
+  const { addSong, updateSong, updateScheduleItem } = useApp();
   const isNew = !song;
+  const isScheduleEdit = !!scheduleId;
 
   const [title, setTitle] = useState(song?.title || '');
   const [author, setAuthor] = useState(song?.author || '');
@@ -133,23 +134,31 @@ export default function SongEditorModal({ song, onClose, onAfterSave }) {
   // use the explicit "＋ Add Song" button.
   const canAutosave = !isNew && !!title.trim();
   const autosaveSave = useCallback((data) => {
-    if (song?.id) updateSong(song.id, data);
-  }, [song?.id, updateSong]);
+    // Editing a song from the schedule (e.g. via the ✎ button) should only
+    // mutate the schedule item, not the library copy — otherwise next week's
+    // service would inherit this week's tweaks. Editing from the library
+    // updates the library song as before.
+    if (isScheduleEdit) updateScheduleItem(scheduleId, data);
+    else if (song?.id) updateSong(song.id, data);
+  }, [isScheduleEdit, scheduleId, song?.id, updateSong, updateScheduleItem]);
   const saveStatus = useAutosave(songData, autosaveSave, { enabled: canAutosave });
 
   const handleSave = () => {
     if (!title.trim()) return;
     if (isNew) addSong(songData);
+    else if (isScheduleEdit) updateScheduleItem(scheduleId, songData);
     else updateSong(song.id, songData);
     onAfterSave?.(songData);
     onClose();
   };
 
-  // Cancel: for existing songs, revert every autosaved change by re-saving
-  // the snapshot. For new songs, nothing has been persisted yet, so just close.
+  // Cancel: revert every autosaved change by re-saving the snapshot to the
+  // same target autosave wrote to (schedule item or library song).
+  // For new songs nothing has been persisted yet — just close.
   const handleCancel = () => {
     if (!isNew && originalSong.current) {
-      updateSong(originalSong.current.id, originalSong.current);
+      if (isScheduleEdit) updateScheduleItem(scheduleId, originalSong.current);
+      else updateSong(originalSong.current.id, originalSong.current);
     }
     onClose();
   };

@@ -233,10 +233,10 @@ export default function SchedulePanel({ onEditSong }) {
                 {item.author || item.reference || ''} · {item.slides?.length || 0} slides
               </div>
             </div>
-            {item.type === 'song' && onEditSong && (
+            {onEditSong && Array.isArray(item.slides) && item.slides.length > 0 && (
               <button
                 onClick={e => { e.stopPropagation(); onEditSong(item, item.scheduleId); }}
-                title="Edit song slides"
+                title="Edit slides for this schedule item"
                 style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 13, padding: '2px 4px', borderRadius: 3, flexShrink: 0 }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--text-dim)'}
