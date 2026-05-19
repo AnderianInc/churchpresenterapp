@@ -4,6 +4,7 @@ import { useApp } from '../store/AppContext';
 import ExternalLink from './ExternalLink';
 import HelpPanel from './HelpPanel';
 import LogsTab from './LogsTab';
+import useAutosave from '../hooks/useAutosave';
 
 const PLATFORM_PRESETS = {
   facebook:  { name: 'Facebook Live',   color: '#1877F2', icon: '📘', rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -45,19 +46,21 @@ function Section({ title, children }) {
   );
 }
 
-function SaveRow({ onSave, saved, disabled, label = 'Save' }) {
+function AutosaveStatus({ status }) {
+  // Shown under fields that autosave. Mirrors the status states of useAutosave.
+  const label =
+    status === 'pending' ? '…' :
+    status === 'saving' ? 'Saving…' :
+    status === 'saved'  ? '✓ Saved' :
+    status === 'error'  ? '⚠ Save failed' :
+    '';
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-      <button
-        onClick={onSave}
-        disabled={disabled}
-        style={{
-          background: saved ? 'var(--green)' : 'var(--accent)', border: 'none', color: '#fff',
-          borderRadius: 6, padding: '5px 14px', fontSize: 11, cursor: disabled ? 'not-allowed' : 'pointer',
-          fontFamily: 'var(--font)', fontWeight: 600, opacity: disabled ? 0.45 : 1,
-        }}
-      >{saved ? '✓ Saved' : label}</button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6, minHeight: 14 }}>
       <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Stored locally only.</div>
+      <div style={{
+        fontSize: 10, color: status === 'error' ? '#fca5a5' : 'var(--text-dim)',
+        opacity: status === 'idle' ? 0 : 1, transition: 'opacity 0.2s',
+      }}>{label}</div>
     </div>
   );
 }
@@ -420,36 +423,37 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
   // ── API key state ───────────────────────────────────────────────────────
   const [pcoAppId, setPcoAppId] = useState(settings?.pcoAppId || '');
   const [pcoSecret, setPcoSecret] = useState(settings?.pcoSecret || '');
-  const [pcoSaved, setPcoSaved] = useState(false);
   const [showPcoSecret, setShowPcoSecret] = useState(false);
 
   const [anthropicKey, setAnthropicKey] = useState(settings?.anthropicApiKey || '');
-  const [anthropicSaved, setAnthropicSaved] = useState(false);
   const [showAnthropicKey, setShowAnthropicKey] = useState(false);
 
   const [geniusKey, setGeniusKey] = useState(settings?.geniusApiKey || '');
-  const [geniusSaved, setGeniusSaved] = useState(false);
   const [showGeniusKey, setShowGeniusKey] = useState(false);
 
   // ── Social media state ──────────────────────────────────────────────────
   const [showAddPlatform, setShowAddPlatform] = useState(false);
   const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
-  // ── API key save handlers ───────────────────────────────────────────────
-  const savePco = useCallback(() => {
+  // ── API key autosave (debounced) ────────────────────────────────────────
+  // Save handlers are kept stable; useAutosave debounces them by 400ms.
+  const savePcoFields = useCallback(({ pcoAppId, pcoSecret }) => {
     saveSettings({ pcoAppId: pcoAppId.trim(), pcoSecret: pcoSecret.trim() });
-    setPcoSaved(true); setTimeout(() => setPcoSaved(false), 2000);
-  }, [pcoAppId, pcoSecret, saveSettings]);
+  }, [saveSettings]);
+  const pcoSaveStatus = useAutosave(
+    useMemo(() => ({ pcoAppId, pcoSecret }), [pcoAppId, pcoSecret]),
+    savePcoFields
+  );
 
-  const saveAnthropicKey = useCallback(() => {
-    saveSettings({ anthropicApiKey: anthropicKey.trim() });
-    setAnthropicSaved(true); setTimeout(() => setAnthropicSaved(false), 2000);
-  }, [anthropicKey, saveSettings]);
+  const saveAnthropicField = useCallback((k) => {
+    saveSettings({ anthropicApiKey: (k || '').trim() });
+  }, [saveSettings]);
+  const anthropicSaveStatus = useAutosave(anthropicKey, saveAnthropicField);
 
-  const saveGeniusKey = useCallback(() => {
-    saveSettings({ geniusApiKey: geniusKey.trim() });
-    setGeniusSaved(true); setTimeout(() => setGeniusSaved(false), 2000);
-  }, [geniusKey, saveSettings]);
+  const saveGeniusField = useCallback((k) => {
+    saveSettings({ geniusApiKey: (k || '').trim() });
+  }, [saveSettings]);
+  const geniusSaveStatus = useAutosave(geniusKey, saveGeniusField);
 
   // ── RTMP destination handlers ───────────────────────────────────────────
   const addDestination = useCallback((platform) => {
@@ -614,12 +618,11 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input type={showGeniusKey ? 'text' : 'password'} value={geniusKey}
-                    onChange={e => { setGeniusKey(e.target.value); setGeniusSaved(false); }}
-                    onKeyDown={e => e.key === 'Enter' && saveGeniusKey()}
+                    onChange={e => setGeniusKey(e.target.value)}
                     placeholder="Paste your Genius Client Access Token" style={{ ...inputStyle, flex: 1 }} />
                   <button onClick={() => setShowGeniusKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showGeniusKey ? 'Hide' : 'Show'}</button>
                 </div>
-                <SaveRow onSave={saveGeniusKey} saved={geniusSaved} disabled={!geniusKey.trim()} label="Save Key" />
+                <AutosaveStatus status={geniusSaveStatus} />
                 <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,165,0,0.06)', border: '1px solid rgba(255,165,0,0.2)' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                     Get a free token at <ExternalLink href="https://genius.com/api-clients">genius.com/api-clients</ExternalLink> → New API Client → copy the Client Access Token.{' '}
@@ -642,16 +645,15 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
                   )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  <input value={pcoAppId} onChange={e => { setPcoAppId(e.target.value); setPcoSaved(false); }} placeholder="App ID" style={inputStyle} />
+                  <input value={pcoAppId} onChange={e => setPcoAppId(e.target.value)} placeholder="App ID" style={inputStyle} />
                   <div style={{ display: 'flex', gap: 6 }}>
                     <input type={showPcoSecret ? 'text' : 'password'} value={pcoSecret}
-                      onChange={e => { setPcoSecret(e.target.value); setPcoSaved(false); }}
-                      onKeyDown={e => e.key === 'Enter' && savePco()}
+                      onChange={e => setPcoSecret(e.target.value)}
                       placeholder="Secret" style={{ ...inputStyle, flex: 1 }} />
                     <button onClick={() => setShowPcoSecret(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showPcoSecret ? 'Hide' : 'Show'}</button>
                   </div>
                 </div>
-                <SaveRow onSave={savePco} saved={pcoSaved} disabled={!pcoAppId.trim() || !pcoSecret.trim()} label="Save Credentials" />
+                <AutosaveStatus status={pcoSaveStatus} />
                 <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                     Get credentials at <ExternalLink href="https://api.planningcenteronline.com/oauth/applications">api.planningcenteronline.com</ExternalLink> → Create App → Personal Access Token.
@@ -674,12 +676,11 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                   <input type={showAnthropicKey ? 'text' : 'password'} value={anthropicKey}
-                    onChange={e => { setAnthropicKey(e.target.value); setAnthropicSaved(false); }}
-                    onKeyDown={e => e.key === 'Enter' && saveAnthropicKey()}
+                    onChange={e => setAnthropicKey(e.target.value)}
                     placeholder="sk-ant-…" style={{ ...inputStyle, flex: 1 }} />
                   <button onClick={() => setShowAnthropicKey(v => !v)} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: 'var(--text-muted)', padding: '0 10px', cursor: 'pointer', fontSize: 11 }}>{showAnthropicKey ? 'Hide' : 'Show'}</button>
                 </div>
-                <SaveRow onSave={saveAnthropicKey} saved={anthropicSaved} disabled={!anthropicKey.trim()} label="Save Key" />
+                <AutosaveStatus status={anthropicSaveStatus} />
                 <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(79,142,247,0.06)', border: '1px solid rgba(79,142,247,0.15)' }}>
                   <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
                     Get a key at <ExternalLink href="https://console.anthropic.com">console.anthropic.com</ExternalLink> → API Keys. Sent to Anthropic only when verse suggestions are generated in the Sermon tab.

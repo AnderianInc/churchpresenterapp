@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useApp } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import ExternalLink from './ExternalLink';
 import BackgroundPicker, { bgToCss } from './BackgroundPicker';
+import useAutosave from '../hooks/useAutosave';
 
 const SLIDE_TYPES = ['verse', 'chorus', 'bridge', 'intro', 'ending', 'tag', 'blank'];
 const FONTS = ['Georgia', 'Playfair Display', 'Times New Roman', 'Arial', 'Helvetica', 'Inter'];
@@ -111,27 +112,54 @@ export default function SongEditorModal({ song, onClose, onAfterSave }) {
     setCustomTag('');
   };
 
+  // Snapshot the song as it was when the modal opened, so Cancel can revert
+  // every autosaved change since open.
+  const originalSong = useRef(song);
+
+  // Pack the editor state into the object we persist. Memoised so identity
+  // only changes when a field actually changes (drives autosave debounce).
+  const songData = useMemo(() => ({
+    title: title.trim(), author: author.trim(), key: songKey,
+    tempo, tags, slides,
+    background,
+    textColor, fontSize, fontFamily,
+    bpm: bpm ? Number(bpm) : undefined,
+    ccliNumber: ccliNumber.trim() || '',
+    copyrightYear: copyrightYear.trim() || '',
+  }), [title, author, songKey, tempo, tags, slides, background, textColor, fontSize, fontFamily, bpm, ccliNumber, copyrightYear]);
+
+  // Autosave is only safe for existing songs — for new ones we'd create
+  // orphan entries before the user has even named the song. New songs still
+  // use the explicit "＋ Add Song" button.
+  const canAutosave = !isNew && !!title.trim();
+  const autosaveSave = useCallback((data) => {
+    if (song?.id) updateSong(song.id, data);
+  }, [song?.id, updateSong]);
+  const saveStatus = useAutosave(songData, autosaveSave, { enabled: canAutosave });
+
   const handleSave = () => {
     if (!title.trim()) return;
-    const songData = {
-      title: title.trim(), author: author.trim(), key: songKey,
-      tempo, tags, slides,
-      background,
-      textColor, fontSize, fontFamily,
-      bpm: bpm ? Number(bpm) : undefined,
-      ccliNumber: ccliNumber.trim() || '',
-      copyrightYear: copyrightYear.trim() || '',
-    };
     if (isNew) addSong(songData);
     else updateSong(song.id, songData);
     onAfterSave?.(songData);
     onClose();
   };
 
+  // Cancel: for existing songs, revert every autosaved change by re-saving
+  // the snapshot. For new songs, nothing has been persisted yet, so just close.
+  const handleCancel = () => {
+    if (!isNew && originalSong.current) {
+      updateSong(originalSong.current.id, originalSong.current);
+    }
+    onClose();
+  };
+
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => { if (e.key === 'Escape') handleCancel(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+  // handleCancel is stable for the modal's lifetime (refs + onClose)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose]);
 
   const slideAlign = currentSlide?.textAlign || 'center';
@@ -161,18 +189,32 @@ export default function SongEditorModal({ song, onClose, onAfterSave }) {
             onBlur={e => e.target.style.borderColor = 'var(--border)'}
           />
           <div style={{ flex: 1 }} />
+          {!isNew && (
+            <span style={{
+              fontSize: 11, color: saveStatus === 'error' ? '#fca5a5' : 'var(--text-dim)',
+              fontFamily: 'var(--font)', minWidth: 70, textAlign: 'right',
+              transition: 'opacity 0.2s', opacity: saveStatus === 'idle' ? 0 : 1,
+            }}>
+              {saveStatus === 'pending' && '…'}
+              {saveStatus === 'saving' && 'Saving…'}
+              {saveStatus === 'saved'  && '✓ Saved'}
+              {saveStatus === 'error'  && '⚠ Save failed'}
+            </span>
+          )}
           <button onClick={handleSave} disabled={!title.trim()} style={{
             background: title.trim() ? 'var(--accent)' : '#333', border: 'none', color: '#fff',
             padding: '7px 20px', borderRadius: 'var(--radius)', cursor: title.trim() ? 'pointer' : 'not-allowed',
             fontSize: 13, fontFamily: 'var(--font)', fontWeight: 600,
           }}>
-            {isNew ? '＋ Add Song' : '✓ Save Changes'}
+            {isNew ? '＋ Add Song' : 'Done'}
           </button>
-          <button onClick={onClose} style={{
+          <button onClick={handleCancel} style={{
             background: 'none', border: '1px solid var(--border)', color: 'var(--text-muted)',
             padding: '7px 12px', borderRadius: 'var(--radius)', cursor: 'pointer',
             fontSize: 13, fontFamily: 'var(--font)',
-          }}>Cancel</button>
+          }} title={isNew ? 'Close without saving' : 'Revert all edits since opening and close'}>
+            {isNew ? 'Cancel' : 'Revert'}
+          </button>
         </div>
 
         {/* Tabs */}
