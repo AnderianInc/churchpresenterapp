@@ -950,7 +950,7 @@ function PptxImporter({ addToSchedule }) {
       const background = slide.bgImage
         ? { type: 'image', value: slide.bgImage, brightness: 1.0 }
         : { type: 'color', value: slide.bgColor || '#0a0f1e' };
-      addToSchedule({
+      const item = {
         type: 'presentation',
         title,
         slides: [{
@@ -963,7 +963,15 @@ function PptxImporter({ addToSchedule }) {
         textColor: '#ffffff',
         fontSize: 36,
         fontFamily: 'Georgia',
-      });
+      };
+      // Diagnostic: confirm the text actually rides into the schedule
+      if (typeof console !== 'undefined') {
+        console.log('[pptxImporter] addToSchedule:', {
+          title, parsedLines: slide.lines, parsedLinesLen: slide.lines?.length || 0,
+          slideLines: item.slides[0].lines, slideLinesLen: item.slides[0].lines?.length || 0,
+        });
+      }
+      addToSchedule(item);
     });
   };
 

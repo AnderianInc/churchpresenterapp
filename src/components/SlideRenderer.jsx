@@ -96,15 +96,31 @@ function SlideRenderer({
 
   return (
     <div style={containerStyle}>
-      {/* Image background */}
-      {bgType === 'image' && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${effectiveBg.value})`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: `brightness(${effectiveBg.brightness || 0.6})`,
-        }} />
-      )}
+      {/* Image background
+            fit:   'cover' (default) fills + crops; 'contain' shows the whole image
+            scale: 0..1, used with 'contain' to reduce the image below 100% of the slide.
+                   Areas outside the image fall through to the slide's base background. */}
+      {bgType === 'image' && (() => {
+        const fit = effectiveBg.fit === 'contain' ? 'contain' : 'cover';
+        const scale = typeof effectiveBg.scale === 'number'
+          ? Math.max(0.1, Math.min(1, effectiveBg.scale))
+          : 1;
+        // Single-value backgroundSize sets width; height auto-scales preserving
+        // aspect ratio. So `${pct}%` gives a width=pct, aspect-preserved image.
+        const sizeValue = fit === 'cover'
+          ? 'cover'
+          : scale >= 0.999 ? 'contain' : `${Math.round(scale * 100)}%`;
+        return (
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `url(${effectiveBg.value})`,
+            backgroundSize: sizeValue,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: `brightness(${effectiveBg.brightness || 0.6})`,
+          }} />
+        );
+      })()}
 
       {/* Video background */}
       {bgType === 'video' && (

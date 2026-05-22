@@ -294,6 +294,43 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                   style={{ flex: 1, accentColor: 'var(--accent)' }}
                 />
               </div>
+              {/* Fit + Scale: lets the operator shrink the picture so it sits
+                  inside the slide rather than always filling/cropping. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', minWidth: 64 }}>Fit:</span>
+                <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                  {[
+                    { key: 'cover', label: 'Cover (fill)' },
+                    { key: 'contain', label: 'Contain (whole image)' },
+                  ].map(opt => {
+                    const active = (value.fit || 'cover') === opt.key;
+                    return (
+                      <button key={opt.key}
+                        onClick={() => onChange({ ...value, fit: opt.key })}
+                        style={{
+                          flex: 1, padding: '3px 6px', borderRadius: 3,
+                          background: active ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                          border: '1px solid ' + (active ? 'var(--accent)' : 'var(--border)'),
+                          color: active ? '#fff' : 'var(--text-dim)',
+                          fontSize: 10, cursor: 'pointer', fontFamily: 'var(--font)',
+                        }}>{opt.label}</button>
+                    );
+                  })}
+                </div>
+              </div>
+              {(value.fit || 'cover') === 'contain' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 64 }}>
+                    Size: {Math.round((value.scale ?? 1) * 100)}%
+                  </span>
+                  <input
+                    type="range" min={10} max={100} step={5}
+                    value={Math.round((value.scale ?? 1) * 100)}
+                    onChange={e => onChange({ ...value, scale: Number(e.target.value) / 100 })}
+                    style={{ flex: 1, accentColor: 'var(--accent)' }}
+                  />
+                </div>
+              )}
               <div style={{ display: 'flex', gap: 6 }}>
                 <button
                   onClick={() => imgInputRef.current?.click()}
