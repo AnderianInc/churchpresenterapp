@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ImageCropModal from './ImageCropModal';
 
 // ── Preset palettes ───────────────────────────────────────────────────────────
 
@@ -82,6 +83,11 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
   const applyCustomGradient = () =>
     onChange({ type: 'gradient', value: `linear-gradient(${gradAngle}deg, ${gradStop1} 0%, ${gradStop2} 100%)` });
 
+  // Crop-modal state. cropSrc is the URL the user just picked; the modal opens
+  // when it's non-null. Users may also re-open the cropper on an existing image
+  // via the "✂ Crop" button below.
+  const [cropSrc, setCropSrc] = useState(null);
+
   const handleImageFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -93,7 +99,13 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
       url = URL.createObjectURL(file);
     }
     onChange({ type: 'image', value: url, brightness: 0.7 });
+    setCropSrc(url);
     e.target.value = '';
+  };
+
+  const applyCrop = (croppedDataUrl) => {
+    onChange({ ...(value || {}), type: 'image', value: croppedDataUrl, brightness: value?.brightness ?? 0.7 });
+    setCropSrc(null);
   };
 
   const tabBtn = (id, label) => (
@@ -282,16 +294,29 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                   style={{ flex: 1, accentColor: 'var(--accent)' }}
                 />
               </div>
-              <button
-                onClick={() => imgInputRef.current?.click()}
-                style={{
-                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
-                  color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
-                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-              >🔄 Change Image</button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => imgInputRef.current?.click()}
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                    cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >🔄 Change</button>
+                <button
+                  onClick={() => setCropSrc(value.value)}
+                  title="Crop this image"
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                    cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >✂ Crop</button>
+              </div>
             </div>
           ) : (
             <div>
@@ -320,6 +345,14 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
         background: currentCss,
         border: '1px solid rgba(255,255,255,0.1)',
       }} />
+
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          onApply={applyCrop}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 }

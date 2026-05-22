@@ -881,7 +881,7 @@ User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed author
 
 #### Image Tooling
 
-- [ ] **F7: Crop images when adding to slides.** Inline crop modal (aspect ratio presets: free, 16:9, 4:3, 1:1; drag handles). Output cropped image is the asset stored in the slide background — original file should remain untouched. Persist via existing `copy-media-file` IPC.
+- [x] **F7: Crop images when adding to slides.** Added `ImageCropModal` (zero deps, pure HTML5 Canvas) with aspect ratio presets (free / 16:9 / 4:3 / 1:1), draggable crop rectangle, and corner-resize handles. Wired into BackgroundPicker so the modal opens automatically when a new image is selected, and a "✂ Crop" button on the existing image preview lets the operator re-crop any time. Apply renders the cropped region into a canvas at the image's native resolution and returns it as a base64 data URL stored as the slide background — the original file the user picked is untouched (it just stops being referenced).
 
 #### Implementation Order (proposed)
 
@@ -926,6 +926,6 @@ User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed author
 ## Tracking
 
 - **Last updated:** 2026-05-18
-- **Current focus:** P12 — Operator UX, Content Authoring & Live Bug Fixes (in progress on `feat/p12-operator-ux`). Bugs B2 & B3 verified; B1 has a defensive follow-up awaiting verification. Starting F1 (autosave) next.
-- **Status:** P0–P10 complete. P11 plan written; deferred. P12 filed 2026-05-11 from live-use feedback; bug fixes underway.
+- **Current focus:** P12 — Operator UX, Content Authoring & Live Bug Fixes. All features (F1–F7) implemented on `feat/p12-operator-ux`; bugs B2/B3 closed; B1 awaits verification with the diagnostic-instrumented build. Branch ready for end-to-end manual test, packaged builds, and merge to main.
+- **Status:** P0–P10 complete. P11 plan written; deferred. P12 substantially landed in 2026-05 — full E2E verification pending on the operator's machine, then packaged builds for release.
 - **Release flow:** Manual per-OS builds via `npm run electron:build:mac:arm64` / `electron:build:mac:x64` (and equivalent for Windows/Linux), then attached to GitHub releases by hand. GitHub Actions release/CI pipelines are no longer in active use.
