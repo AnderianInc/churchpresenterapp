@@ -1,28 +1,62 @@
 import React, { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { useApp } from '../store/AppContext';
 import BackgroundPicker, { bgToCss } from './BackgroundPicker';
+
+const newSlideDraft = () => ({ id: uuidv4(), message: '' });
 
 export default function AnnouncementPanel() {
   const { addToSchedule } = useApp();
   const [title, setTitle] = useState('Announcement');
-  const [message, setMessage] = useState('Enter announcement text here...');
+  const [slideDrafts, setSlideDrafts] = useState([{ id: uuidv4(), message: 'Enter announcement text here…' }]);
+  const [activeIdx, setActiveIdx] = useState(0);
   const [textColor, setTextColor] = useState('#ffffff');
   const [fontSize, setFontSize] = useState(48);
   const [background, setBackground] = useState({ type: 'color', value: '#0d1117' });
   const [showBgPicker, setShowBgPicker] = useState(false);
 
+  const updateDraft = (idx, message) => {
+    setSlideDrafts(prev => prev.map((d, i) => i === idx ? { ...d, message } : d));
+  };
+  const addDraft = () => {
+    setSlideDrafts(prev => {
+      const next = [...prev, newSlideDraft()];
+      setActiveIdx(next.length - 1);
+      return next;
+    });
+  };
+  const removeDraft = (idx) => {
+    setSlideDrafts(prev => {
+      if (prev.length === 1) return [newSlideDraft()];
+      const next = prev.filter((_, i) => i !== idx);
+      setActiveIdx(Math.min(activeIdx, next.length - 1));
+      return next;
+    });
+  };
+
   const handleSubmit = () => {
-    if (!title.trim() || !message.trim()) return;
+    if (!title.trim()) return;
+    const slides = slideDrafts
+      .map((d, i) => ({
+        id: uuidv4(),
+        type: 'announcement',
+        label: slideDrafts.length === 1 ? title.trim() : `Slide ${i + 1}`,
+        lines: d.message.trim(),
+      }))
+      .filter(s => s.lines);
+    if (!slides.length) return;
     addToSchedule({
       type: 'announcement',
       title: title.trim(),
-      slides: [{ id: crypto.randomUUID(), type: 'announcement', label: title.trim(), lines: message.trim() }],
+      slides,
       background,
       textColor,
       fontSize,
       fontFamily: 'Georgia',
     });
-    setMessage('');
+    // Reset drafts to a single empty slide so the panel is ready for the next one
+    setSlideDrafts([newSlideDraft()]);
+    setActiveIdx(0);
   };
 
   const inputStyle = {
@@ -31,6 +65,8 @@ export default function AnnouncementPanel() {
     background: 'var(--bg-panel)', color: 'var(--text)',
     fontFamily: 'var(--font)', fontSize: 12, boxSizing: 'border-box',
   };
+
+  const active = slideDrafts[activeIdx] || slideDrafts[0];
 
   return (
     <div style={{
@@ -56,18 +92,56 @@ export default function AnnouncementPanel() {
           />
         </div>
 
+        {/* Slide tabs — one chip per draft, click to switch, ✕ to remove */}
         <div>
-          <label style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase', display: 'block', marginBottom: 4 }}>Message</label>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <label style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+              Slides ({slideDrafts.length})
+            </label>
+            <button onClick={addDraft} title="Add another slide to this announcement" style={{
+              background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.25)',
+              color: 'var(--accent)', borderRadius: 4, padding: '2px 8px',
+              cursor: 'pointer', fontSize: 10, fontWeight: 600, fontFamily: 'var(--font)',
+            }}>＋ Slide</button>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
+            {slideDrafts.map((d, i) => (
+              <div
+                key={d.id}
+                onClick={() => setActiveIdx(i)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 4,
+                  padding: '2px 4px 2px 8px', borderRadius: 4,
+                  background: i === activeIdx ? 'rgba(79,142,247,0.2)' : 'var(--bg-hover)',
+                  border: `1px solid ${i === activeIdx ? 'rgba(79,142,247,0.4)' : 'var(--border)'}`,
+                  fontSize: 10, color: i === activeIdx ? 'var(--accent)' : 'var(--text-dim)',
+                  cursor: 'pointer',
+                }}
+              >
+                <span>{i + 1}</span>
+                {slideDrafts.length > 1 && (
+                  <button
+                    onClick={e => { e.stopPropagation(); removeDraft(i); }}
+                    title="Remove this slide"
+                    style={{
+                      background: 'none', border: 'none', color: 'inherit',
+                      cursor: 'pointer', fontSize: 11, lineHeight: 1, padding: '0 2px',
+                    }}
+                  >✕</button>
+                )}
+              </div>
+            ))}
+          </div>
           <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type announcement text here..."
+            value={active.message}
+            onChange={(e) => updateDraft(activeIdx, e.target.value)}
+            placeholder={`Slide ${activeIdx + 1} text…`}
             rows={6}
             style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
 
-        {/* Background picker */}
+        {/* Background picker — shared across all slides in the announcement */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
             <label style={{ fontSize: 11, color: 'var(--text-dim)', textTransform: 'uppercase' }}>Background</label>
@@ -117,7 +191,7 @@ export default function AnnouncementPanel() {
             style={{ width: '100%', accentColor: 'var(--accent)' }} />
         </div>
 
-        {/* Live mini-preview */}
+        {/* Live mini-preview — shows the active slide */}
         <div style={{
           aspectRatio: '16/9', background: bgToCss(background), borderRadius: 6,
           border: '1px solid var(--border)', display: 'flex', alignItems: 'center',
@@ -127,7 +201,7 @@ export default function AnnouncementPanel() {
             fontSize: Math.max(9, fontSize * 0.2), color: textColor, fontFamily: 'Georgia',
             lineHeight: 1.4, whiteSpace: 'pre-line', textShadow: '0 1px 6px rgba(0,0,0,0.8)',
           }}>
-            {message || title}
+            {active.message || `Slide ${activeIdx + 1}`}
           </div>
         </div>
 
@@ -136,7 +210,7 @@ export default function AnnouncementPanel() {
           padding: '10px 14px', borderRadius: 'var(--radius)', cursor: 'pointer',
           fontSize: 12, fontWeight: 600, fontFamily: 'var(--font)',
         }}>
-          Add to Schedule
+          Add {slideDrafts.length > 1 ? `${slideDrafts.length} slides` : 'to Schedule'}
         </button>
       </div>
     </div>

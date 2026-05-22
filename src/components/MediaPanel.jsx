@@ -75,21 +75,46 @@ export default function MediaPanel() {
   };
 
   const handleImageImport = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const { url: imageUrl, name } = await importImageFile(file);
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
     if (assigningImageSlot >= 0) {
+      // Favorite-slot assignment is single-file by nature; take the first.
+      const { url: imageUrl, name } = await importImageFile(files[0]);
       const newFavorites = [...imageFavorites];
       while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
       newFavorites[assigningImageSlot] = { url: imageUrl, name };
       saveSettings({ imageFavorites: newFavorites });
-    } else {
+    } else if (files.length === 1) {
+      const { url: imageUrl, name } = await importImageFile(files[0]);
       addToSchedule({
         type: 'announcement',
         title: name,
         slides: [{ id: uuidv4(), type: 'blank', label: name, lines: '' }],
         background: { type: 'image', value: imageUrl, name, brightness: 0.7 },
+        textColor: '#ffffff',
+        fontSize: 44,
+        fontFamily: 'Georgia',
+      });
+    } else {
+      // Multi-file selection → one schedule item with a slide per image.
+      // Per-slide image background preserves the original-look-and-feel of
+      // each picture rather than picking one background for the whole set.
+      const imported = await Promise.all(files.map(importImageFile));
+      const setTitle = imported.length === 2
+        ? `${imported[0].name} + 1 more`
+        : `${imported[0].name} + ${imported.length - 1} more`;
+      addToSchedule({
+        type: 'announcement',
+        title: setTitle,
+        slides: imported.map(({ url, name }) => ({
+          id: uuidv4(),
+          type: 'blank',
+          label: name,
+          lines: '',
+          background: { type: 'image', value: url, name, brightness: 0.7 },
+        })),
+        background: { type: 'image', value: imported[0].url, name: imported[0].name, brightness: 0.7 },
         textColor: '#ffffff',
         fontSize: 44,
         fontFamily: 'Georgia',
@@ -284,6 +309,7 @@ export default function MediaPanel() {
               ref={imageFileInputRef}
               type="file"
               accept="image/*"
+              multiple
               style={{ display: 'none' }}
               onChange={handleImageImport}
             />
