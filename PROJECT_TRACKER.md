@@ -877,7 +877,7 @@ User-reported gaps from live Sunday-morning use (filed 2026-05-11). Mixed author
 
 #### Bible → Live
 
-- [ ] **F6: Stream Bible passages directly to live output AND add to slides.** Currently Bible search can be added to the schedule, but there is no quick "send this verse(s) directly to program" path comparable to a song slide. Build: verse-row "Go Live" action, persistent reference + translation overlay on the program output, and the existing "Add to slide" path retained as a separate action.
+- [x] **F6: Stream Bible passages directly to live output AND add to slides.** Each verse row in BiblePanel now has a "● Live" button alongside the existing "＋" add-to-schedule button. Clicking ● Live builds a one-off scripture slide (with the standard dark-green background + Georgia styling) on the fly and routes it straight through `goLiveProgram(slide)` — no schedule entry created. Works for both single-translation verses and side-by-side parallel pairs. The "＋ Add to schedule" workflow is untouched.
 
 #### Image Tooling
 
