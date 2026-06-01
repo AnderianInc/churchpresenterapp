@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-18T00:37:31.084Z",
+  "generatedAt": "2026-06-01T08:34:07.925Z",
   "count": 1256,
   "translations": [
     {
@@ -7249,7 +7249,7 @@
     },
     {
       "id": "nys_bsa",
-      "name": "Nyoongar Bible",
+      "name": "Noongar Bible",
       "language": "nys",
       "languageCode": "nys",
       "countryCode": "",
@@ -7996,7 +7996,7 @@
     },
     {
       "id": "rai_tbl",
-      "name": "BUK TAABU MATAKIN",
+      "name": "BUK TAABU MATAKIN + TURPAAINA",
       "language": "rai",
       "languageCode": "rai",
       "countryCode": "",
@@ -9958,7 +9958,7 @@
     },
     {
       "id": "tzo_san",
-      "name": "Achʼ Testamento: Jaʼ scʼoplal ti jaʼ Cajcoltavanejtic li Cajvaltic Jesucristoe",
+      "name": "Tzotzil, San Andres",
       "language": "tzo",
       "languageCode": "tzo",
       "countryCode": "",
