@@ -46,7 +46,9 @@ function validateBackground(raw) {
     return out;
   }
   if (type === 'video') {
-    return { type: 'video', value: typeof raw.value === 'string' ? raw.value : '', name: typeof raw.name === 'string' ? raw.name : '' };
+    const out = { type: 'video', value: typeof raw.value === 'string' ? raw.value : '', name: typeof raw.name === 'string' ? raw.name : '' };
+    if (typeof raw.loop === 'boolean') out.loop = raw.loop;
+    return out;
   }
   return null;
 }

@@ -33,6 +33,7 @@ function SlideRenderer({
   const lines = slide?.lines || '';
   const textAlign = slide?.textAlign || 'center';
   const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+  const shouldLoopVideo = videoLoop && effectiveBg?.loop !== false;
 
   // In Electron, rewrite file:// video URLs to media:// so they go through the
   // registered protocol handler that adds proper byte-range streaming support.
@@ -129,7 +130,7 @@ function SlideRenderer({
             ref={internalVideoRef}
             autoPlay
             muted
-            loop={videoLoop}
+            loop={shouldLoopVideo}
             playsInline
             src={videoSrc}
             onError={handleVideoError}

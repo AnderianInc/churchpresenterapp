@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useApp, BROADCAST_CHANNEL } from '../store/AppContext';
 import { shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -15,6 +15,8 @@ import TimerPanel from './TimerPanel';
 import OutputManager from './OutputManager';
 import SettingsPanel from './SettingsPanel';
 import SongEditorModal from './SongEditorModal';
+import { shouldShowTimersWindow } from '../utils/timerWindowVisibility';
+import { getFloatingWindowBodyStyle } from '../utils/floatingWindowState';
 
 function fmtTime(sec) {
   const s = Math.floor(sec % 60);
@@ -36,6 +38,7 @@ function FloatingWindow({ title, icon, onClose, children, initialW = 360, initia
     y: Math.max(44, Math.round((window.innerHeight - defaultH) / 2)),
   }));
   const [minimized, setMinimized] = useState(false);
+  const bodyStyle = useMemo(() => getFloatingWindowBodyStyle(minimized), [minimized]);
   const dragging = useRef(null); // { startMX, startMY, startPX, startPY }
   const resizing = useRef(null); // { startMX, startMY, startW, startH }
 
@@ -145,11 +148,9 @@ function FloatingWindow({ title, icon, onClose, children, initialW = 360, initia
       </div>
 
       {/* Content */}
-      {!minimized && (
-        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-          {children}
-        </div>
-      )}
+      <div style={bodyStyle}>
+        {children}
+      </div>
 
       {/* Resize grip (bottom-right) */}
       {!minimized && (
@@ -533,11 +534,12 @@ const styles = {
 };
 
 export default function MainLayout() {
-  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl, updateScheduleItem } = useApp();
+  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl } = useApp();
   const [songEditorOpen, setSongEditorOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
   const [settingsInitialTab, setSettingsInitialTab] = useState('keys');
+  const [timersWindowOpen, setTimersWindowOpen] = useState(false);
 
   const openSettings = useCallback((tab = 'keys') => {
     setSettingsInitialTab(tab);
@@ -546,6 +548,16 @@ export default function MainLayout() {
 
   const openNewSong = () => { setEditingSong(null); setEditingScheduleId(null); setSongEditorOpen(true); };
   const openEditSong = (song, scheduleId = null) => { setEditingSong(song); setEditingScheduleId(scheduleId); setSongEditorOpen(true); };
+
+  const openTimersWindow = useCallback(() => {
+    setTimersWindowOpen(true);
+    setActiveView('timers');
+  }, [setActiveView]);
+
+  const closeTimersWindow = useCallback(() => {
+    setTimersWindowOpen(false);
+    if (activeView === 'timers') setActiveView('schedule');
+  }, [activeView, setActiveView]);
 
   const handleGoLive = useCallback(() => {
     if (currentSlide && currentItem) goLive({ ...currentSlide, item: currentItem });
@@ -571,7 +583,7 @@ export default function MainLayout() {
 
   return (
     <div style={styles.app}>
-      <Toolbar onNewSong={openNewSong} onOpenSettings={openSettings} />
+      <Toolbar onNewSong={openNewSong} onOpenSettings={openSettings} onToggleTimers={openTimersWindow} />
       <div style={styles.main}>
         <SchedulePanel onEditSong={openEditSong} />
         <div style={styles.center}>
@@ -583,7 +595,6 @@ export default function MainLayout() {
         {activeView === 'media' && <MediaPanel />}
         {activeView === 'announcements' && <AnnouncementPanel />}
         {activeView === 'stream' && <StreamPanel />}
-        {activeView === 'timers' && <TimerPanel />}
         {activeView === 'outputs' && <OutputManager />}
         {activeView === 'schedule' && (
           <div style={{
@@ -611,6 +622,18 @@ export default function MainLayout() {
           onClose={() => setSettingsOpen(false)}
         >
           <SettingsPanel hideTitle initialTab={settingsInitialTab} />
+        </FloatingWindow>
+      )}
+
+      {shouldShowTimersWindow(timersWindowOpen, activeView) && (
+        <FloatingWindow
+          title="Timers"
+          icon="⏱"
+          onClose={closeTimersWindow}
+          initialW={360}
+          initialH={600}
+        >
+          <TimerPanel />
         </FloatingWindow>
       )}
 

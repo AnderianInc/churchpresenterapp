@@ -318,6 +318,27 @@ function extractPrimarySlideImage(slidePath, entries) {
   return { dataUrl: bytesToDataUrl(best.bytes, best.path), skipped, path: best.path, byteLen: best.bytes.length };
 }
 
+// ── SVG slide renderer ───────────────────────────────────────────────────────
+//
+// Walks the slide XML to extract every shape's geometry, text content, embedded
+// pictures, and basic styling — then emits a self-contained SVG that visually
+// approximates the original slide. The SVG uses the PowerPoint coordinate
+// system directly (EMUs in the viewBox) so positions match the source layout.
+// The result is encoded as a data:image/svg+xml URL and used as the slide's
+// background image, preserving fidelity that the plain-text extraction can't.
+
+const DEFAULT_SLIDE_SIZE = { cx: 9144000, cy: 5143500 }; // 16:9, 10" × 5.625"
+
+function extractPresentationSize(presDoc) {
+  if (!presDoc) return DEFAULT_SLIDE_SIZE;
+  const ss = presDoc.getElementsByTagNameNS(P_NS, 'sldSize')[0];
+  if (!ss) return DEFAULT_SLIDE_SIZE;
+  const cx = parseInt(ss.getAttribute('cx'), 10);
+  const cy = parseInt(ss.getAttribute('cy'), 10);
+  if (!cx || !cy) return DEFAULT_SLIDE_SIZE;
+  return { cx, cy };
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 /**
@@ -340,11 +361,13 @@ export async function parsePptx(file) {
 
   // ── Determine ordered slide list from presentation.xml.rels ───────────────
   let slideFileOrder = null;
+  let slideSize = DEFAULT_SLIDE_SIZE;
   const relsBytes = entries['ppt/_rels/presentation.xml.rels'];
   const presBytes = entries['ppt/presentation.xml'];
   if (relsBytes && presBytes) {
     const relsDoc = parseXml(decodeText(relsBytes));
     const presDoc = parseXml(decodeText(presBytes));
+    if (presDoc) slideSize = extractPresentationSize(presDoc);
     if (relsDoc && presDoc) {
       const relMap = {};
       const rels = relsDoc.getElementsByTagNameNS(REL_NS, 'Relationship');
@@ -384,7 +407,7 @@ export async function parsePptx(file) {
   }
 
   // ── Parse each slide ──────────────────────────────────────────────────────
-  const diagnostics = { fileName: file.name, slideOrderSource: relsBytes ? 'rels' : 'fallback', slides: [] };
+  const diagnostics = { fileName: file.name, slideOrderSource: relsBytes ? 'rels' : 'fallback', slideSize, slides: [] };
   const slides = slideFileOrder.map((slidePath, idx) => {
     const raw = entries[slidePath];
     if (!raw) {

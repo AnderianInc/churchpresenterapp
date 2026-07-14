@@ -19,6 +19,7 @@ A step-by-step checklist for using Church Presenter on Sunday morning (or any se
 - To change a song's background: click it in the schedule → the **Item Background** picker appears below the preview area
 - To change a slide's appearance globally: open the song in **🎵 Songs** → click the pencil icon → **Appearance** tab
 - To override a single slide: pencil icon → select the slide → **🎨 BG** sub-tab
+- For motion visuals, open **🖼️ Media & Backgrounds** → **🎬 Video**, pick an MP4/MOV/WebM file, and toggle **Loop** on or off as needed
 
 ### Check content
 
@@ -66,6 +67,12 @@ A step-by-step checklist for using Church Presenter on Sunday morning (or any se
 2. Move the stage window to the monitor facing the worship team if needed
 3. Confirm the team can see lyrics, key, tempo, and clock
 4. If stage should show independent content (not what's on the projector), uncheck **Stage mirrors program** in the preview area
+
+### Open timers without blocking the workflow
+
+1. Click **⏱ Timers** in the nav bar
+2. The timers panel opens as a floating window so you can keep editing slides, schedules, or output settings while it stays visible
+3. Use it for countdowns or stopwatches during the service without losing access to the rest of the app
 
 ### Test blackout and clear
 

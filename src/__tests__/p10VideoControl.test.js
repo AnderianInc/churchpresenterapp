@@ -105,7 +105,6 @@ function relayVideoState(windows, payload) {
 const playing  = { paused: false, muted: false, volume: 0.8 };
 const paused   = { paused: true,  muted: false, volume: 0.8 };
 const muted    = { paused: false, muted: true,  volume: 0.5 };
-const silenced = { paused: false, muted: true,  volume: 0.0 };
 
 const videoProgram = {
   item: { title: 'Worship Video', background: { type: 'video', value: '/media/worship.mp4' } },

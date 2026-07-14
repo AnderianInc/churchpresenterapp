@@ -10,7 +10,7 @@ const btn = (extra = {}) => ({
   transition: 'all 0.15s', ...extra,
 });
 
-export default function Toolbar({ onNewSong, onOpenSettings }) {
+export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
   const {
     isBlackout, isClear,
     toggleBlackout, toggleClear,
@@ -97,7 +97,10 @@ export default function Toolbar({ onNewSong, onOpenSettings }) {
         <button style={tabStyle('media')} onClick={() => setActiveView('media')}>🖼️ Media</button>
         <button style={tabStyle('announcements')} onClick={() => setActiveView('announcements')}>📢 Announcements</button>
         <button style={tabStyle('stream')} onClick={() => setActiveView('stream')}>📡 Stream</button>
-        <button style={tabStyle('timers')} onClick={() => setActiveView('timers')}>⏱ Timers</button>
+        <button
+          style={tabStyle('timers')}
+          onClick={() => onToggleTimers?.()}
+        >⏱ Timers</button>
       </div>
 
       <div style={{ flex: 1 }} />

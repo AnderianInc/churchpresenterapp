@@ -8,7 +8,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Ver
 
 ## [Unreleased]
 
+### Added
+- Video backgrounds can now be selected from Media & Backgrounds as MP4/MOV/WebM files, with an optional loop toggle for ambient or timed visuals.
+
+### Changed
+- Timers now open in a floating, non-blocking window so operators can keep working while a countdown or stopwatch remains visible.
+- macOS release packaging now targets Apple Silicon only for future builds.
+
 ---
+
+## [1.0.1] — 2026-06-23
+
+### Changed
+- macOS installers now ship as Apple Silicon arm64 DMG/zip artifacts.
+- Intel-based macOS builds are no longer part of the release flow going forward.
 
 ## [1.0.0] — 2026-04-28
 

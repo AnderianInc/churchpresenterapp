@@ -14,7 +14,7 @@ A free, offline-first church presentation app built with Electron + React. Runs 
 - **Stage Display** — dedicated monitor for the worship team with lyrics, key, tempo, and live clock
 - **Multi-Output Windows** — create announcement, background, confidence, and custom output windows on any display
 - **Output Manager** — visual routing panel with live slide previews per screen, named display labels, one-click content routing, and saved routing presets
-- **Media and Backgrounds** — solid colors, gradients, and video background support
+- **Media and Backgrounds** — solid colors, gradients, image backgrounds, and video backgrounds with optional looping
 - **Service Schedule** — drag-and-drop reordering, add/remove items, clear all
 - **Blackout and Clear** — instant screen controls during live services
 - **Keyboard Shortcuts** — Space/Arrow = next/prev, Enter = go live, B = blackout, C = clear
@@ -130,7 +130,8 @@ The app will detect it automatically.
 4. **Preview it** — the center area shows a live preview
 5. **Go live** — click **Send** in the preview area, then **Go Live** in the toolbar to open the presentation window
 6. **Navigate** — use Prev/Next buttons, click slides directly, or use keyboard shortcuts (Space = next)
-7. **Control output** — Blackout (B) and Clear (C) work instantly from the toolbar or keyboard
+7. **Use media backgrounds** — open **Media & Backgrounds**, choose **Video**, and pick an MP4/MOV/WebM file to use as a looping or one-shot background behind your slide
+8. **Control output** — Blackout (B) and Clear (C) work instantly from the toolbar or keyboard
 
 ---
 
@@ -378,14 +379,16 @@ Stream keys are stored in your local `settings.json` only. They are never transm
 ## Build an Installer
 
 ```bash
-npm run electron:build
+npm run electron:build:mac
 # Output in /dist:
 #   macOS   -> Church Presenter-x.x.x-arm64.dmg  (Apple Silicon)
-#             Church Presenter-x.x.x-x64.dmg     (Intel)
+#             Church Presenter-x.x.x-arm64.zip
 #   Windows -> Church Presenter Setup x.x.x.exe
 #   Linux   -> Church Presenter-x.x.x.AppImage
 #             church-presenter_x.x.x_amd64.deb
 ```
+
+macOS Intel builds are no longer published for this release line. Apple Silicon is the supported target going forward.
 
 Icons (`build-resources/icon.icns`, `icon.ico`, `icon.png`) must be present before building a production installer. See [build-resources/README.md](build-resources/README.md) for generation instructions.
 
@@ -398,7 +401,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The workflow builds macOS (arm64 + x64), Windows (x64), and Linux (x64 AppImage + .deb) installers and creates a GitHub Release with all artifacts attached. Code-signing is applied when the appropriate secrets are set — see [CONTRIBUTING.md](CONTRIBUTING.md#release-process-maintainers) for the required secrets.
+The workflow builds macOS arm64 installers, Windows (x64), and Linux (x64 AppImage + .deb) artifacts and creates a GitHub Release with all attachments. Code-signing is applied when the appropriate secrets are set — see [CONTRIBUTING.md](CONTRIBUTING.md#release-process-maintainers) for the required secrets.
 
 ---
 

@@ -67,9 +67,10 @@ export function bgToCss(bg) {
  *   compact  – smaller layout (no labels, tighter grid) for per-slide use
  */
 export default function BackgroundPicker({ value, onChange, compact = false }) {
-  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : 'solid';
+  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : value?.type === 'video' ? 'video' : 'solid';
   const [mode, setMode] = useState(initialMode);
   const imgInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
   // Custom gradient builder state
   const [gradAngle, setGradAngle] = useState(135);
@@ -103,6 +104,20 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
     e.target.value = '';
   };
 
+  const handleVideoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    let url;
+    if (window.electronAPI?.copyMediaFile && file.path) {
+      try { url = await window.electronAPI.copyMediaFile(file.path); }
+      catch { url = URL.createObjectURL(file); }
+    } else {
+      url = URL.createObjectURL(file);
+    }
+    onChange({ type: 'video', value: url, name: file.name, loop: true });
+    e.target.value = '';
+  };
+
   const applyCrop = (croppedDataUrl) => {
     onChange({ ...(value || {}), type: 'image', value: croppedDataUrl, brightness: value?.brightness ?? 0.7 });
     setCropSrc(null);
@@ -129,6 +144,7 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
         {tabBtn('solid', '🎨 Solid')}
         {tabBtn('gradient', '🌈 Gradient')}
         {tabBtn('image', '🖼 Image')}
+        {tabBtn('video', '🎬 Video')}
       </div>
 
       {/* ── Solid ── */}
@@ -370,6 +386,62 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               >📁 Select Image File</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Video ── */}
+      {mode === 'video' && (
+        <div>
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*,.mp4,.mov,.webm,.mkv"
+            style={{ display: 'none' }}
+            onChange={handleVideoFile}
+          />
+          {value?.type === 'video' && value.value ? (
+            <div style={{ marginBottom: compact ? 8 : 10 }}>
+              <div style={{
+                width: '100%', height: compact ? 60 : 80, borderRadius: 6,
+                background: 'linear-gradient(135deg, rgba(79,142,247,0.2), rgba(0,0,0,0.75))',
+                border: '1px solid var(--border)', marginBottom: 6, position: 'relative', overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{value.name || 'Video background'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>Loop</span>
+                <input
+                  type="checkbox"
+                  checked={value.loop !== false}
+                  onChange={e => onChange({ ...value, loop: e.target.checked })}
+                  style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+                />
+              </div>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                style={{
+                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                  color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                }}
+              >🔄 Change Video</button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5 }}>
+                Select an MP4, MOV, or WebM file to use as the slide background.
+              </div>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                style={{
+                  width: '100%', background: 'none', border: '1px dashed var(--border)',
+                  color: 'var(--text-muted)', padding: compact ? '8px' : '12px', borderRadius: 6,
+                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                }}
+              >📁 Select Video File</button>
             </div>
           )}
         </div>

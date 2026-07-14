@@ -207,6 +207,12 @@ describe('validateSong — song-level background', () => {
     expect(validateSong(song).data.background).toEqual(bg);
   });
 
+  it('preserves video background loop settings', () => {
+    const bg = { type: 'video', value: 'file:///bg.mp4', name: 'Worship', loop: false };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background).toEqual(bg);
+  });
+
   it('clamps image scale to [0.1, 1]', () => {
     const tooBig = { type: 'image', value: 'data:image/png;base64,abc', scale: 2 };
     const tooSmall = { type: 'image', value: 'data:image/png;base64,abc', scale: -1 };
