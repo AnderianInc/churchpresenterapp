@@ -118,6 +118,10 @@ To push a background to all Background-role outputs at once:
 3. Choose a background using the picker
 4. Click **Push to Background Outputs**
 
+### Video backgrounds
+
+You can also use video files as slide or item backgrounds. Open **🖼️ Media & Backgrounds**, switch to **🎬 Video**, and choose an MP4, MOV, or WebM file. The picker lets you toggle looping on or off; looped clips are ideal for ambient worship backgrounds, while one-shot clips can be used for timed visual moments.
+
 ---
 
 ## Browser mode (no Electron)

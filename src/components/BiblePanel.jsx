@@ -330,7 +330,7 @@ function BibleFolderPicker({ bibleXmlDir, onSetBibleXmlDir }) {
 // ── Main BiblePanel ───────────────────────────────────────────────────────────
 
 export default function BiblePanel() {
-  const { addToSchedule, settings, saveSettings } = useApp();
+  const { addToSchedule, goLiveProgram, settings, saveSettings } = useApp();
 
   // ── Translation data ──────────────────────────────────────────────────────
   const [onlineVersions, setOnlineVersions] = useState([]);
@@ -800,6 +800,40 @@ export default function BiblePanel() {
     });
   };
 
+  // Build the styling item every scripture slide shares so live output
+  // renders with the same look-and-feel as a scheduled scripture.
+  const scriptureItem = (title, ref, ver, fontSize = 38) => ({
+    type: 'scripture', title, reference: ref, version: ver,
+    background: { type: 'color', value: '#0a1a0f' },
+    textColor: '#ffffff', fontSize, fontFamily: 'Georgia',
+  });
+
+  // Send a single verse (or the first of a range) straight to the program
+  // output without touching the schedule. Convenience for live preaching.
+  const goLiveVerse = (verse) => {
+    const slide = {
+      id: uuidv4(), type: 'scripture', label: verse.reference,
+      lines: `${verse.text}\n\n— ${verse.reference} (${verse.version || 'Bible'})`,
+    };
+    const item = scriptureItem(verse.reference, verse.reference, verse.version || 'Bible');
+    goLiveProgram({ ...slide, item });
+  };
+
+  const goLiveParallelPair = (pair) => {
+    const ref = pair.a?.reference || pair.b?.reference || '';
+    const verA = pair.a?.version || '';
+    const verB = pair.b?.version || '';
+    const slide = {
+      id: uuidv4(), type: 'scripture', label: ref,
+      lines: [
+        pair.a ? `${pair.a.text}\n— ${ref} (${verA})` : '',
+        pair.b ? `${pair.b.text}\n— ${ref} (${verB})` : '',
+      ].filter(Boolean).join('\n\n'),
+    };
+    const item = scriptureItem(`${ref} (${verA}/${verB})`, ref, `${verA}/${verB}`, 32);
+    goLiveProgram({ ...slide, item });
+  };
+
   const addSelectedVerses = () => {
     if (parallelMode) {
       results.filter((_, i) => selectedRefs.has(String(i))).forEach(addParallelPair);
@@ -1099,6 +1133,7 @@ export default function BiblePanel() {
                       });
                     }}
                     onAdd={() => addParallelPair(pair)}
+                    onGoLive={() => goLiveParallelPair(pair)}
                   />
                 ))
               : results.map((verse, i) => (
@@ -1108,6 +1143,7 @@ export default function BiblePanel() {
                     selected={selectedRefs.has(verseKey(verse))}
                     onToggle={toggleVerseSelection}
                     onAdd={() => addVerses([verse])}
+                    onGoLive={() => goLiveVerse(verse)}
                   />
                 ))
             }
@@ -1120,7 +1156,7 @@ export default function BiblePanel() {
 
 // ── Verse card (single translation) ──────────────────────────────────────────
 
-function VerseCard({ verse, selected, onToggle, onAdd }) {
+function VerseCard({ verse, selected, onToggle, onAdd, onGoLive }) {
   const [hover, setHover] = useState(false);
   return (
     <div
@@ -1146,7 +1182,14 @@ function VerseCard({ verse, selected, onToggle, onAdd }) {
             }}>{verse.version}</span>
           )}
         </label>
-        <button onClick={e => { e.stopPropagation(); onAdd(); }} style={{
+        {onGoLive && (
+          <button onClick={e => { e.stopPropagation(); onGoLive(); }} title="Send this verse straight to the program output (no schedule)" style={{
+            background: 'rgba(220,38,38,0.18)', border: '1px solid rgba(220,38,38,0.45)',
+            color: '#fecaca', padding: '4px 9px', borderRadius: 4,
+            cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)', flexShrink: 0, fontWeight: 600,
+          }}>● Live</button>
+        )}
+        <button onClick={e => { e.stopPropagation(); onAdd(); }} title="Add to schedule" style={{
           background: '#166534', border: '1px solid rgba(34,197,94,0.3)',
           color: '#d9f99d', padding: '4px 9px', borderRadius: 4,
           cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', flexShrink: 0,
@@ -1161,7 +1204,7 @@ function VerseCard({ verse, selected, onToggle, onAdd }) {
 
 // ── Parallel verse card (two translations side by side) ───────────────────────
 
-function ParallelVerseCard({ pair, selected, onToggle, onAdd }) {
+function ParallelVerseCard({ pair, selected, onToggle, onAdd, onGoLive }) {
   const [hover, setHover] = useState(false);
   const ref = pair.a?.reference || pair.b?.reference || '';
   return (
@@ -1182,7 +1225,14 @@ function ParallelVerseCard({ pair, selected, onToggle, onAdd }) {
           <input type="checkbox" checked={selected} onChange={e => { e.stopPropagation(); onToggle(); }} />
           <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--green)' }}>{ref}</span>
         </label>
-        <button onClick={e => { e.stopPropagation(); onAdd(); }} style={{
+        {onGoLive && (
+          <button onClick={e => { e.stopPropagation(); onGoLive(); }} title="Send this pair straight to the program output (no schedule)" style={{
+            background: 'rgba(220,38,38,0.18)', border: '1px solid rgba(220,38,38,0.45)',
+            color: '#fecaca', padding: '4px 9px', borderRadius: 4,
+            cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)', flexShrink: 0, fontWeight: 600,
+          }}>● Live</button>
+        )}
+        <button onClick={e => { e.stopPropagation(); onAdd(); }} title="Add to schedule" style={{
           background: '#166534', border: '1px solid rgba(34,197,94,0.3)',
           color: '#d9f99d', padding: '4px 9px', borderRadius: 4,
           cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', flexShrink: 0,

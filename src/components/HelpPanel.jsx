@@ -64,7 +64,7 @@ const sections = [
     title: 'Timers & Stage Announcements',
     icon: '⏱',
     body: [
-      'Click ⏱ Timers in the nav bar to open the Timers panel.',
+      'Click ⏱ Timers in the nav bar to open the Timers panel as a floating window that stays available while you continue editing or previewing content.',
       'Three timer types: Countdown (counts down from a set duration), Stopwatch (counts up), Clock (shows the current wall clock).',
       'Add a timer: type an optional name, choose the type, set minutes and seconds (for countdown), then click + Add.',
       'Start a countdown or stopwatch with ▶ Start. Pause with ⏸, restart with ↺.',
@@ -73,6 +73,16 @@ const sections = [
       'Announcements are private — they are never shown on audience-facing output windows.',
       'Press Cmd+Enter (Mac) or Ctrl+Enter (Windows) to send an announcement without reaching for the mouse.',
       'Click ✕ Clear to dismiss the current announcement from all Confidence Monitors.',
+    ],
+  },
+  {
+    title: 'Media & Backgrounds',
+    icon: '🎬',
+    body: [
+      'Open the Media & Backgrounds panel to add image or video backgrounds for slides and schedule items.',
+      'The Background picker now includes a Video tab for MP4, MOV, and WebM files. Select a file and it becomes the slide background immediately.',
+      'Video backgrounds can be set to loop or stop after a single playthrough. The loop setting is preserved with the slide or schedule item.',
+      'Use video backgrounds for motion loops, countdown visuals, or ambient worship scenes behind lyrics.',
     ],
   },
   {

@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import ImageCropModal from './ImageCropModal';
 
 // ── Preset palettes ───────────────────────────────────────────────────────────
 
@@ -66,9 +67,10 @@ export function bgToCss(bg) {
  *   compact  – smaller layout (no labels, tighter grid) for per-slide use
  */
 export default function BackgroundPicker({ value, onChange, compact = false }) {
-  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : 'solid';
+  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : value?.type === 'video' ? 'video' : 'solid';
   const [mode, setMode] = useState(initialMode);
   const imgInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
   // Custom gradient builder state
   const [gradAngle, setGradAngle] = useState(135);
@@ -82,6 +84,11 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
   const applyCustomGradient = () =>
     onChange({ type: 'gradient', value: `linear-gradient(${gradAngle}deg, ${gradStop1} 0%, ${gradStop2} 100%)` });
 
+  // Crop-modal state. cropSrc is the URL the user just picked; the modal opens
+  // when it's non-null. Users may also re-open the cropper on an existing image
+  // via the "✂ Crop" button below.
+  const [cropSrc, setCropSrc] = useState(null);
+
   const handleImageFile = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -93,7 +100,27 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
       url = URL.createObjectURL(file);
     }
     onChange({ type: 'image', value: url, brightness: 0.7 });
+    setCropSrc(url);
     e.target.value = '';
+  };
+
+  const handleVideoFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    let url;
+    if (window.electronAPI?.copyMediaFile && file.path) {
+      try { url = await window.electronAPI.copyMediaFile(file.path); }
+      catch { url = URL.createObjectURL(file); }
+    } else {
+      url = URL.createObjectURL(file);
+    }
+    onChange({ type: 'video', value: url, name: file.name, loop: true });
+    e.target.value = '';
+  };
+
+  const applyCrop = (croppedDataUrl) => {
+    onChange({ ...(value || {}), type: 'image', value: croppedDataUrl, brightness: value?.brightness ?? 0.7 });
+    setCropSrc(null);
   };
 
   const tabBtn = (id, label) => (
@@ -117,6 +144,7 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
         {tabBtn('solid', '🎨 Solid')}
         {tabBtn('gradient', '🌈 Gradient')}
         {tabBtn('image', '🖼 Image')}
+        {tabBtn('video', '🎬 Video')}
       </div>
 
       {/* ── Solid ── */}
@@ -282,16 +310,66 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                   style={{ flex: 1, accentColor: 'var(--accent)' }}
                 />
               </div>
-              <button
-                onClick={() => imgInputRef.current?.click()}
-                style={{
-                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
-                  color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
-                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
-              >🔄 Change Image</button>
+              {/* Fit + Scale: lets the operator shrink the picture so it sits
+                  inside the slide rather than always filling/cropping. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', minWidth: 64 }}>Fit:</span>
+                <div style={{ display: 'flex', gap: 4, flex: 1 }}>
+                  {[
+                    { key: 'cover', label: 'Cover (fill)' },
+                    { key: 'contain', label: 'Contain (whole image)' },
+                  ].map(opt => {
+                    const active = (value.fit || 'cover') === opt.key;
+                    return (
+                      <button key={opt.key}
+                        onClick={() => onChange({ ...value, fit: opt.key })}
+                        style={{
+                          flex: 1, padding: '3px 6px', borderRadius: 3,
+                          background: active ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                          border: '1px solid ' + (active ? 'var(--accent)' : 'var(--border)'),
+                          color: active ? '#fff' : 'var(--text-dim)',
+                          fontSize: 10, cursor: 'pointer', fontFamily: 'var(--font)',
+                        }}>{opt.label}</button>
+                    );
+                  })}
+                </div>
+              </div>
+              {(value.fit || 'cover') === 'contain' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 64 }}>
+                    Size: {Math.round((value.scale ?? 1) * 100)}%
+                  </span>
+                  <input
+                    type="range" min={10} max={100} step={5}
+                    value={Math.round((value.scale ?? 1) * 100)}
+                    onChange={e => onChange({ ...value, scale: Number(e.target.value) / 100 })}
+                    style={{ flex: 1, accentColor: 'var(--accent)' }}
+                  />
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => imgInputRef.current?.click()}
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                    cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >🔄 Change</button>
+                <button
+                  onClick={() => setCropSrc(value.value)}
+                  title="Crop this image"
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                    cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+                >✂ Crop</button>
+              </div>
             </div>
           ) : (
             <div>
@@ -313,6 +391,62 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
         </div>
       )}
 
+      {/* ── Video ── */}
+      {mode === 'video' && (
+        <div>
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*,.mp4,.mov,.webm,.mkv"
+            style={{ display: 'none' }}
+            onChange={handleVideoFile}
+          />
+          {value?.type === 'video' && value.value ? (
+            <div style={{ marginBottom: compact ? 8 : 10 }}>
+              <div style={{
+                width: '100%', height: compact ? 60 : 80, borderRadius: 6,
+                background: 'linear-gradient(135deg, rgba(79,142,247,0.2), rgba(0,0,0,0.75))',
+                border: '1px solid var(--border)', marginBottom: 6, position: 'relative', overflow: 'hidden',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{value.name || 'Video background'}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>Loop</span>
+                <input
+                  type="checkbox"
+                  checked={value.loop !== false}
+                  onChange={e => onChange({ ...value, loop: e.target.checked })}
+                  style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+                />
+              </div>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                style={{
+                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)',
+                  color: 'var(--text-muted)', padding: '5px', borderRadius: 4,
+                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                }}
+              >🔄 Change Video</button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5 }}>
+                Select an MP4, MOV, or WebM file to use as the slide background.
+              </div>
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                style={{
+                  width: '100%', background: 'none', border: '1px dashed var(--border)',
+                  color: 'var(--text-muted)', padding: compact ? '8px' : '12px', borderRadius: 6,
+                  cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+                }}
+              >📁 Select Video File</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Current selection preview strip */}
       <div style={{
         marginTop: compact ? 6 : 10,
@@ -320,6 +454,14 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
         background: currentCss,
         border: '1px solid rgba(255,255,255,0.1)',
       }} />
+
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          onApply={applyCrop}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 }

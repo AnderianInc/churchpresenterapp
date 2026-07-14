@@ -201,6 +201,31 @@ describe('validateSong — song-level background', () => {
     expect(validateSong(song).data.background).toEqual(bg);
   });
 
+  it('preserves image background fit and scale (P12-F7+resize)', () => {
+    const bg = { type: 'image', value: 'data:image/png;base64,abc', brightness: 0.7, fit: 'contain', scale: 0.6 };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background).toEqual(bg);
+  });
+
+  it('preserves video background loop settings', () => {
+    const bg = { type: 'video', value: 'file:///bg.mp4', name: 'Worship', loop: false };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background).toEqual(bg);
+  });
+
+  it('clamps image scale to [0.1, 1]', () => {
+    const tooBig = { type: 'image', value: 'data:image/png;base64,abc', scale: 2 };
+    const tooSmall = { type: 'image', value: 'data:image/png;base64,abc', scale: -1 };
+    expect(validateSong({ id: 'x', title: 'T', slides: [], background: tooBig }).data.background.scale).toBe(1);
+    expect(validateSong({ id: 'x', title: 'T', slides: [], background: tooSmall }).data.background.scale).toBe(0.1);
+  });
+
+  it('drops invalid fit values', () => {
+    const bg = { type: 'image', value: 'data:image/png;base64,abc', fit: 'bogus' };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background.fit).toBeUndefined();
+  });
+
   it('falls back to default color when background is missing', () => {
     const song = { id: 'x', title: 'T', slides: [] };
     expect(validateSong(song).data.background).toEqual({ type: 'color', value: '#0a0f1e' });

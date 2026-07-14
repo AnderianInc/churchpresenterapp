@@ -33,6 +33,7 @@ function SlideRenderer({
   const lines = slide?.lines || '';
   const textAlign = slide?.textAlign || 'center';
   const hAlign = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+  const shouldLoopVideo = videoLoop && effectiveBg?.loop !== false;
 
   // In Electron, rewrite file:// video URLs to media:// so they go through the
   // registered protocol handler that adds proper byte-range streaming support.
@@ -96,15 +97,31 @@ function SlideRenderer({
 
   return (
     <div style={containerStyle}>
-      {/* Image background */}
-      {bgType === 'image' && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: `url(${effectiveBg.value})`,
-          backgroundSize: 'cover', backgroundPosition: 'center',
-          filter: `brightness(${effectiveBg.brightness || 0.6})`,
-        }} />
-      )}
+      {/* Image background
+            fit:   'cover' (default) fills + crops; 'contain' shows the whole image
+            scale: 0..1, used with 'contain' to reduce the image below 100% of the slide.
+                   Areas outside the image fall through to the slide's base background. */}
+      {bgType === 'image' && (() => {
+        const fit = effectiveBg.fit === 'contain' ? 'contain' : 'cover';
+        const scale = typeof effectiveBg.scale === 'number'
+          ? Math.max(0.1, Math.min(1, effectiveBg.scale))
+          : 1;
+        // Single-value backgroundSize sets width; height auto-scales preserving
+        // aspect ratio. So `${pct}%` gives a width=pct, aspect-preserved image.
+        const sizeValue = fit === 'cover'
+          ? 'cover'
+          : scale >= 0.999 ? 'contain' : `${Math.round(scale * 100)}%`;
+        return (
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: `url(${effectiveBg.value})`,
+            backgroundSize: sizeValue,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            filter: `brightness(${effectiveBg.brightness || 0.6})`,
+          }} />
+        );
+      })()}
 
       {/* Video background */}
       {bgType === 'video' && (
@@ -113,7 +130,7 @@ function SlideRenderer({
             ref={internalVideoRef}
             autoPlay
             muted
-            loop={videoLoop}
+            loop={shouldLoopVideo}
             playsInline
             src={videoSrc}
             onError={handleVideoError}
@@ -161,7 +178,7 @@ function SlideRenderer({
           {fullscreen ? (
             <iframe
               ref={internalIframeRef}
-              src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=0&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(window.location.origin && window.location.origin !== 'null' ? window.location.origin : window.location.href.split('/').slice(0, 3).join('/'))}`}
+              src={`https://www.youtube-nocookie.com/embed/${effectiveBg.value}?autoplay=0&mute=1&loop=1&playlist=${effectiveBg.value}&controls=0&disablekb=1&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1${/^https?:\/\//.test(window.location.origin || '') ? `&origin=${encodeURIComponent(window.location.origin)}` : ''}`}
               style={{
                 position: 'absolute', inset: 0,
                 width: '100%', height: '100%',

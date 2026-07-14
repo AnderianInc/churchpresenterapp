@@ -25,6 +25,8 @@ function validateBackground(raw) {
   if (type === 'image') {
     const out = { type: 'image', value: typeof raw.value === 'string' ? raw.value : '' };
     if (typeof raw.brightness === 'number') out.brightness = raw.brightness;
+    if (raw.fit === 'cover' || raw.fit === 'contain') out.fit = raw.fit;
+    if (typeof raw.scale === 'number') out.scale = Math.max(0.1, Math.min(1, raw.scale));
     return out;
   }
   if (type === 'video') {

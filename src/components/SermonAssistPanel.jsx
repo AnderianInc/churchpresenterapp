@@ -157,6 +157,14 @@ export default function SermonAssistPanel() {
 
   // ── Mic audio level capture ───────────────────────────────────────────────
 
+  const stopLevelMeter = useCallback(() => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (analyserRef.current) { try { analyserRef.current.disconnect(); } catch {} }
+    if (audioCtxRef.current) { try { audioCtxRef.current.close(); } catch {} audioCtxRef.current = null; }
+    if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
+    setMicLevel(0);
+  }, []);
+
   const startLevelMeter = useCallback(async (deviceId) => {
     stopLevelMeter();
     try {
@@ -182,15 +190,8 @@ export default function SermonAssistPanel() {
     } catch {
       // Level meter fails gracefully — speech recognition still works
     }
-  }, []);
+  }, [stopLevelMeter]);
 
-  const stopLevelMeter = useCallback(() => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (analyserRef.current) { try { analyserRef.current.disconnect(); } catch {} }
-    if (audioCtxRef.current) { try { audioCtxRef.current.close(); } catch {} audioCtxRef.current = null; }
-    if (micStreamRef.current) { micStreamRef.current.getTracks().forEach(t => t.stop()); micStreamRef.current = null; }
-    setMicLevel(0);
-  }, []);
 
   // ── Ask Claude ────────────────────────────────────────────────────────────
 
@@ -224,6 +225,18 @@ export default function SermonAssistPanel() {
   }, [sermonTranscript, autoSuggest, hasApiKey, sermonListening, askClaude]);
 
   // ── Start / stop listening ────────────────────────────────────────────────
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null;
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
+    setSermonListening(false);
+    setSermonInterim('');
+    stopLevelMeter();
+    clearTimeout(autoTimerRef.current);
+  }, [setSermonListening, setSermonInterim, stopLevelMeter]);
 
   const startListening = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -281,19 +294,7 @@ export default function SermonAssistPanel() {
     setSermonListening(true);
     recognition.start();
     startLevelMeter(settings?.preferredMicId || '');
-  }, [settings?.preferredMicId, setSermonListening, setSermonTranscript, setSermonInterim, startLevelMeter]);
-
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.onend = null;
-      try { recognitionRef.current.stop(); } catch {}
-      recognitionRef.current = null;
-    }
-    setSermonListening(false);
-    setSermonInterim('');
-    stopLevelMeter();
-    clearTimeout(autoTimerRef.current);
-  }, [setSermonListening, setSermonInterim, stopLevelMeter]);
+  }, [settings?.preferredMicId, setSermonListening, setSermonTranscript, setSermonInterim, startLevelMeter, stopListening]);
 
   // Cleanup on unmount
   useEffect(() => () => { stopListening(); stopLevelMeter(); }, [stopListening, stopLevelMeter]);

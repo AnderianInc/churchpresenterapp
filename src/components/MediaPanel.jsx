@@ -75,21 +75,46 @@ export default function MediaPanel() {
   };
 
   const handleImageImport = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const { url: imageUrl, name } = await importImageFile(file);
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
     if (assigningImageSlot >= 0) {
+      // Favorite-slot assignment is single-file by nature; take the first.
+      const { url: imageUrl, name } = await importImageFile(files[0]);
       const newFavorites = [...imageFavorites];
       while (newFavorites.length < NUM_FAVORITE_SLOTS) newFavorites.push(null);
       newFavorites[assigningImageSlot] = { url: imageUrl, name };
       saveSettings({ imageFavorites: newFavorites });
-    } else {
+    } else if (files.length === 1) {
+      const { url: imageUrl, name } = await importImageFile(files[0]);
       addToSchedule({
         type: 'announcement',
         title: name,
         slides: [{ id: uuidv4(), type: 'blank', label: name, lines: '' }],
         background: { type: 'image', value: imageUrl, name, brightness: 0.7 },
+        textColor: '#ffffff',
+        fontSize: 44,
+        fontFamily: 'Georgia',
+      });
+    } else {
+      // Multi-file selection → one schedule item with a slide per image.
+      // Per-slide image background preserves the original-look-and-feel of
+      // each picture rather than picking one background for the whole set.
+      const imported = await Promise.all(files.map(importImageFile));
+      const setTitle = imported.length === 2
+        ? `${imported[0].name} + 1 more`
+        : `${imported[0].name} + ${imported.length - 1} more`;
+      addToSchedule({
+        type: 'announcement',
+        title: setTitle,
+        slides: imported.map(({ url, name }) => ({
+          id: uuidv4(),
+          type: 'blank',
+          label: name,
+          lines: '',
+          background: { type: 'image', value: url, name, brightness: 0.7 },
+        })),
+        background: { type: 'image', value: imported[0].url, name: imported[0].name, brightness: 0.7 },
         textColor: '#ffffff',
         fontSize: 44,
         fontFamily: 'Georgia',
@@ -146,7 +171,7 @@ export default function MediaPanel() {
         type: 'video',
         title: name,
         slides: [{ id: uuidv4(), type: 'video', label: name, lines: '' }],
-        background: { type: 'video', value: videoUrl, name },
+        background: { type: 'video', value: videoUrl, name, loop: true },
         textColor: '#ffffff',
         fontSize: 44,
         fontFamily: 'Georgia',
@@ -161,7 +186,7 @@ export default function MediaPanel() {
       type: 'video',
       title: fav.name,
       slides: [{ id: uuidv4(), type: 'video', label: fav.name, lines: '' }],
-      background: { type: 'video', value: fav.url, name: fav.name },
+      background: { type: 'video', value: fav.url, name: fav.name, loop: true },
       textColor: '#ffffff',
       fontSize: 44,
       fontFamily: 'Georgia',
@@ -284,6 +309,7 @@ export default function MediaPanel() {
               ref={imageFileInputRef}
               type="file"
               accept="image/*"
+              multiple
               style={{ display: 'none' }}
               onChange={handleImageImport}
             />
@@ -921,7 +947,10 @@ function PptxImporter({ addToSchedule }) {
       const title = slide.title
         ? `${baseName} — ${slide.title}`.slice(0, 80)
         : `${baseName} — Slide ${slide.num}`;
-      addToSchedule({
+      const background = slide.bgImage
+        ? { type: 'image', value: slide.bgImage, brightness: 1.0 }
+        : { type: 'color', value: slide.bgColor || '#0a0f1e' };
+      const item = {
         type: 'presentation',
         title,
         slides: [{
@@ -930,14 +959,19 @@ function PptxImporter({ addToSchedule }) {
           label: slide.title || `Slide ${slide.num}`,
           lines: slide.lines,
         }],
-        background: {
-          type: 'color',
-          value: slide.bgColor || '#0a0f1e',
-        },
+        background,
         textColor: '#ffffff',
         fontSize: 36,
         fontFamily: 'Georgia',
-      });
+      };
+      // Diagnostic: confirm the text actually rides into the schedule
+      if (typeof console !== 'undefined') {
+        console.log('[pptxImporter] addToSchedule:', {
+          title, parsedLines: slide.lines, parsedLinesLen: slide.lines?.length || 0,
+          slideLines: item.slides[0].lines, slideLinesLen: item.slides[0].lines?.length || 0,
+        });
+      }
+      addToSchedule(item);
     });
   };
 
@@ -1090,6 +1124,14 @@ function PptxImporter({ addToSchedule }) {
 function SlidePreviewRow({ slide, selected, onToggle, onAdd }) {
   const [hover, setHover] = useState(false);
   const previewText = slide.text ? slide.text.slice(0, 120) + (slide.text.length > 120 ? '…' : '') : '(no text)';
+  // Show what we actually managed to extract so it's obvious when a slide is
+  // coming through as text-less + image-less (the "blank slide" bug).
+  const diagBits = [
+    `Text: ${slide.text ? `${slide.text.length} chars` : 'none'}`,
+    slide.bgImage ? 'Image: extracted'
+      : slide.hasImage ? 'Image: skipped (unrenderable format)'
+      : 'Image: none',
+  ];
 
   return (
     <div
@@ -1134,6 +1176,9 @@ function SlidePreviewRow({ slide, selected, onToggle, onAdd }) {
         </div>
         <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.45, wordBreak: 'break-word' }}>
           {previewText}
+        </div>
+        <div style={{ fontSize: 9, color: 'var(--text-dim)', opacity: 0.6, marginTop: 2 }}>
+          {diagBits.join(' · ')}
         </div>
       </div>
 
