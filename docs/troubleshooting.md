@@ -8,16 +8,18 @@ Solutions to common issues with Church Presenter.
 
 ### "App is damaged and can't be opened" (macOS)
 
-This message appears when macOS cannot verify the developer signature on an unsigned build.
+This is a private app that isn't signed with a paid Apple Developer ID and isn't notarized, so macOS quarantines it after download and Gatekeeper blocks it. Nothing is actually wrong with the app.
 
 **Fix:**
 1. Open **Terminal** and run:
    ```bash
-   xattr -cr "/Applications/Church Presenter.app"
+   xattr -dr com.apple.quarantine "/Applications/Church Presenter.app"
    ```
-2. Launch the app normally
+2. Launch the app normally (you only need to do this once per install)
 
-**Alternative:** Right-click the app in Finder → Open → click Open in the dialog.
+**Avoid it entirely:** copy the app via USB drive or a local file share instead of downloading it — files transferred that way don't get the quarantine flag.
+
+> Note: right-click → **Open** often still shows "damaged" for these builds, so use the Terminal command above. The build *is* ad-hoc signed, which is what lets it run on Apple Silicon at all once quarantine is cleared.
 
 ### SmartScreen warning (Windows)
 

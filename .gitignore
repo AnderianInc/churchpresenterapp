@@ -13,4 +13,9 @@ build-resources/icon.png
 
 # Electron builder cache
 .electron-builder-cache/
+
+# Beblia Bible XML collection — build-time-only source data for the offline
+# catalog rebuild (scripts/build-offline-index.js). Must NEVER be under public/
+# or it gets copied into build/ and packaged into every installer (~5 GB).
 public/Holy-Bible-*
+bible-source/
