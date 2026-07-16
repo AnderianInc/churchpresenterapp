@@ -18,14 +18,17 @@ This guide walks through installing Church Presenter, configuring your display h
 
 ## Installation
 
-### macOS
+### macOS (Apple Silicon)
 
-1. Download `Church Presenter-x.x.x-arm64.dmg` (Apple Silicon) or `Church Presenter-x.x.x-x64.dmg` (Intel) from the [Releases page](https://github.com/anderianinc/churchpresenterapp/releases)
+> Builds target Apple Silicon (M1/M2/M3/…) only. Intel Macs are no longer supported.
+
+1. Download `Church Presenter-x.x.x-arm64.dmg` from the [Releases page](https://github.com/anderianinc/churchpresenterapp/releases)
 2. Open the `.dmg` and drag **Church Presenter** into your **Applications** folder
-3. On first launch, macOS may show a security warning because the app is from an independent developer:
-   - Right-click the app in Applications → **Open** → **Open** in the dialog
-
-   Alternatively, go to **System Settings → Privacy & Security → Security** and click **Open Anyway** next to the Church Presenter entry.
+3. Because this is a private app that isn't signed with a paid Apple Developer ID, macOS quarantines it after download and will show **"Church Presenter is damaged and can't be opened."** This is expected — clear the quarantine flag once. Open **Terminal** and run:
+   ```bash
+   xattr -dr com.apple.quarantine "/Applications/Church Presenter.app"
+   ```
+   Then launch the app normally. (You only need to do this once per install. Transferring the app via USB or a local file share instead of a download avoids the quarantine flag entirely.)
 4. When prompted, grant **camera** and **microphone** access if you plan to use streaming or the Sermon Assistant
 
 ### Windows

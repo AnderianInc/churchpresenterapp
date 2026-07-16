@@ -1,31 +1,40 @@
 /**
  * scripts/build-offline-index.js
  *
- * Reads every .xml file in public/Holy-Bible-XML-Format-master/, extracts the
- * `translation` attribute from the <bible> root element, and writes a compact
- * JSON index to public/bibles/offline-index.json.
+ * Maintainer-only tool. Reads every .xml file in the Beblia collection, extracts
+ * the `translation` attribute from the <bible> root element, and writes a compact
+ * JSON *catalog* (translation names only — not the Bible text) to
+ * public/bibles/offline-index.json.
  *
- * Each entry: { id, name, filename }
+ * The Bible text itself is NOT bundled into the app: users download the Beblia
+ * collection themselves and point the app at it (Settings → Bible XML Folder).
+ * This script therefore does NOT read from public/; it reads the collection from
+ * the BIBLE_XML_DIR environment variable, and when that is unset or missing it
+ * skips silently and the committed offline-index.json is used as-is.
+ *
+ *   BIBLE_XML_DIR=/path/to/Holy-Bible-XML-Format-master node scripts/build-offline-index.js
+ *
+ * Each catalog entry: { id, name, filename }
  *   id       — filename without extension (used as a stable key and cache key)
  *   name     — full translation name from the translation="" attribute
- *   filename — the .xml filename relative to Holy-Bible-XML-Format-master/
- *
- * Usage: node scripts/build-offline-index.js
+ *   filename — the .xml filename relative to the collection folder
  */
 
 const fs   = require('fs');
 const path = require('path');
 
-const XML_DIR  = path.join(__dirname, '../public/Holy-Bible-XML-Format-master');
+const XML_DIR  = process.env.BIBLE_XML_DIR ? path.resolve(process.env.BIBLE_XML_DIR) : null;
 const OUT_DIR  = path.join(__dirname, '../public/bibles');
 const OUT_FILE = path.join(OUT_DIR, 'offline-index.json');
 
-if (!fs.existsSync(XML_DIR)) {
-  console.warn(`Warning: Bible XML directory not found: ${XML_DIR}`);
-  console.warn('Skipping index rebuild — the committed offline-index.json will be used.');
-  console.warn('To rebuild, download the Beblia collection from:');
+if (!XML_DIR || !fs.existsSync(XML_DIR)) {
+  console.warn(XML_DIR
+    ? `Warning: Bible XML directory not found: ${XML_DIR}`
+    : 'BIBLE_XML_DIR not set — skipping catalog rebuild.');
+  console.warn('Using the committed public/bibles/offline-index.json as-is.');
+  console.warn('To rebuild the catalog, download the Beblia collection from:');
   console.warn('  https://github.com/Beblia/Holy-Bible-XML-Format');
-  console.warn('Then extract it so the folder appears at public/Holy-Bible-XML-Format-master/');
+  console.warn('then run: BIBLE_XML_DIR=/path/to/Holy-Bible-XML-Format-master node scripts/build-offline-index.js');
   process.exit(0);
 }
 

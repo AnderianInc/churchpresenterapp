@@ -222,7 +222,10 @@ export async function loadOfflineTranslation(id, filename, localDir = null) {
       );
     }
   } else {
-    // Browser / dev mode: fetch from public/Holy-Bible-XML-Format-master/
+    // Browser-only fallback. The Beblia collection is NOT bundled with the app
+    // (it would add ~5 GB to every installer); the packaged Electron app reads
+    // it from the user-selected folder above. This fetch only succeeds if a dev
+    // has manually placed the collection under public/ for local browser testing.
     const publicUrl = process.env.PUBLIC_URL || '';
     const url = `${publicUrl}${OFFLINE_XML_BASE}/${encodeURIComponent(filename)}`;
     const r = await fetch(url);
