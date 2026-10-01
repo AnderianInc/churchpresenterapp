@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SlideRenderer from './SlideRenderer';
+import FadeSlide from './FadeSlide';
 import ConfidenceMonitor from './ConfidenceMonitor';
 import { readLiveState } from '../store/liveStateSync';
 import { makeBroadcastMsg, BROADCAST_CHANNEL } from '../store/AppContext';
@@ -379,7 +380,7 @@ export default function OutputView() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {macDragStrip}
-      <SlideRenderer slide={slide} item={slide?.item} fullscreen videoRef={videoRef} />
+      <FadeSlide slide={slide} item={slide?.item} videoRef={videoRef} />
       <HoverToolbar outputId={outputId} />
     </div>
   );

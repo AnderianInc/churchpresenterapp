@@ -46,6 +46,17 @@ function SlideRenderer({
   const [videoError, setVideoError] = useState(null);
   useEffect(() => { setVideoError(null); }, [videoSrc]);
 
+  // Internal video ref — merged with external if provided
+  const internalVideoRef = useRef(null);
+
+  // Auto-recovery: background videos can silently freeze (decoder stall, a
+  // dropped media:// stream) with no error event, which previously forced an app
+  // restart. A watchdog detects a frozen frame and transient errors, then reloads
+  // the element and resumes where it left off. Only truly fatal cases (unsupported
+  // codec, or repeated failed recoveries) surface the error overlay.
+  const recoverRef = useRef(null);
+  const fatalMsgRef = useRef('Video playback stalled repeatedly. Re-import the file or convert it to H.264 MP4 / VP9 WebM.');
+
   const handleVideoError = (e) => {
     const code = e.target?.error?.code;
     const messages = {
@@ -54,11 +65,72 @@ function SlideRenderer({
       3: 'Video could not be decoded — file may be corrupt.',
       4: 'Video format / codec not supported. Convert the file to H.264 MP4 or VP9 WebM and re-import.',
     };
-    setVideoError(messages[code] || 'Unknown video error.');
+    // Unsupported codec will never recover — show immediately.
+    if (code === 4) { setVideoError(messages[4]); return; }
+    // Transient errors (abort/network/decode): remember the message, then try to
+    // recover rather than giving up on the first blip.
+    fatalMsgRef.current = messages[code] || 'Video playback error.';
+    recoverRef.current?.('error');
   };
 
-  // Internal video ref — merged with external if provided
-  const internalVideoRef = useRef(null);
+  // Watchdog + recovery driver — active only while a video background is mounted.
+  useEffect(() => {
+    if (bgType !== 'video' || !videoSrc) return undefined;
+    const video = internalVideoRef.current;
+    if (!video) return undefined;
+
+    let disposed = false;
+    let attempts = 0;
+    let lastTime = -1;
+    let frozenTicks = 0;
+
+    const tryRecover = () => {
+      if (disposed) return;
+      if (attempts >= 6) { setVideoError(fatalMsgRef.current); return; }
+      attempts += 1;
+      const resumeAt = video.currentTime || 0;
+      const onReady = () => {
+        video.removeEventListener('loadeddata', onReady);
+        try {
+          if (resumeAt > 0 && resumeAt < (video.duration || Infinity)) video.currentTime = resumeAt;
+        } catch (_) {}
+        video.play().catch(() => {});
+      };
+      try {
+        video.addEventListener('loadeddata', onReady);
+        video.load();
+        video.play().catch(() => {});
+      } catch (_) {}
+    };
+    recoverRef.current = tryRecover;
+
+    const onPlaying = () => { attempts = 0; frozenTicks = 0; setVideoError(null); };
+    const onStalled = () => tryRecover();
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('stalled', onStalled);
+
+    const watchdog = setInterval(() => {
+      if (disposed) return;
+      // Only judge "frozen" when the element believes it is actively playing.
+      if (video.paused || video.ended || video.readyState < 2) { lastTime = video.currentTime; frozenTicks = 0; return; }
+      if (Math.abs(video.currentTime - lastTime) < 0.01) {
+        frozenTicks += 1;
+        if (frozenTicks >= 2) { frozenTicks = 0; tryRecover(); } // ~4s with no progress
+      } else {
+        frozenTicks = 0;
+        if (attempts > 0) attempts = 0; // real progress clears the recovery budget
+      }
+      lastTime = video.currentTime;
+    }, 2000);
+
+    return () => {
+      disposed = true;
+      recoverRef.current = null;
+      clearInterval(watchdog);
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('stalled', onStalled);
+    };
+  }, [bgType, videoSrc]);
   useEffect(() => {
     if (externalVideoRef) {
       if (typeof externalVideoRef === 'function') externalVideoRef(internalVideoRef.current);
@@ -93,7 +165,9 @@ function SlideRenderer({
     position: 'relative',
   };
 
-  const dimLevel = videoBrightness ?? 0.45;
+  // Per-background brightness (stored on video backgrounds via the picker) takes
+  // precedence, then an explicit prop override, then the default dim level.
+  const dimLevel = effectiveBg?.brightness ?? videoBrightness ?? 0.45;
 
   return (
     <div style={containerStyle}>

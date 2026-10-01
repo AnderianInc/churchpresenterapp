@@ -8,7 +8,7 @@ import {
   resetTimer,
   getElapsedMs,
   getRemainingMs,
-  isExpired,
+  getCountdownMs,
   formatMs,
   formatClock,
 } from '../utils/timerEngine';
@@ -47,20 +47,14 @@ export default function TimerPanel() {
   const [clock, setClock]                 = useState(formatClock());
   const [, forceUpdate]                   = useState(0);
 
-  // Tick every 500 ms: update clock, rerender timers, auto-finish countdowns
+  // Tick every 500 ms: update clock and rerender timers. Countdowns are NOT
+  // auto-stopped at zero — they keep running and count up into negative overtime
+  // until the operator pauses or resets them. Receiving windows run their own
+  // tick, so no per-frame broadcast is needed here.
   useEffect(() => {
     const id = setInterval(() => {
       setClock(formatClock());
       forceUpdate(n => n + 1);
-      const now = Date.now();
-      setTimers(prev => {
-        const next = prev.map(t =>
-          !t.finished && isExpired(t, now) ? { ...t, running: false, finished: true } : t
-        );
-        const changed = next.some((t, i) => t !== prev[i]);
-        if (changed) broadcastTimers(next);
-        return changed ? next : prev;
-      });
     }, 500);
     return () => clearInterval(id);
   }, []);
@@ -202,13 +196,15 @@ export default function TimerPanel() {
             {timers.map(timer => {
               const elapsed   = getElapsedMs(timer, now);
               const remaining = getRemainingMs(timer, now);
-              const expired   = timer.finished || (timer.type === TIMER_TYPES.COUNTDOWN && remaining <= 0 && elapsed > 0);
+              const countdown = getCountdownMs(timer, now); // signed — negative in overtime
+              const overtime  = timer.type === TIMER_TYPES.COUNTDOWN && countdown < 0 && elapsed > 0;
+              const expired   = overtime || (timer.type === TIMER_TYPES.COUNTDOWN && remaining <= 0 && elapsed > 0);
               const nearEnd   = !expired && timer.type === TIMER_TYPES.COUNTDOWN && timer.durationMs > 0 && (remaining / timer.durationMs) < 0.2;
               const pct       = timer.type === TIMER_TYPES.COUNTDOWN && timer.durationMs > 0
                 ? Math.max(0, remaining / timer.durationMs) : null;
 
               const displayTime = timer.type === TIMER_TYPES.CLOCK     ? clock
-                : timer.type === TIMER_TYPES.COUNTDOWN ? formatMs(remaining)
+                : timer.type === TIMER_TYPES.COUNTDOWN ? (overtime ? '-' : '') + formatMs(countdown)
                 : formatMs(elapsed);
 
               const timeColor = expired ? '#ef4444' : nearEnd ? '#fbbf24' : 'var(--text)';

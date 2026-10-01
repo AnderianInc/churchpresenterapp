@@ -5,6 +5,7 @@ import {
   TIMER_TYPES,
   getElapsedMs,
   getRemainingMs,
+  getCountdownMs,
   isExpired,
   formatMs,
   formatClock,
@@ -30,14 +31,23 @@ function TimerQuadrant({ timers }) {
   );
   const clockTimers = timers.filter(t => t.type === TIMER_TYPES.CLOCK);
 
+  const hasActive = activeTimers.length > 0;
+
   return (
     <div style={{
       flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-      padding: '12px 16px', gap: 10,
+      padding: '12px 16px', gap: 8,
     }}>
-      {/* Always show wall clock prominently */}
-      <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 10 }}>
-        <div style={{ fontSize: 'clamp(24px, 3.5vw, 44px)', fontFamily: 'Georgia', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.05em', lineHeight: 1 }}>
+      {/* Wall clock — shrinks to a compact header once a timer is running so the
+          active timer gets the lion's share of the quadrant. */}
+      <div style={{
+        textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)',
+        paddingBottom: hasActive ? 6 : 10, flexShrink: 0,
+      }}>
+        <div style={{
+          fontSize: hasActive ? 'clamp(16px, 2vw, 26px)' : 'clamp(24px, 3.5vw, 44px)',
+          fontFamily: 'Georgia', color: 'rgba(255,255,255,0.85)', letterSpacing: '0.05em', lineHeight: 1,
+        }}>
           {clock}
         </div>
         {clockTimers.length > 0 && clockTimers.map(t => (
@@ -45,50 +55,60 @@ function TimerQuadrant({ timers }) {
         ))}
       </div>
 
-      {/* Active countdown / stopwatch timers */}
-      {activeTimers.length === 0 ? (
+      {/* Active countdown / stopwatch timers — large and dominant */}
+      {!hasActive ? (
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.18)', textTransform: 'uppercase', letterSpacing: '1px' }}>
             No active timers
           </span>
         </div>
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{
+          flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column',
+          justifyContent: 'center', gap: 18,
+        }}>
           {activeTimers.map(timer => {
             const elapsed   = getElapsedMs(timer, now);
             const remaining = getRemainingMs(timer, now);
-            const expired   = isExpired(timer, now) || timer.finished;
+            const countdown = getCountdownMs(timer, now); // signed — negative in overtime
+            const overtime  = timer.type === TIMER_TYPES.COUNTDOWN && countdown < 0 && elapsed > 0;
+            const expired   = overtime || isExpired(timer, now) || timer.finished;
             const nearEnd   = !expired && timer.type === TIMER_TYPES.COUNTDOWN &&
                               timer.durationMs > 0 && (remaining / timer.durationMs) < 0.2;
             const pct       = timer.type === TIMER_TYPES.COUNTDOWN && timer.durationMs > 0
               ? Math.max(0, remaining / timer.durationMs) : null;
-            const displayTime = timer.type === TIMER_TYPES.COUNTDOWN ? formatMs(remaining) : formatMs(elapsed);
+            const displayTime = timer.type === TIMER_TYPES.COUNTDOWN
+              ? (overtime ? '-' : '') + formatMs(countdown)
+              : formatMs(elapsed);
             const timeColor   = expired ? '#ef4444' : nearEnd ? '#fbbf24' : '#ffffff';
 
             return (
-              <div key={timer.id} style={{ flexShrink: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+              <div key={timer.id} style={{ flexShrink: 0, textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'baseline', gap: 10, marginBottom: 2 }}>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                     {timer.name}
                   </span>
                   {expired && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', letterSpacing: '1.5px' }}>TIME</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#ef4444', letterSpacing: '2px' }}>
+                      {overtime ? 'OVERTIME' : 'TIME'}
+                    </span>
                   )}
                 </div>
                 <div style={{
-                  fontSize: 'clamp(26px, 3.8vw, 52px)', fontFamily: 'Georgia',
-                  color: timeColor, letterSpacing: '0.05em', lineHeight: 1,
-                  textShadow: expired ? '0 0 24px rgba(239,68,68,0.55)'
-                    : nearEnd ? '0 0 24px rgba(251,191,36,0.45)' : 'none',
+                  fontSize: 'clamp(48px, 9vw, 150px)', fontFamily: 'Georgia', fontWeight: 500,
+                  color: timeColor, letterSpacing: '0.03em', lineHeight: 1,
+                  fontVariantNumeric: 'tabular-nums',
+                  textShadow: expired ? '0 0 32px rgba(239,68,68,0.6)'
+                    : nearEnd ? '0 0 28px rgba(251,191,36,0.5)' : 'none',
                 }}>
                   {displayTime}
                 </div>
                 {pct !== null && (
-                  <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginTop: 5, overflow: 'hidden' }}>
+                  <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, marginTop: 12, overflow: 'hidden', maxWidth: 420, marginLeft: 'auto', marginRight: 'auto' }}>
                     <div style={{
                       height: '100%', width: `${pct * 100}%`,
                       background: expired ? '#ef4444' : nearEnd ? '#fbbf24' : '#4f8ef7',
-                      borderRadius: 2,
+                      borderRadius: 3,
                     }} />
                   </div>
                 )}
