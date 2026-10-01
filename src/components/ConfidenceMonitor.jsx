@@ -224,6 +224,13 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoR
       window.electronAPI?.onReceiveStageAnnouncement?.((p) => setAnnouncement(p?.text ? p : null)),
       window.electronAPI?.onReceiveYouTubeControl?.(execYtCommand),
     ].filter(Boolean);
+    // Ask the operator's Timer panel to re-broadcast current state now so a
+    // freshly-opened monitor shows running timers without waiting for a change.
+    if (typeof BroadcastChannel !== 'undefined') {
+      const req = new BroadcastChannel(BROADCAST_CHANNEL);
+      req.postMessage({ type: 'timer-state-request' });
+      req.close();
+    }
     return () => {
       ch?.close();
       offs.forEach(f => f());

@@ -656,6 +656,15 @@ ipcMain.on('send-output-state', (_, state) => {
   }
 });
 
+// A freshly-opened output/stage/presentation window asks the operator to re-push
+// the current live state once it is ready to receive it (avoids a blank screen
+// from racing the operator's initial push against the window's load).
+ipcMain.on('request-output-state', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('request-output-state');
+  }
+});
+
 ipcMain.on('send-youtube-control', (_, payload) => {
   for (const entry of outputWindows.values()) {
     entry.window.webContents.send('receive-youtube-control', payload);

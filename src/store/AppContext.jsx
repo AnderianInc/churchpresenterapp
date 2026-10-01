@@ -792,13 +792,31 @@ export function AppProvider({ children }) {
 
   // Re-broadcast output state when window configuration or routing changes.
   // Debounced so rapid state transitions (e.g. schedule load) don't spam IPC.
+  // Only the operator (main) window may push output state — output/stream/stage
+  // windows mount the same AppProvider but with empty live state, so letting them
+  // run this would blank every other screen the moment one of them opens.
   const sendOutputStateDebounceRef = useRef(null);
   useEffect(() => {
-    if (!isElectron) return;
+    if (!isElectron || isOutputView) return;
     clearTimeout(sendOutputStateDebounceRef.current);
     sendOutputStateDebounceRef.current = setTimeout(() => sendOutputState(), 50);
     return () => clearTimeout(sendOutputStateDebounceRef.current);
-  }, [isElectron, sendOutputState]);
+  }, [isElectron, isOutputView, sendOutputState]);
+
+  // When a newly-opened output window requests the current state, the operator
+  // re-pushes everything so the new window populates immediately — without this,
+  // it would stay blank until the next slide change.
+  useEffect(() => {
+    if (!isElectron || isOutputView) return undefined;
+    return window.electronAPI?.onRequestOutputState?.(() => {
+      sendOutputState();
+      if (liveProgram) window.electronAPI.sendSlideProgram(liveProgram);
+      const stagePayload = stageMirrorProgram ? liveProgram : liveStage;
+      if (stagePayload) window.electronAPI.sendSlideStage({ ...stagePayload, nextSlide: liveNextSlide });
+      window.electronAPI.sendBlackout(isBlackout);
+      window.electronAPI.sendClear(isClear);
+    });
+  }, [isElectron, isOutputView, sendOutputState, liveProgram, liveStage, stageMirrorProgram, liveNextSlide, isBlackout, isClear]);
 
   return (
     <AppContext.Provider value={{

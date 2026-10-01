@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { BROADCAST_CHANNEL } from '../store/AppContext';
 import {
   TIMER_TYPES,
@@ -61,6 +61,23 @@ export default function TimerPanel() {
 
   // Broadcast whenever timers array reference changes
   useEffect(() => { broadcastTimers(timers); }, [timers]);
+
+  // Respond to newly-opened Timer / Confidence windows asking for current state,
+  // so they populate immediately instead of waiting for the next change.
+  const timersRef = useRef(timers);
+  const lastSentRef = useRef(lastSent);
+  useEffect(() => { timersRef.current = timers; }, [timers]);
+  useEffect(() => { lastSentRef.current = lastSent; }, [lastSent]);
+  useEffect(() => {
+    if (typeof BroadcastChannel === 'undefined') return undefined;
+    const ch = new BroadcastChannel(BROADCAST_CHANNEL);
+    ch.onmessage = (e) => {
+      if (e.data?.type !== 'timer-state-request') return;
+      broadcastTimers(timersRef.current);
+      if (lastSentRef.current) broadcastAnnouncement(lastSentRef.current);
+    };
+    return () => ch.close();
+  }, []);
 
   const mutateTimer = useCallback((id, fn) => {
     setTimers(prev => prev.map(t => t.id === id ? fn(t) : t));
