@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SlideRenderer from './SlideRenderer';
+import FadeSlide from './FadeSlide';
 import { readLiveState } from '../store/liveStateSync';
 import { BROADCAST_CHANNEL } from '../store/AppContext';
 import { perfMonitor } from '../utils/perfMonitor';
@@ -104,7 +105,7 @@ export default function PresentationView() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {macDragStrip}
-      <SlideRenderer slide={slide} item={slide.item} fullscreen />
+      <FadeSlide slide={slide} item={slide.item} />
     </div>
   );
 }

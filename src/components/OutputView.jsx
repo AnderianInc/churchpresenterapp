@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import SlideRenderer from './SlideRenderer';
+import FadeSlide from './FadeSlide';
 import ConfidenceMonitor from './ConfidenceMonitor';
+import TimerOutput from './TimerOutput';
 import { readLiveState } from '../store/liveStateSync';
 import { makeBroadcastMsg, BROADCAST_CHANNEL } from '../store/AppContext';
 
@@ -252,6 +254,10 @@ export default function OutputView() {
         window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand),
         window.electronAPI.onReceiveVideoControl(sendVideoCommand),
       ];
+      // Ask the operator to re-push current state now that our listener is live,
+      // so this freshly-opened window populates immediately instead of waiting
+      // for the next slide change.
+      window.electronAPI.requestOutputState?.();
       return () => offs.forEach(f => f());
     }
 
@@ -336,6 +342,17 @@ export default function OutputView() {
     );
   }
 
+  // ── Timer output: timers + announcement only ──────────────────────────────
+  if (role === 'timer') {
+    return (
+      <>
+        {macDragStrip}
+        <TimerOutput isBlackout={isBlackout} />
+        <HoverToolbar outputId={outputId} />
+      </>
+    );
+  }
+
   // ── Standard output views ─────────────────────────────────────────────────
   if (isBlackout) {
     return (
@@ -379,7 +396,7 @@ export default function OutputView() {
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       {macDragStrip}
-      <SlideRenderer slide={slide} item={slide?.item} fullscreen videoRef={videoRef} />
+      <FadeSlide slide={slide} item={slide?.item} videoRef={videoRef} />
       <HoverToolbar outputId={outputId} />
     </div>
   );

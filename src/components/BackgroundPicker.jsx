@@ -114,7 +114,7 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
     } else {
       url = URL.createObjectURL(file);
     }
-    onChange({ type: 'video', value: url, name: file.name, loop: true });
+    onChange({ type: 'video', value: url, name: file.name, loop: true, brightness: 0.45 });
     e.target.value = '';
   };
 
@@ -410,6 +410,18 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{value.name || 'Video background'}</span>
+              </div>
+              {/* Brightness slider — dims or brightens the video behind the text */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 86 }}>
+                  Brightness: {Math.round((value.brightness ?? 0.45) * 100)}%
+                </span>
+                <input
+                  type="range" min={10} max={150} step={5}
+                  value={Math.round((value.brightness ?? 0.45) * 100)}
+                  onChange={e => onChange({ ...value, brightness: Number(e.target.value) / 100 })}
+                  style={{ flex: 1, accentColor: 'var(--accent)' }}
+                />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>Loop</span>

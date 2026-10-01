@@ -10,6 +10,11 @@ const logger = require('./logger.js');
 const isDev = !app.isPackaged;
 const isMac = process.platform === 'darwin';
 
+// Renderer assets live in public/ during dev and are copied into build/ when
+// packaged. Icons + splash live alongside index.html in both.
+const RES_DIR = path.join(__dirname, isDev ? '../public' : '../build');
+const APP_ICON = path.join(RES_DIR, 'app-icon.png');
+
 app.name = 'Church Presenter';
 
 // Register media:// as a privileged scheme so <video>/<audio> elements can
@@ -97,6 +102,7 @@ function ensureDataDir() {
 }
 
 let mainWindow = null;
+let splashWindow = null;
 let presentationWindow = null;
 let stageWindow = null;
 let streamWindow = null;
@@ -145,14 +151,57 @@ function stopRtmpProcess(destId) {
   }
 }
 
+// Minimum time the splash stays visible so it doesn't just flash by on fast
+// machines. If the app is ready sooner, we wait out the remainder; if it takes
+// longer, the splash simply shows until the app is ready.
+const MIN_SPLASH_MS = 2000;
+let splashShownAt = 0;
+
+// Frameless splash shown while the React app boots. Closed once the main
+// window is ready to paint (see createMainWindow → 'ready-to-show').
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 520,
+    height: 440,
+    frame: false,
+    resizable: false,
+    center: true,
+    show: false,
+    backgroundColor: '#ffffff',
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    icon: APP_ICON,
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+
+  const splashUrl = isDev
+    ? 'http://localhost:3000/splash.html'
+    : pathToFileURL(path.join(RES_DIR, 'splash.html')).href;
+
+  splashWindow.loadURL(splashUrl);
+  splashWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.show();
+      splashShownAt = Date.now();
+    }
+  });
+  splashWindow.on('closed', () => { splashWindow = null; });
+}
+
+function closeSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
+}
+
 function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     minWidth: 1100,
     minHeight: 700,
+    show: false,
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#1a1d23',
+    icon: APP_ICON,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -166,6 +215,27 @@ function createMainWindow() {
 
   mainWindow.loadURL(startUrl);
   mainWindow.webContents.once('did-finish-load', () => perf.recordStartup());
+
+  // Swap splash → main window once the renderer is ready to paint, avoiding a
+  // white/empty flash — but keep the splash up for at least MIN_SPLASH_MS so it
+  // doesn't just flash by. Guard against 'ready-to-show' never firing (e.g. a
+  // load failure) so the splash can't linger forever, and against firing twice.
+  let revealScheduled = false;
+  const revealMain = () => {
+    if (revealScheduled) return;
+    revealScheduled = true;
+    const elapsed = splashShownAt ? Date.now() - splashShownAt : MIN_SPLASH_MS;
+    const wait = Math.max(0, MIN_SPLASH_MS - elapsed);
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+      closeSplash();
+    }, wait);
+  };
+  mainWindow.once('ready-to-show', revealMain);
+  mainWindow.webContents.on('did-fail-load', (_e, _code, _desc, _url, isMainFrame) => {
+    if (isMainFrame) revealMain();
+  });
+
   if (isDev) mainWindow.webContents.openDevTools({ mode: 'detach' });
 
   mainWindow.webContents.session.setDisplayMediaRequestHandler(async (request, callback) => {
@@ -583,6 +653,15 @@ ipcMain.on('send-clear', (_, isClear) => {
 ipcMain.on('send-output-state', (_, state) => {
   for (const entry of outputWindows.values()) {
     entry.window.webContents.send('receive-output', state);
+  }
+});
+
+// A freshly-opened output/stage/presentation window asks the operator to re-push
+// the current live state once it is ready to receive it (avoids a blank screen
+// from racing the operator's initial push against the window's load).
+ipcMain.on('request-output-state', () => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('request-output-state');
   }
 });
 
@@ -1006,9 +1085,19 @@ app.whenReady().then(() => {
 
   // media:// → file:// proxy so <video> gets byte-range streaming support.
   // net.fetch with a file:// URL handles Accept-Ranges correctly in Electron 25+.
-  protocol.handle('media', (request) => {
+  // Forward the Range header so seeks/loops issue proper 206 partial requests,
+  // and swallow errors into a 404 Response — a rejected handler promise can wedge
+  // the media pipeline and force an app restart.
+  protocol.handle('media', async (request) => {
     const fileUrl = request.url.replace(/^media:/, 'file:');
-    return net.fetch(fileUrl);
+    try {
+      const range = request.headers.get('range');
+      const headers = range ? { Range: range } : undefined;
+      return await net.fetch(fileUrl, headers ? { headers } : undefined);
+    } catch (err) {
+      try { logger.error('media', 'protocol fetch failed', { url: request.url, error: String(err) }); } catch (_) {}
+      return new Response('Media not found', { status: 404 });
+    }
   });
 
   if (process.platform === 'darwin') {
@@ -1019,7 +1108,16 @@ app.whenReady().then(() => {
       shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture');
     }
   }
+  // macOS dev: the dock icon comes from the .app bundle (rounded icon.icns) when
+  // packaged, but in dev it defaults to Electron's icon. Set it explicitly using
+  // the pre-rounded PNG — macOS shows a dock PNG as-is, so it must already have
+  // the squircle shape baked in (the square app-icon.png would look like a tile).
+  if (isMac && isDev && app.dock) {
+    try { app.dock.setIcon(path.join(RES_DIR, 'app-icon-macos.png')); } catch (_) {}
+  }
+
   ensureDataDir();
+  createSplashWindow();
   createMainWindow();
 });
 

@@ -10,6 +10,7 @@ const ROLE_LABELS = {
   announcement: 'Announcement',
   background: 'Background',
   confidence: 'Confidence',
+  timer: 'Timer',
 };
 
 const ROLE_COLORS = {
@@ -18,6 +19,7 @@ const ROLE_COLORS = {
   announcement: '#f59e0b',
   background: '#10b981',
   confidence: '#ef4444',
+  timer: '#06b6d4',
 };
 
 function resolveOutputSlide(output, ctx) {
@@ -32,8 +34,10 @@ function resolveOutputSlide(output, ctx) {
 
 function OutputCard({ output, ctx, onSendCurrent, onSyncProgram, onClose, displayLabel }) {
   const { liveOutputs, liveRoleSlides, liveProgram } = ctx;
-  const slide = resolveOutputSlide(output, ctx);
-  const isLive = !!(liveOutputs[output.id] || liveRoleSlides[output.role] || liveProgram);
+  // Timer/announcement outputs don't carry slide content — they mirror the Timer panel.
+  const isTimerRole = output.role === 'timer';
+  const slide = isTimerRole ? null : resolveOutputSlide(output, ctx);
+  const isLive = isTimerRole || !!(liveOutputs[output.id] || liveRoleSlides[output.role] || liveProgram);
   const roleColor = ROLE_COLORS[output.role] || '#4f8ef7';
 
   return (
@@ -48,6 +52,11 @@ function OutputCard({ output, ctx, onSendCurrent, onSyncProgram, onClose, displa
       <div style={{ position: 'relative', aspectRatio: '16/9', background: '#0d1117', overflow: 'hidden' }}>
         {slide ? (
           <SlideRenderer slide={slide} item={slide?.item} scale={0.18} />
+        ) : isTimerRole ? (
+          <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, color: roleColor }}>
+            <span style={{ fontSize: 22 }}>⏱</span>
+            <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Timers &amp; announcements</span>
+          </div>
         ) : (
           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', fontSize: 11 }}>
             No content
@@ -237,6 +246,7 @@ function CreateOutputSection({ displays, onCreateOutput }) {
     { key: 'announcement', label: 'Announcements' },
     { key: 'background', label: 'Background Screen' },
     { key: 'confidence', label: 'Confidence Monitor' },
+    { key: 'timer', label: 'Timer + Announcement' },
   ];
   const [selectedRole, setSelectedRole] = useState('presentation');
   const [selectedDisplay, setSelectedDisplay] = useState(displays.find(d => !d.isPrimary)?.index ?? 1);

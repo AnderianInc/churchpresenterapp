@@ -5,6 +5,7 @@ import ExternalLink from './ExternalLink';
 import HelpPanel from './HelpPanel';
 import LogsTab from './LogsTab';
 import useAutosave from '../hooks/useAutosave';
+import { getTransition, setTransition } from '../store/transitionSettings';
 
 const PLATFORM_PRESETS = {
   facebook:  { name: 'Facebook Live',   color: '#1877F2', icon: '📘', rtmpUrl: 'rtmps://live-api-s.facebook.com:443/rtmp/' },
@@ -151,6 +152,7 @@ function DevicesTab({ settings, saveSettings }) {
   const [preferredCamId, setPreferredCamId] = useState(settings?.preferredCameraId || '');
   const [fontDraft, setFontDraft] = useState(settings?.defaultFont || 'Georgia');
   const [sizeDraft, setSizeDraft] = useState(settings?.defaultFontSize || 44);
+  const [transition, setTransitionState] = useState(getTransition);
 
   // Mic level test
   const [testActive, setTestActive] = useState(false);
@@ -402,6 +404,35 @@ function DevicesTab({ settings, saveSettings }) {
           <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2 }}>
             Preview: <span style={{ fontSize: `${Math.round(sizeDraft * 0.28)}px`, fontFamily: fontDraft, color: 'var(--text)' }}>Amazing Grace</span>
           </div>
+        </div>
+
+        {/* Slide fade transition */}
+        <div>
+          <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Fade between slides</span>
+            <input
+              type="checkbox"
+              checked={transition.enabled}
+              onChange={e => setTransitionState(setTransition({ enabled: e.target.checked }))}
+              style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
+            />
+          </label>
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 3 }}>
+            Crossfades slides on the program &amp; output screens instead of a hard cut.
+          </div>
+          {transition.enabled && (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Fade duration</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font)' }}>{transition.duration}ms</span>
+              </div>
+              <input
+                type="range" min={150} max={1500} step={50} value={transition.duration}
+                onChange={e => setTransitionState(setTransition({ duration: Number(e.target.value) }))}
+                style={{ width: '100%', accentColor: 'var(--accent)' }}
+              />
+            </div>
+          )}
         </div>
       </Section>
     </>

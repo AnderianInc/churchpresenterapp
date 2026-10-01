@@ -2,40 +2,39 @@
 
 This directory contains assets used by electron-builder during packaging.
 
-## Required files (not committed — add before building for distribution)
+## App icons (committed)
+
+The app's brand icons are committed so CI and local builds all produce the same
+branded installers.
 
 | File | Purpose |
 |---|---|
-| `icon.icns` | macOS app icon (1024×1024 recommended; generate with `iconutil`) |
-| `icon.ico` | Windows app icon (256×256 recommended; multi-size ICO) |
-| `icon.png` | Linux app icon (512×512 PNG) |
+| `icon.png` | Master "CP" mark (1024×1024) — Linux app icon + electron-builder source |
+| `icon.icns` | macOS app icon (generated from `icon.png`) |
+| `icon.ico` | Windows app icon, multi-size (generated from `icon.png`) |
 
-## Included files
+The renderer favicon / in-app window icon lives at `public/app-icon.png`
+(512×512), and the startup splash logo at `public/splash-logo.png`.
+
+## Regenerating icons after a logo change
+
+1. Replace `build-resources/icon.png` with the new 1024×1024 "CP" mark.
+2. Run:
+   ```bash
+   node scripts/generate-icons.js
+   ```
+   This regenerates `icon.icns`, `icon.ico`, and `public/app-icon.png`.
+3. To change the splash, replace `public/splash-logo.png` with the new full logo.
+4. Commit the updated files.
+
+The generator uses macOS `sips` + `iconutil` plus `python3` with Pillow (for the
+rounded macOS "squircle" mask), and packs the `.ico` by hand — no ImageMagick
+needed. It only runs on macOS; CI consumes the committed outputs. The macOS icon
+is shaped to Apple's rounded grid with transparent padding so it sits in the
+Dock like a native app; the Windows/Linux icons stay full-bleed square.
+
+## Other included files
 
 | File | Purpose |
 |---|---|
 | `entitlements.mac.plist` | macOS Hardened Runtime entitlements for code signing and notarization |
-
-## Generating icons from a source PNG
-
-```bash
-# Requires ImageMagick and Apple's iconutil (macOS)
-
-# 1. Create iconset directory
-mkdir icon.iconset
-
-# 2. Generate all required sizes
-for size in 16 32 64 128 256 512; do
-  convert source-1024.png -resize ${size}x${size} icon.iconset/icon_${size}x${size}.png
-  convert source-1024.png -resize $((size*2))x$((size*2)) icon.iconset/icon_${size}x${size}@2x.png
-done
-
-# 3. Build .icns
-iconutil -c icns icon.iconset
-
-# 4. Build .ico (Windows)
-convert source-1024.png -define icon:auto-resize=256,128,64,48,32,16 icon.ico
-
-# 5. Copy PNG for Linux
-cp source-1024.png icon.png
-```
