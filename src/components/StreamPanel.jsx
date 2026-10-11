@@ -578,14 +578,19 @@ export default function StreamPanel() {
 
       // Use canvas-based rendering: stream the actual live slide content, not a window capture.
       // This ensures we stream exactly what's being sent to the output.
+      let frameCount = 0;
       const getRenderFrame = () => {
         const slide = getLiveSlideForStream();
+        frameCount++;
+        if (frameCount === 1 || frameCount % 100 === 0) {
+          console.log(`[StreamPanel] getRenderFrame called (frame ${frameCount}), slide:`, slide?.lines?.slice(0, 30));
+        }
         if (!renderCanvasRef.current) {
           console.warn('[StreamPanel] renderCanvas not initialized');
           return null;
         }
         if (!slide) {
-          console.warn('[StreamPanel] No slide data for stream source output');
+          if (frameCount === 1) console.warn('[StreamPanel] No slide data for stream source output');
           return null;
         }
 
@@ -625,7 +630,10 @@ export default function StreamPanel() {
         }
       };
 
-      console.log('[StreamPanel] Starting social stream with canvas rendering, getRenderFrame:', typeof getRenderFrame);
+      console.log('[StreamPanel] Starting social stream with canvas rendering');
+      console.log('[StreamPanel] - getRenderFrame type:', typeof getRenderFrame);
+      console.log('[StreamPanel] - streamSourceOutput:', streamSourceOutput?.id, streamSourceOutput?.title);
+      console.log('[StreamPanel] - liveOutputs keys:', Object.keys(liveOutputs));
 
       const compositor = new StreamCompositor({
         width: 1280,
@@ -634,6 +642,8 @@ export default function StreamPanel() {
         getRenderFrame,
       });
       compositorRef.current = compositor;
+      console.log('[StreamPanel] - Created StreamCompositor with getRenderFrame');
+
       await compositor.start({
         audio: true,
         getOverlay: () => lowerThirdRef.current,
@@ -641,6 +651,7 @@ export default function StreamPanel() {
         onChunk: (chunk) => { for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk); },
         onError: (msg) => setRtmpError(msg),
       });
+      console.log('[StreamPanel] - StreamCompositor.start() completed successfully');
 
       setIsRtmpStreaming(true); setRtmpElapsed(0);
       rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);
