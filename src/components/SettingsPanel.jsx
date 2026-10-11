@@ -21,6 +21,7 @@ const TABS = [
   { id: 'social',  label: '📡 Social Media' },
   { id: 'devices', label: '🎙 Devices' },
   { id: 'outputs', label: '📺 Outputs' },
+  { id: 'data',    label: '💾 Data & Updates' },
   { id: 'logs',    label: '📋 Logs' },
   { id: 'help',    label: '❔ Help' },
 ];
@@ -335,52 +336,6 @@ function DevicesTab({ settings, saveSettings }) {
         </div>
       </Section>
 
-      {/* ── Camera ──────────────────────────────────────────────────────── */}
-      <Section title="Camera — Stream">
-        <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: 16 }}>📷</span>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>Preferred Camera</div>
-              <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>Pre-selected in the Stream panel on startup</div>
-            </div>
-            {settings?.preferredCameraId && (
-              <span style={{ marginLeft: 'auto', fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>SET</span>
-            )}
-          </div>
-
-          {camPermission === 'denied' ? (
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--red)', padding: '6px 8px', borderRadius: 5, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: 6 }}>
-                Camera access denied. Grant it in <strong>System Settings → Privacy → Camera</strong>, then click Try Again — no reload needed.
-              </div>
-              <button onClick={grantCamAccess} style={{ width: '100%', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--red)', borderRadius: 6, padding: '6px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>
-                🔄 Try Again
-              </button>
-            </div>
-          ) : camPermission !== 'granted' ? (
-            <button onClick={grantCamAccess} style={{ width: '100%', background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.3)', color: 'var(--accent)', borderRadius: 6, padding: '7px', cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600 }}>
-              Allow Camera Access to Configure
-            </button>
-          ) : camDevices.length === 0 ? (
-            <div style={{ fontSize: 11, color: 'var(--text-dim)' }}>No cameras detected. Start OBS with Virtual Camera enabled and reload.</div>
-          ) : (
-            <select value={preferredCamId} onChange={e => handleCamChange(e.target.value)} style={inputStyle}>
-              {camDevices.map((d, i) => (
-                <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
-              ))}
-            </select>
-          )}
-
-          <div style={{ marginTop: 8, padding: '6px 8px', borderRadius: 5, background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)' }}>
-            <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.6 }}>
-              OBS Virtual Camera appears here once OBS is running with Virtual Camera enabled.
-              The Stream panel also lets you switch sources live during a service.
-            </div>
-          </div>
-        </div>
-      </Section>
-
       {/* ── Presentation Defaults ────────────────────────────────────────── */}
       <Section title="Presentation Defaults">
         <div>
@@ -435,6 +390,136 @@ function DevicesTab({ settings, saveSettings }) {
           )}
         </div>
       </Section>
+    </>
+  );
+}
+
+// ── Data & Updates tab ──────────────────────────────────────────────────────────
+
+function DataUpdatesTab({ isElectron }) {
+  const [version, setVersion] = useState('');
+  const [busy, setBusy] = useState('');          // 'export' | 'import' | 'check'
+  const [msg, setMsg] = useState(null);          // { kind: 'ok'|'err'|'info', text }
+  const [update, setUpdate] = useState(null);    // result of checkForUpdates
+
+  useEffect(() => {
+    window.electronAPI?.getAppVersion?.().then(v => setVersion(v || '')).catch(() => {});
+  }, []);
+
+  const doExport = useCallback(async () => {
+    setBusy('export'); setMsg(null);
+    try {
+      const r = await window.electronAPI.exportBackup();
+      if (r?.canceled) { setMsg(null); }
+      else if (r?.error) setMsg({ kind: 'err', text: r.error });
+      else setMsg({ kind: 'ok', text: `Backup saved${r.mediaSkipped ? ' (media too large — copy the media folder manually)' : r.mediaFiles ? ` with ${r.mediaFiles} media file(s)` : ''}.` });
+    } catch (e) { setMsg({ kind: 'err', text: e.message }); }
+    setBusy('');
+  }, []);
+
+  const doImport = useCallback(async () => {
+    const ok = window.confirm('Restoring will replace your current songs, schedules, and settings with the backup. Your current data is snapshotted first. Continue?');
+    if (!ok) return;
+    setBusy('import'); setMsg(null);
+    try {
+      const r = await window.electronAPI.importBackup();
+      if (r?.canceled) { setMsg(null); }
+      else if (r?.error) setMsg({ kind: 'err', text: r.error });
+      else {
+        setMsg({ kind: 'ok', text: 'Backup restored. Restart to load it.' });
+        if (window.confirm('Backup restored. Restart now to load it?')) {
+          window.electronAPI.restartApp();
+        }
+      }
+    } catch (e) { setMsg({ kind: 'err', text: e.message }); }
+    setBusy('');
+  }, []);
+
+  const doCheck = useCallback(async () => {
+    setBusy('check'); setMsg(null); setUpdate(null);
+    try {
+      const r = await window.electronAPI.checkForUpdates();
+      setUpdate(r);
+      if (r?.error && !r.available) setMsg({ kind: 'info', text: 'Could not reach the update server. Check your connection or try again later.' });
+    } catch (e) { setMsg({ kind: 'err', text: e.message }); }
+    setBusy('');
+  }, []);
+
+  const btn = (bg = 'var(--accent)') => ({
+    background: bg, border: 'none', borderRadius: 6, color: '#fff',
+    padding: '8px 14px', fontSize: 12, fontFamily: 'var(--font)', cursor: 'pointer', fontWeight: 600,
+  });
+  const ghost = {
+    background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 6,
+    color: 'var(--text-muted)', padding: '8px 14px', fontSize: 12, fontFamily: 'var(--font)', cursor: 'pointer',
+  };
+
+  if (!isElectron) {
+    return (
+      <Section title="Data & Updates">
+        <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.6 }}>
+          Backup, restore, and update management are available in the desktop app.
+        </div>
+      </Section>
+    );
+  }
+
+  return (
+    <>
+      <Section title="Backup & Restore">
+        <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.6 }}>
+          Save all your songs, schedules, settings, and media to a single file — then restore it on this or another computer. Do this before upgrading or moving machines.
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button style={btn()} disabled={!!busy} onClick={doExport}>
+            {busy === 'export' ? 'Exporting…' : '⬇ Export Backup'}
+          </button>
+          <button style={ghost} disabled={!!busy} onClick={doImport}>
+            {busy === 'import' ? 'Restoring…' : '⬆ Restore Backup'}
+          </button>
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 8, lineHeight: 1.5 }}>
+          Your data already survives app upgrades automatically — this is an extra safety copy. A snapshot is also taken automatically each time you upgrade.
+        </div>
+      </Section>
+
+      <Section title="App Version & Updates">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Installed version</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'monospace' }}>{version || '—'}</span>
+        </div>
+        <button style={btn()} disabled={!!busy} onClick={doCheck}>
+          {busy === 'check' ? 'Checking…' : '↻ Check for Updates'}
+        </button>
+
+        {update?.available && (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: 'rgba(79,142,247,0.1)', border: '1px solid rgba(79,142,247,0.35)' }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', marginBottom: 6 }}>
+              Version {update.latestVersion} is available
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 10, lineHeight: 1.5 }}>
+              Your data is kept when you install an update — but exporting a backup first is a good habit.
+            </div>
+            <button style={btn()} onClick={() => window.electronAPI.openExternalLink(update.url)}>
+              ⬇ Download the update
+            </button>
+          </div>
+        )}
+        {update && !update.available && !update.error && (
+          <div style={{ marginTop: 10, fontSize: 11, color: '#22c55e' }}>✓ You’re on the latest version.</div>
+        )}
+      </Section>
+
+      {msg && (
+        <div style={{
+          margin: '0 2px', padding: '8px 10px', borderRadius: 6, fontSize: 11,
+          background: msg.kind === 'err' ? 'rgba(239,68,68,0.1)' : msg.kind === 'ok' ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+          border: `1px solid ${msg.kind === 'err' ? 'rgba(239,68,68,0.3)' : msg.kind === 'ok' ? 'rgba(34,197,94,0.3)' : 'var(--border)'}`,
+          color: msg.kind === 'err' ? '#fca5a5' : msg.kind === 'ok' ? '#86efac' : 'var(--text-dim)',
+        }}>
+          {msg.text}
+        </div>
+      )}
     </>
   );
 }
@@ -871,6 +956,10 @@ export default function SettingsPanel({ onClose, hideTitle = false, initialTab }
         )}
 
         {/* ── Logs tab ──────────────────────────────────────────────────── */}
+        {activeTab === 'data' && (
+          <DataUpdatesTab isElectron={isElectron} />
+        )}
+
         {activeTab === 'logs' && (
           <LogsTab />
         )}

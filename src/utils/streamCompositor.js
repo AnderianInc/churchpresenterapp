@@ -230,7 +230,7 @@ export class StreamCompositor {
     }
 
     // Setup video playback only if NOT using canvas-based rendering
-    if (!useCanvasRender) {
+    if (!this._useCanvasRender) {
       this.video = document.createElement('video');
       this.video.muted = true;
       this.video.playsInline = true;
