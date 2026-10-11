@@ -89,12 +89,15 @@ A step-by-step checklist for using Church Presenter on Sunday morning (or any se
 
 ### Test streaming (if applicable)
 
-1. Open **📡 Stream** tab
-2. Click **Open Stream Window**
-3. Select your camera source — preview should appear in the panel
-4. In Zoom or Teams, click **Share Screen** → select the "Stream View — Church Presenter" window
-5. Test a lower-third: type text in the Lower-Third section and click **Send Lower-Third**
-6. For RTMP (social media), confirm **FFmpeg found** status is green, then click **▶ Go Live — Social**
+1. Open **📺 Outputs** and create the output window(s) you want to stream (e.g., Program, Confidence, Announcement)
+2. Open **📡 Stream** tab
+3. Click **Open Stream Window** — this launches the 1280×720 window you'll screen-share
+4. Under **Stream Window → Video Source**, select which output to screen-share (e.g., "Main Output (presentation)")
+5. Click **Send Output to Stream Window**
+6. In Zoom or Teams, click **Share Screen** → select the "Stream View — Church Presenter" window
+7. Test a lower-third: type text in the Lower-Third section and click **Send Lower-Third**
+8. For RTMP (social media), under **Social Streaming → Stream Source**, pick the output you want to RTMP-stream (can be different from the screen-shared one)
+9. Confirm **FFmpeg found** status is green, then click **▶ Go Live — Social**
 
 ### Sermon Assistant (if using)
 

@@ -130,13 +130,14 @@ Enables the Claude AI verse suggestion feature in the Sermon Assistant.
 
 ---
 
-## Devices tab (mic, camera, font defaults)
+## Devices tab (mic, font defaults)
 
 Open **⚙ Settings → Devices** to:
 
 - **Preferred microphone** — select which mic the Sermon Assistant level meter uses. The 20-bar VU meter confirms the selection is working. Note: Web Speech API for voice-to-text always uses the system default input; change that in your OS settings.
-- **Preferred camera** — select which camera the Stream panel uses for live video.
 - **Font and size defaults** — set the default slide font and size for new songs and announcements.
+
+Note: The streaming panel now uses your existing output windows (Program, Confidence, Stage, etc.) as video sources, so there is no longer a "preferred camera" setting. Simply create an output window and select it as the stream source in the Stream panel.
 
 ---
 
