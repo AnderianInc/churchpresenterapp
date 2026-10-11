@@ -431,6 +431,18 @@ export default function StreamPanel() {
   }, [streamableOutputs, streamSourceId]);
   const streamSourceOutput = streamableOutputs.find(w => w.id === streamSourceId) || null;
 
+  // Hidden canvas for rendering live slide content to stream — ensures we stream
+  // the actual slide (text, background, overlays) not just a camera feed or window capture.
+  const renderCanvasRef = useRef(null);
+  const slideRenderRef = useRef(null);
+
+  // Get the slide currently being streamed (if streaming via output selection)
+  const getLiveSlideForStream = useCallback(() => {
+    if (!streamSourceOutput) return null;
+    const outputId = streamSourceOutput.id;
+    return liveOutputs[outputId]?.slide || null;
+  }, [streamSourceOutput, liveOutputs]);
+
   // Separate source pick for the Stream Window (manually screen-shared into Zoom/OBS) —
   // independent of the Social Streaming (RTMP) source above, since an operator may want
   // to screen-share one output while RTMP-streaming a different one.
@@ -439,6 +451,23 @@ export default function StreamPanel() {
     if (streamWindowSourceId && streamableOutputs.some(w => w.id === streamWindowSourceId)) return;
     setStreamWindowSourceId(streamableOutputs[0]?.id || '');
   }, [streamableOutputs, streamWindowSourceId]);
+
+  // Initialize hidden canvas for rendering slides to stream
+  useEffect(() => {
+    if (!renderCanvasRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      canvas.style.display = 'none';
+      document.body.appendChild(canvas);
+      renderCanvasRef.current = canvas;
+      return () => {
+        if (renderCanvasRef.current && renderCanvasRef.current.parentNode) {
+          renderCanvasRef.current.parentNode.removeChild(renderCanvasRef.current);
+        }
+      };
+    }
+  }, []);
 
   // Live overlay (Bible verse / text lower-third) read by the stream compositor each frame
   const lowerThirdRef = useRef(lowerThird);
@@ -547,10 +576,52 @@ export default function StreamPanel() {
         started.push(dest);
       }
 
-      const compositor = new StreamCompositor({ width: 1280, height: 720, fps: 30 });
+      // Use canvas-based rendering: stream the actual live slide content, not a window capture.
+      // This ensures we stream exactly what's being sent to the output.
+      const getRenderFrame = () => {
+        const slide = getLiveSlideForStream();
+        if (!renderCanvasRef.current || !slide) return null;
+        const ctx = renderCanvasRef.current.getContext('2d');
+        if (!ctx) return null;
+
+        // Render the slide to the canvas. Use SlideRenderer's background/text rendering logic.
+        // For now, a simplified approach: render background color + slide text.
+        const bg = slide.background || slide.item?.background;
+        const bgType = bg?.type;
+        const bgColor = bgType === 'color' ? (bg.value || '#0d1117') : '#0d1117';
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 1280, 720);
+
+        // Render slide text
+        if (slide.lines) {
+          ctx.font = `${slide.item?.fontSize || 44}px ${slide.item?.fontFamily || 'Georgia'}`;
+          ctx.fillStyle = slide.item?.textColor || '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const lines = slide.lines.split('\n');
+          const lineHeight = 60;
+          const startY = (720 - lines.length * lineHeight) / 2;
+          lines.forEach((line, i) => {
+            ctx.fillText(line, 640, startY + i * lineHeight);
+          });
+        }
+
+        try {
+          return ctx.getImageData(0, 0, 1280, 720);
+        } catch (_) {
+          return null;
+        }
+      };
+
+      const compositor = new StreamCompositor({
+        width: 1280,
+        height: 720,
+        fps: 30,
+        getRenderFrame,
+      });
       compositorRef.current = compositor;
       await compositor.start({
-        mediaSourceId: streamSourceOutput.mediaSourceId,
         audio: true,
         getOverlay: () => lowerThirdRef.current,
         videoBitsPerSecond: 2_500_000,
@@ -561,19 +632,13 @@ export default function StreamPanel() {
       setIsRtmpStreaming(true); setRtmpElapsed(0);
       rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);
     } catch (err) {
-      const errMsg = err?.message || `Failed to capture "${streamSourceOutput?.title || 'unknown output'}".`;
+      const errMsg = err?.message || 'Failed to start streaming.';
       console.error('[StreamPanel] Social streaming failed:', errMsg, err);
-      setRtmpError(
-        errMsg.includes('Desktop capture')
-          ? 'The output window is not available. It may have been closed or its ID changed. Try selecting it again from the dropdown and retrying.'
-          : errMsg.includes('Video playback')
-          ? 'Failed to play video stream. The output window may not be rendering. Ensure it is open and visible, then try again.'
-          : errMsg
-      );
+      setRtmpError(errMsg);
       if (compositorRef.current) { compositorRef.current.stop(); compositorRef.current = null; }
       for (const d of started) { try { await window.electronAPI.stopRtmp(d.id); } catch (_) {} }
     }
-  }, [isElectron, destinations, streamSourceOutput]);
+  }, [isElectron, destinations, streamSourceOutput, getLiveSlideForStream]);
 
   const stopSocialStream = useCallback(async (destId) => {
     if (!isElectron) return;

@@ -140,7 +140,7 @@ export function drawOverlay(ctx, overlay, width, height) {
 }
 
 export class StreamCompositor {
-  constructor({ width = 1280, height = 720, fps = 30 } = {}) {
+  constructor({ width = 1280, height = 720, fps = 30, getRenderFrame = null } = {}) {
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -154,12 +154,13 @@ export class StreamCompositor {
     this.rafId = null;
     this.stopped = false;
     this._getOverlay = null;
+    this._getRenderFrame = getRenderFrame || null; // fn() => imageData to draw each frame
   }
 
   /**
    * @param {object} opts
-   * @param {string} opts.mediaSourceId          an output window's Electron capture source id — the stream's video source
-   * @param {string} opts.cameraDeviceId         legacy: a raw camera device id (used only if mediaSourceId isn't given)
+   * @param {string} opts.mediaSourceId          an output window's Electron capture source id (fallback only)
+   * @param {string} opts.cameraDeviceId         legacy: a raw camera device id (fallback only)
    * @param {boolean} opts.audio                 capture microphone audio (default true)
    * @param {function} opts.getOverlay           () => overlay object drawn each frame
    * @param {number} opts.videoBitsPerSecond
@@ -174,41 +175,48 @@ export class StreamCompositor {
     } = opts || {};
     this._getOverlay = getOverlay || null;
 
-    if (mediaSourceId) {
-      // Capture an output window's own rendered content (chosen in the UI) instead
-      // of a physical camera — this is the normal path. Audio is not requestable
-      // alongside chromeMediaSource:'desktop' video reliably, so it's acquired
-      // separately below (microphone), independent of the video source.
-      try {
-        // Try the modern constraint syntax first (more reliable)
+    // If getRenderFrame was provided in constructor, use it (canvas-based rendering
+    // of live slide data). Otherwise fall back to desktop/camera capture.
+    const useCanvasRender = !!this._getRenderFrame;
+
+    // Only acquire video stream if NOT using canvas-based rendering
+    if (!useCanvasRender) {
+      if (mediaSourceId) {
+        // Capture an output window's own rendered content (chosen in the UI) instead
+        // of a physical camera — fallback path. Audio is not requestable
+        // alongside chromeMediaSource:'desktop' video reliably, so it's acquired
+        // separately below (microphone), independent of the video source.
         try {
-          this.camStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-              mandatory: {
-                chromeMediaSource: 'desktop',
-                chromeMediaSourceId: mediaSourceId,
+          // Try the modern constraint syntax first (more reliable)
+          try {
+            this.camStream = await navigator.mediaDevices.getUserMedia({
+              audio: false,
+              video: {
+                mandatory: {
+                  chromeMediaSource: 'desktop',
+                  chromeMediaSourceId: mediaSourceId,
+                },
               },
-            },
-          });
-        } catch (legacyErr) {
-          // Fallback to sourceId constraint syntax (older Electron versions)
-          this.camStream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-              sourceId: mediaSourceId,
-            },
-          });
+            });
+          } catch (legacyErr) {
+            // Fallback to sourceId constraint syntax (older Electron versions)
+            this.camStream = await navigator.mediaDevices.getUserMedia({
+              audio: false,
+              video: {
+                sourceId: mediaSourceId,
+              },
+            });
+          }
+        } catch (err) {
+          throw new Error(`Desktop capture failed (mediaSourceId may be stale or invalid): ${err.message}`);
         }
-      } catch (err) {
-        throw new Error(`Desktop capture failed (mediaSourceId may be stale or invalid): ${err.message}`);
+      } else {
+        // Legacy fallback: a raw camera device as the video source.
+        const videoConstraint = cameraDeviceId
+          ? { deviceId: { ideal: cameraDeviceId }, width: { ideal: this.width }, height: { ideal: this.height } }
+          : { width: { ideal: this.width }, height: { ideal: this.height } };
+        this.camStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint, audio: false });
       }
-    } else {
-      // Legacy fallback: a raw camera device as the video source.
-      const videoConstraint = cameraDeviceId
-        ? { deviceId: { ideal: cameraDeviceId }, width: { ideal: this.width }, height: { ideal: this.height } }
-        : { width: { ideal: this.width }, height: { ideal: this.height } };
-      this.camStream = await navigator.mediaDevices.getUserMedia({ video: videoConstraint, audio: false });
     }
 
     if (audio) {
@@ -219,36 +227,39 @@ export class StreamCompositor {
       }
     }
 
-    this.video = document.createElement('video');
-    this.video.muted = true;
-    this.video.playsInline = true;
-    this.video.srcObject = this.camStream;
+    // Setup video playback only if NOT using canvas-based rendering
+    if (!useCanvasRender) {
+      this.video = document.createElement('video');
+      this.video.muted = true;
+      this.video.playsInline = true;
+      this.video.srcObject = this.camStream;
 
-    // Wait for video to start playing and have frames ready before starting recorder.
-    // This prevents ffmpeg from receiving an empty stream.
-    try {
-      await this.video.play();
-      // Wait up to 2 seconds for the first frame to arrive (readyState >= 2 means HAVE_CURRENT_DATA)
-      const frameReady = await new Promise((resolve) => {
-        if (this.video.readyState >= 2) {
-          resolve(true);
-          return;
+      // Wait for video to start playing and have frames ready before starting recorder.
+      // This prevents ffmpeg from receiving an empty stream.
+      try {
+        await this.video.play();
+        // Wait up to 2 seconds for the first frame to arrive (readyState >= 2 means HAVE_CURRENT_DATA)
+        const frameReady = await new Promise((resolve) => {
+          if (this.video.readyState >= 2) {
+            resolve(true);
+            return;
+          }
+          const onCanPlay = () => {
+            this.video.removeEventListener('canplay', onCanPlay);
+            resolve(true);
+          };
+          this.video.addEventListener('canplay', onCanPlay);
+          setTimeout(() => {
+            this.video.removeEventListener('canplay', onCanPlay);
+            resolve(false); // timeout — no frames yet, but proceed anyway
+          }, 2000);
+        });
+        if (!frameReady) {
+          console.warn('[StreamCompositor] No video frames received within 2s, proceeding anyway');
         }
-        const onCanPlay = () => {
-          this.video.removeEventListener('canplay', onCanPlay);
-          resolve(true);
-        };
-        this.video.addEventListener('canplay', onCanPlay);
-        setTimeout(() => {
-          this.video.removeEventListener('canplay', onCanPlay);
-          resolve(false); // timeout — no frames yet, but proceed anyway
-        }, 2000);
-      });
-      if (!frameReady) {
-        console.warn('[StreamCompositor] No video frames received within 2s, proceeding anyway');
+      } catch (err) {
+        throw new Error(`Video playback failed: ${err.message}`);
       }
-    } catch (err) {
-      throw new Error(`Video playback failed: ${err.message}`);
     }
 
     this.canvas = document.createElement('canvas');
@@ -259,12 +270,24 @@ export class StreamCompositor {
     const draw = () => {
       if (this.stopped) return;
       try {
-        const vw = this.video.videoWidth || this.width;
-        const vh = this.video.videoHeight || this.height;
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.width, this.height);
-        const { sx, sy, sWidth, sHeight } = coverRect(vw, vh, this.width, this.height);
-        this.ctx.drawImage(this.video, sx, sy, sWidth, sHeight, 0, 0, this.width, this.height);
+
+        if (useCanvasRender && this._getRenderFrame) {
+          // Canvas-based rendering: pull live slide frame from the provided function
+          const frameData = this._getRenderFrame();
+          if (frameData) {
+            this.ctx.putImageData(frameData, 0, 0);
+          }
+        } else if (this.video) {
+          // Video-based rendering: draw from the video element
+          const vw = this.video.videoWidth || this.width;
+          const vh = this.video.videoHeight || this.height;
+          const { sx, sy, sWidth, sHeight } = coverRect(vw, vh, this.width, this.height);
+          this.ctx.drawImage(this.video, sx, sy, sWidth, sHeight, 0, 0, this.width, this.height);
+        }
+
+        // Draw the lower-third overlay on top
         const overlay = this._getOverlay?.();
         if (overlay) drawOverlay(this.ctx, overlay, this.width, this.height);
       } catch (_) { /* frame skipped */ }
