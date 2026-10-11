@@ -394,7 +394,7 @@ export default function StreamPanel() {
     currentItem, currentSlide,
     isBlackout, toggleBlackout,
     settings, ffmpegAvailable, isElectron,
-    outputWindows,
+    outputWindows, liveOutputs,
   } = useApp();
 
   // Which output window is currently being fed into the Stream Window (screen-share target)
