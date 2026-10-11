@@ -580,9 +580,20 @@ export default function StreamPanel() {
       // This ensures we stream exactly what's being sent to the output.
       const getRenderFrame = () => {
         const slide = getLiveSlideForStream();
-        if (!renderCanvasRef.current || !slide) return null;
+        if (!renderCanvasRef.current) {
+          console.warn('[StreamPanel] renderCanvas not initialized');
+          return null;
+        }
+        if (!slide) {
+          console.warn('[StreamPanel] No slide data for stream source output');
+          return null;
+        }
+
         const ctx = renderCanvasRef.current.getContext('2d');
-        if (!ctx) return null;
+        if (!ctx) {
+          console.warn('[StreamPanel] Canvas context unavailable');
+          return null;
+        }
 
         // Render the slide to the canvas. Use SlideRenderer's background/text rendering logic.
         // For now, a simplified approach: render background color + slide text.
@@ -613,6 +624,8 @@ export default function StreamPanel() {
           return null;
         }
       };
+
+      console.log('[StreamPanel] Starting social stream with canvas rendering, getRenderFrame:', typeof getRenderFrame);
 
       const compositor = new StreamCompositor({
         width: 1280,

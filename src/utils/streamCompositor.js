@@ -155,6 +155,7 @@ export class StreamCompositor {
     this.stopped = false;
     this._getOverlay = null;
     this._getRenderFrame = getRenderFrame || null; // fn() => imageData to draw each frame
+    this._useCanvasRender = false; // will be set in start()
   }
 
   /**
@@ -177,10 +178,11 @@ export class StreamCompositor {
 
     // If getRenderFrame was provided in constructor, use it (canvas-based rendering
     // of live slide data). Otherwise fall back to desktop/camera capture.
-    const useCanvasRender = !!this._getRenderFrame;
+    this._useCanvasRender = !!this._getRenderFrame;
+    console.log('[StreamCompositor] start() - useCanvasRender:', this._useCanvasRender, 'getRenderFrame:', typeof this._getRenderFrame);
 
     // Only acquire video stream if NOT using canvas-based rendering
-    if (!useCanvasRender) {
+    if (!this._useCanvasRender) {
       if (mediaSourceId) {
         // Capture an output window's own rendered content (chosen in the UI) instead
         // of a physical camera — fallback path. Audio is not requestable
@@ -273,7 +275,7 @@ export class StreamCompositor {
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.width, this.height);
 
-        if (useCanvasRender && this._getRenderFrame) {
+        if (this._useCanvasRender && this._getRenderFrame) {
           // Canvas-based rendering: pull live slide frame from the provided function
           const frameData = this._getRenderFrame();
           if (frameData) {
