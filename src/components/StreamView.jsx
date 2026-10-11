@@ -24,10 +24,16 @@ export default function StreamView() {
   // ── IPC / BroadcastChannel listeners ───────────────────────────────────────
   useEffect(() => {
     const applyConfig = (config) => {
+      console.log('[StreamView] 📡 Received config:', {
+        mediaSourceId: config?.mediaSourceId,
+        label: config?.label,
+        sourceType: config?.sourceType,
+      });
       setMediaSourceId(config?.mediaSourceId || null);
       setSourceLabel(config?.label || '');
     };
     if (isElectron) {
+      console.log('[StreamView] Using Electron IPC');
       const offs = [
         window.electronAPI.onReceiveStreamConfig(applyConfig),
         window.electronAPI.onReceiveLowerThird((data) => setLowerThird(data)),
@@ -35,9 +41,11 @@ export default function StreamView() {
       ];
       return () => offs.forEach(f => f());
     } else {
+      console.log('[StreamView] Using BroadcastChannel');
       const channel = new BroadcastChannel(BROADCAST_CHANNEL);
       channel.onmessage = (e) => {
         const { type, payload } = e.data || {};
+        console.log('[StreamView] BroadcastChannel message:', type, payload);
         if (type === 'stream-config') applyConfig(payload);
         if (type === 'lower-third') setLowerThird(payload);
         if (type === 'blackout') setIsBlackout(payload);
@@ -57,18 +65,24 @@ export default function StreamView() {
         streamRef.current.getTracks().forEach(t => t.stop());
         streamRef.current = null;
       }
-      if (!mediaSourceId) return;
+      if (!mediaSourceId) {
+        console.log('[StreamView] startCapture: no mediaSourceId, skipping');
+        return;
+      }
       if (!isElectron) {
+        console.log('[StreamView] startCapture: not Electron, showing error');
         setCaptureError('Output capture is only available in the desktop app.');
         return;
       }
 
+      console.log('[StreamView] 📺 Starting capture with mediaSourceId:', mediaSourceId);
       try {
         setCaptureError('');
         let stream;
+        let usedConstraint = null;
         try {
           // Try modern constraint syntax first
-          stream = await navigator.mediaDevices.getUserMedia({
+          const modernConstraint = {
             audio: false,
             video: {
               mandatory: {
@@ -76,25 +90,66 @@ export default function StreamView() {
                 chromeMediaSourceId: mediaSourceId,
               },
             },
-          });
+          };
+          console.log('[StreamView]   Trying modern constraint:', JSON.stringify(modernConstraint));
+          stream = await navigator.mediaDevices.getUserMedia(modernConstraint);
+          usedConstraint = 'modern';
+          console.log('[StreamView]   ✓ Modern constraint succeeded, constraint used:', usedConstraint);
         } catch (legacyErr) {
           // Fallback: try sourceId constraint (older Electron versions)
-          console.warn('[StreamView] Modern constraint failed, trying fallback:', legacyErr.message);
-          stream = await navigator.mediaDevices.getUserMedia({
+          const legacyConstraint = {
             audio: false,
             video: {
               sourceId: mediaSourceId,
             },
-          });
+          };
+          console.warn('[StreamView]   ✗ Modern constraint failed:', legacyErr.message);
+          console.log('[StreamView]   Trying legacy constraint:', JSON.stringify(legacyConstraint));
+          stream = await navigator.mediaDevices.getUserMedia(legacyConstraint);
+          usedConstraint = 'legacy';
+          console.log('[StreamView]   ✓ Legacy constraint succeeded');
         }
-        if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+        if (!active) {
+          console.log('[StreamView] Component unmounted, stopping stream');
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
+        const tracks = stream.getVideoTracks();
+        console.log('[StreamView] ✓ Stream acquired, video tracks:', tracks.length);
+        if (tracks.length > 0) {
+          const track = tracks[0];
+          const capabilities = track.getCapabilities?.() || {};
+          const settings = track.getSettings?.() || {};
+
+          // Check if this is a desktop-capture (output window) or a camera
+          const isCamera = track.label?.toLowerCase().includes('camera') ||
+                           track.label?.toLowerCase().includes('webcam') ||
+                           track.label?.toLowerCase().includes('emeet');
+          const isDesktopCapture = track.label?.includes('window') ||
+                                   track.label?.includes('screen') ||
+                                   !isCamera;
+
+          console.log('[StreamView]   ⚠ Track details:');
+          console.log('[StreamView]     Label:', track.label);
+          console.log('[StreamView]     Type:', isCamera ? 'CAMERA 📷' : isDesktopCapture ? 'DESKTOP/WINDOW 🖥' : 'UNKNOWN');
+          console.log('[StreamView]     State:', track.readyState);
+          console.log('[StreamView]     Settings:', settings);
+          console.log('[StreamView]     Capabilities:', { width: capabilities.width, height: capabilities.height });
+
+          if (isCamera) {
+            console.warn('[StreamView]   ❌ WARNING: Got CAMERA instead of desktop-capture! mediaSourceId may be invalid or constraint is not working.');
+          }
+        }
+
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          console.log('[StreamView] ✓ Video element srcObject set');
         }
       } catch (err) {
         if (!active) return;
-        console.error('[StreamView] Capture error:', err);
+        console.error('[StreamView] ✗ Capture error:', err.message);
         setCaptureError(err.message || 'Could not start video source. Ensure the output window is open.');
       }
     }

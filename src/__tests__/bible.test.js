@@ -5,6 +5,8 @@ import {
   parseBebliaXml,
   BOOK_NAMES_BY_NUMBER,
   canonicalBook,
+  fetchHelloaoChapter,
+  searchHelloaoByReference,
 } from '../data/bible';
 
 /**
@@ -83,6 +85,37 @@ describe('searchByReference', () => {
   it('returns empty array for unparseable input', () => {
     expect(searchByReference('')).toHaveLength(0);
     expect(searchByReference('not a reference')).toHaveLength(0);
+  });
+});
+
+describe('HelloAO online Bible adapter', () => {
+  it('parses the live HelloAO chapter payload and resolves verse ranges', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn(() => Promise.resolve({
+      ok: true,
+      json: async () => ({
+        chapter: {
+          number: 3,
+          content: [
+            { type: 'verse', number: 15, content: ['For God so loved the world.'] },
+            { type: 'verse', number: 16, content: ['For God so loved the world, that he gave his only begotten Son.'] },
+            { type: 'verse', number: 17, content: ['For God sent not his Son into the world to condemn the world.'] },
+          ],
+        },
+      }),
+    }));
+
+    try {
+      const chapter = await fetchHelloaoChapter('eng_kjv', 'John', 3);
+      expect(chapter).toHaveLength(3);
+      expect(chapter[0]).toMatchObject({ reference: 'John 3:15', text: 'For God so loved the world.' });
+
+      const results = await searchHelloaoByReference('John 3:16-17', 'eng_kjv');
+      expect(results).toHaveLength(2);
+      expect(results.map(v => v.reference)).toEqual(['John 3:16', 'John 3:17']);
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
 

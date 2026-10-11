@@ -1,3 +1,5 @@
+import { getDefaultVideoPlaybackState } from '../components/VideoControls';
+
 /**
  * P10 Video control logic tests.
  *
@@ -31,6 +33,10 @@ function executeVideoCommand(videoState, payload) {
       return { ...videoState, paused: false };
     case 'pause':
       return { ...videoState, paused: true };
+    case 'stop':
+      return { ...videoState, paused: true, currentTime: 0 };
+    case 'restart':
+      return { ...videoState, paused: false, currentTime: 0 };
     case 'setVolume': {
       const v = Math.max(0, Math.min(1, (args[0] ?? 100) / 100));
       return { ...videoState, volume: v };
@@ -57,27 +63,31 @@ function buildVideoStatePayload(videoState) {
   };
 }
 
-// ── shouldShowVideoController ─────────────────────────────────────────────────
+// ── shouldShowVideoControls ───────────────────────────────────────────────────
 //
-// Mirrors the render guard in MainLayout.jsx:
-//   liveProgram?.item?.background?.type === 'video' && activeView !== 'media'
+// Mirrors the render guard in PreviewArea.jsx — the persistent inline video
+// transport bar shows whenever a locally-imported video is live on program and
+// the output is not blacked out. A per-slide background overrides the item one.
 
-function shouldShowVideoController(liveProgram, activeView) {
-  return liveProgram?.item?.background?.type === 'video' && activeView !== 'media';
+function liveVideoBgOf(liveProgram) {
+  return (
+    (liveProgram?.background?.type === 'video' && liveProgram.background) ||
+    (liveProgram?.item?.background?.type === 'video' && liveProgram.item.background) ||
+    null
+  );
 }
 
-// ── videoControllerAutoShow ───────────────────────────────────────────────────
-//
-// Mirrors the useEffect in MainLayout.jsx that resets `dismissed` to false
-// whenever the live video value (URL/ID) changes.
-//
-// Returns { shouldReset: bool, newDismissed: bool }.
+function shouldShowVideoControls(liveProgram, isBlackout) {
+  return !!liveVideoBgOf(liveProgram) && !isBlackout;
+}
 
-function videoControllerAutoShow(prevVideoValue, newVideoValue, dismissed) {
-  if (newVideoValue && newVideoValue !== prevVideoValue) {
-    return { shouldReset: true, newDismissed: false };
-  }
-  return { shouldReset: false, newDismissed: dismissed };
+// ── shouldResetVideoState ─────────────────────────────────────────────────────
+//
+// Mirrors the useEffect in VideoControls.jsx that resets playback state (play,
+// mute, volume, time) whenever the live video value (URL/ID) changes.
+
+function shouldResetVideoState(prevVideoValue, newVideoValue) {
+  return !!newVideoValue && newVideoValue !== prevVideoValue;
 }
 
 // ── IPC relay helpers ─────────────────────────────────────────────────────────
@@ -152,6 +162,18 @@ describe('executeVideoCommand — play / pause', () => {
     const result = executeVideoCommand(playing, { func: 'pause' });
     expect(result.muted).toBe(playing.muted);
     expect(result.volume).toBe(playing.volume);
+  });
+
+  it('stop pauses and rewinds to the start', () => {
+    const result = executeVideoCommand({ ...playing, currentTime: 42 }, { func: 'stop' });
+    expect(result.paused).toBe(true);
+    expect(result.currentTime).toBe(0);
+  });
+
+  it('restart plays from the beginning', () => {
+    const result = executeVideoCommand({ ...paused, currentTime: 42 }, { func: 'restart' });
+    expect(result.paused).toBe(false);
+    expect(result.currentTime).toBe(0);
   });
 });
 
@@ -276,85 +298,78 @@ describe('buildVideoStatePayload — volume rounding', () => {
   });
 });
 
-// ── shouldShowVideoController tests ───────────────────────────────────────────
+// ── shouldShowVideoControls tests ─────────────────────────────────────────────
 
-describe('shouldShowVideoController', () => {
-  it('shows when type=video and activeView is not media', () => {
-    expect(shouldShowVideoController(videoProgram, 'program')).toBe(true);
+describe('shouldShowVideoControls', () => {
+  it('shows when a local video is live on program', () => {
+    expect(shouldShowVideoControls(videoProgram, false)).toBe(true);
   });
 
-  it('shows when type=video and activeView is schedule', () => {
-    expect(shouldShowVideoController(videoProgram, 'schedule')).toBe(true);
+  it('shows regardless of which panel/view is open (controls are inline, always present)', () => {
+    // No longer gated on activeView — the inline bar lives in PreviewArea.
+    expect(shouldShowVideoControls(videoProgram, false)).toBe(true);
   });
 
-  it('hidden when type=video but activeView is media', () => {
-    expect(shouldShowVideoController(videoProgram, 'media')).toBe(false);
+  it('shows for a per-slide video background (overrides the item background)', () => {
+    const perSlideVideo = { background: { type: 'video', value: '/media/clip.mp4' }, item: { background: { type: 'color', value: '#000' } } };
+    expect(shouldShowVideoControls(perSlideVideo, false)).toBe(true);
   });
 
-  it('hidden when type=youtube (only native video gets the controller)', () => {
-    expect(shouldShowVideoController(youtubeProgram, 'program')).toBe(false);
+  it('hidden when blacked out', () => {
+    expect(shouldShowVideoControls(videoProgram, true)).toBe(false);
+  });
+
+  it('hidden when type=youtube (only native video gets the controls)', () => {
+    expect(shouldShowVideoControls(youtubeProgram, false)).toBe(false);
   });
 
   it('hidden when type=image', () => {
-    expect(shouldShowVideoController(imageProgram, 'program')).toBe(false);
+    expect(shouldShowVideoControls(imageProgram, false)).toBe(false);
   });
 
   it('hidden when liveProgram has no background', () => {
     const noBackground = { item: { title: 'Plain Song' } };
-    expect(shouldShowVideoController(noBackground, 'program')).toBe(false);
+    expect(shouldShowVideoControls(noBackground, false)).toBe(false);
   });
 
   it('hidden when liveProgram is null', () => {
-    expect(shouldShowVideoController(null, 'program')).toBe(false);
+    expect(shouldShowVideoControls(null, false)).toBe(false);
   });
 
   it('hidden when liveProgram is undefined', () => {
-    expect(shouldShowVideoController(undefined, 'program')).toBe(false);
+    expect(shouldShowVideoControls(undefined, false)).toBe(false);
   });
 });
 
-// ── videoControllerAutoShow tests ─────────────────────────────────────────────
+// ── shouldResetVideoState tests ───────────────────────────────────────────────
 
-describe('videoControllerAutoShow', () => {
-  it('resets and un-dismisses when a new video value appears', () => {
-    const result = videoControllerAutoShow(null, '/media/new.mp4', true);
-    expect(result.shouldReset).toBe(true);
-    expect(result.newDismissed).toBe(false);
+describe('getDefaultVideoPlaybackState', () => {
+  it('starts paused until the operator presses play manually', () => {
+    expect(getDefaultVideoPlaybackState()).toMatchObject({
+      isMuted: true,
+      isPlaying: false,
+      volume: 80,
+      currentTime: 0,
+      duration: 0,
+    });
+  });
+});
+
+describe('shouldResetVideoState', () => {
+  it('resets when a new video value appears', () => {
+    expect(shouldResetVideoState(null, '/media/new.mp4')).toBe(true);
   });
 
   it('resets when switching from one video to another', () => {
-    const result = videoControllerAutoShow('/media/old.mp4', '/media/new.mp4', true);
-    expect(result.shouldReset).toBe(true);
-    expect(result.newDismissed).toBe(false);
+    expect(shouldResetVideoState('/media/old.mp4', '/media/new.mp4')).toBe(true);
   });
 
-  it('does not reset when video value is the same (already dismissed stays dismissed)', () => {
-    const result = videoControllerAutoShow('/media/same.mp4', '/media/same.mp4', true);
-    expect(result.shouldReset).toBe(false);
-    expect(result.newDismissed).toBe(true);
+  it('does not reset when the video value is unchanged', () => {
+    expect(shouldResetVideoState('/media/same.mp4', '/media/same.mp4')).toBe(false);
   });
 
-  it('does not reset when newVideoValue is null', () => {
-    const result = videoControllerAutoShow('/media/video.mp4', null, false);
-    expect(result.shouldReset).toBe(false);
-    expect(result.newDismissed).toBe(false);
-  });
-
-  it('does not reset when going from a video to null (video ended / cleared)', () => {
-    const result = videoControllerAutoShow('/media/video.mp4', null, true);
-    expect(result.shouldReset).toBe(false);
-    expect(result.newDismissed).toBe(true);
-  });
-
-  it('preserves dismissed=false when no reset occurs and dismissed was false', () => {
-    const result = videoControllerAutoShow('same', 'same', false);
-    expect(result.newDismissed).toBe(false);
-  });
-
-  it('correctly un-dismisses when going from dismissed to a new video', () => {
-    const result = videoControllerAutoShow('/old.mp4', '/new.mp4', true);
-    expect(result.shouldReset).toBe(true);
-    expect(result.newDismissed).toBe(false);
+  it('does not reset when there is no new video value', () => {
+    expect(shouldResetVideoState('/media/video.mp4', null)).toBe(false);
   });
 });
 

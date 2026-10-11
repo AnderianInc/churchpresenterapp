@@ -1,3 +1,5 @@
+import { buildLiveSourceScheduleItem, buildLiveSourceSlide, normalizeLiveSource } from '../store/AppContext';
+
 /**
  * Multi-output routing tests.
  *
@@ -411,7 +413,7 @@ describe('sendOutputState resolution — override precedence order', () => {
  * output windows. The `outputs` field is computed by resolveOutputStateMap.
  */
 function buildOutputStatePayload(state) {
-  const { liveProgram, liveStage, nextSlide, isBlackout, isClear, liveRoleSlides, stageMirrorProgram } = state;
+  const { liveProgram, liveStage, nextSlide, isBlackout, isClear, liveRoleSlides, stageMirrorProgram, selectedLiveSource } = state;
   return {
     programSlide: liveProgram,
     stageSlide: liveStage,
@@ -421,6 +423,7 @@ function buildOutputStatePayload(state) {
     outputs: resolveOutputStateMap(state),
     roleSlides: liveRoleSlides,
     stageMirror: stageMirrorProgram,
+    selectedLiveSource: selectedLiveSource ?? null,
   };
 }
 
@@ -432,10 +435,73 @@ function baseStateWithNext(overrides = {}) {
   };
 }
 
+describe('live-source media model', () => {
+  it('normalizes camera and capture sources into a canonical live-source object', () => {
+    const source = {
+      sourceType: 'camera',
+      sourceId: 'cam-1',
+      label: 'Desk Camera',
+      cameraDeviceId: 'cam-1',
+      captureSourceId: null,
+    };
+
+    expect(normalizeLiveSource(source)).toMatchObject({
+      sourceType: 'camera',
+      sourceId: 'cam-1',
+      label: 'Desk Camera',
+      cameraDeviceId: 'cam-1',
+      captureSourceId: null,
+    });
+  });
+
+  it('builds a live-source slide with the canonical source metadata', () => {
+    const slide = buildLiveSourceSlide({
+      sourceType: 'stream',
+      sourceId: 'window:42',
+      label: 'Stream View',
+      cameraDeviceId: null,
+      captureSourceId: 'window:42',
+    });
+
+    expect(slide.type).toBe('live-source');
+    expect(slide.sourceType).toBe('stream');
+    expect(slide.item.background.type).toBe('stream');
+    expect(slide.item.background.value).toBe('window:42');
+  });
+
+  it('builds a schedule item from a selected live source so it can be added to the service order', () => {
+    const item = buildLiveSourceScheduleItem({
+      sourceType: 'stream',
+      sourceId: 'window:42',
+      label: 'Stream Feed',
+      cameraDeviceId: null,
+      captureSourceId: 'window:42',
+    });
+
+    expect(item.type).toBe('live-source');
+    expect(item.title).toBe('Stream Feed');
+    expect(item.slides[0].type).toBe('live-source');
+    expect(item.sourceType).toBe('stream');
+    expect(item.liveSource.captureSourceId).toBe('window:42');
+  });
+});
+
 describe('sendOutputState — nextSlide field in payload', () => {
   it('payload includes nextSlide field', () => {
     const payload = buildOutputStatePayload(baseStateWithNext());
     expect(payload).toHaveProperty('nextSlide');
+  });
+
+  it('payload includes selectedLiveSource so outputs can restore the active camera/stream source', () => {
+    const liveSource = {
+      sourceType: 'camera',
+      sourceId: 'dev-1',
+      label: 'Desk Camera',
+      cameraDeviceId: 'dev-1',
+      captureSourceId: null,
+    };
+    const payload = buildOutputStatePayload(baseStateWithNext({ selectedLiveSource: liveSource }));
+    expect(payload.selectedLiveSource).toEqual(liveSource);
   });
 
   it('nextSlide is null when no next slide is available', () => {

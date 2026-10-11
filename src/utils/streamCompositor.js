@@ -179,10 +179,17 @@ export class StreamCompositor {
     // If getRenderFrame was provided in constructor, use it (canvas-based rendering
     // of live slide data). Otherwise fall back to desktop/camera capture.
     this._useCanvasRender = !!this._getRenderFrame;
-    console.log('[StreamCompositor] start() - useCanvasRender:', this._useCanvasRender, 'getRenderFrame:', typeof this._getRenderFrame);
+    console.log('[StreamCompositor] ═══════════════════════════════════════════════════════');
+    console.log('[StreamCompositor] start() called');
+    console.log('[StreamCompositor]   useCanvasRender:', this._useCanvasRender);
+    console.log('[StreamCompositor]   getRenderFrame:', typeof this._getRenderFrame);
+    console.log('[StreamCompositor]   mediaSourceId:', mediaSourceId ? 'provided' : 'none');
+    console.log('[StreamCompositor]   cameraDeviceId:', cameraDeviceId ? 'provided' : 'none');
+    console.log('[StreamCompositor]   audio:', audio);
 
     // Only acquire video stream if NOT using canvas-based rendering
     if (!this._useCanvasRender) {
+      console.log('[StreamCompositor] → Video stream mode: acquiring video source...');
       if (mediaSourceId) {
         // Capture an output window's own rendered content (chosen in the UI) instead
         // of a physical camera — fallback path. Audio is not requestable
@@ -223,14 +230,20 @@ export class StreamCompositor {
 
     if (audio) {
       try {
+        console.log('[StreamCompositor] → Acquiring microphone...');
         this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      } catch (_) {
+        const audioTracks = this.micStream.getAudioTracks();
+        console.log('[StreamCompositor]   ✓ Microphone acquired, audio tracks:', audioTracks.length);
+      } catch (e) {
+        console.warn('[StreamCompositor]   ✗ Microphone failed:', e.message);
         this.micStream = null; // mic denied/unavailable — stream video-only
       }
     }
 
     // Setup video playback only if NOT using canvas-based rendering
+    console.log('[StreamCompositor] → Video element setup: useCanvasRender=' + this._useCanvasRender + ', will create video element?', !this._useCanvasRender);
     if (!this._useCanvasRender) {
+      console.log('[StreamCompositor] → Setting up video element...');
       this.video = document.createElement('video');
       this.video.muted = true;
       this.video.playsInline = true;
@@ -268,10 +281,18 @@ export class StreamCompositor {
     this.canvas.width = this.width;
     this.canvas.height = this.height;
     this.ctx = this.canvas.getContext('2d');
+    console.log('[StreamCompositor] → Canvas created:', this.width + 'x' + this.height);
+
+    let drawFrameCount = 0;
+    let renderFrameSuccesses = 0;
+    let renderFrameNulls = 0;
 
     const draw = () => {
       if (this.stopped) return;
       try {
+        drawFrameCount++;
+
+        // Always clear with black background
         this.ctx.fillStyle = '#000';
         this.ctx.fillRect(0, 0, this.width, this.height);
 
@@ -280,37 +301,133 @@ export class StreamCompositor {
           const frameData = this._getRenderFrame();
           if (frameData) {
             this.ctx.putImageData(frameData, 0, 0);
+            renderFrameSuccesses++;
+            if (drawFrameCount === 1) {
+              console.log('[StreamCompositor] ✓ draw(): Canvas mode active, getRenderFrame() returned ImageData');
+              console.log('[StreamCompositor]   Image dimensions:', frameData.width, 'x', frameData.height);
+            }
+            if (drawFrameCount % 300 === 0) {
+              console.log(`[StreamCompositor] → draw() stats: ${renderFrameSuccesses} good frames, ${renderFrameNulls} null frames`);
+            }
+          } else {
+            renderFrameNulls++;
+            if (drawFrameCount === 1) console.warn('[StreamCompositor] ✗ draw(): getRenderFrame() returned null on frame 1');
+            if (drawFrameCount % 60 === 0) console.warn(`[StreamCompositor] ✗ draw(): getRenderFrame() null rate: ${renderFrameNulls}/${drawFrameCount} (${(renderFrameNulls*100/drawFrameCount).toFixed(1)}%)`);
           }
         } else if (this.video) {
           // Video-based rendering: draw from the video element
+          if (drawFrameCount === 1) console.log('[StreamCompositor] ⚠ draw(): VIDEO MODE - this.video exists, drawing from video element (NOT canvas mode!)');
           const vw = this.video.videoWidth || this.width;
           const vh = this.video.videoHeight || this.height;
           const { sx, sy, sWidth, sHeight } = coverRect(vw, vh, this.width, this.height);
           this.ctx.drawImage(this.video, sx, sy, sWidth, sHeight, 0, 0, this.width, this.height);
+        } else {
+          if (drawFrameCount === 1) console.log('[StreamCompositor] ✓ draw(): No video element, canvas will show black + overlay only');
         }
 
         // Draw the lower-third overlay on top
         const overlay = this._getOverlay?.();
-        if (overlay) drawOverlay(this.ctx, overlay, this.width, this.height);
-      } catch (_) { /* frame skipped */ }
+        if (overlay && overlay.active) {
+          if (drawFrameCount === 1) console.log('[StreamCompositor] ✓ Lower-third overlay is active');
+          drawOverlay(this.ctx, overlay, this.width, this.height);
+        }
+      } catch (e) {
+        if (drawFrameCount === 1) console.error('[StreamCompositor] ✗ draw() error on frame 1:', e.message, e.stack);
+      }
       this.rafId = requestAnimationFrame(draw);
     };
+    console.log('[StreamCompositor] → Starting draw loop...');
     draw();
 
     // Capture the canvas + combine with the separately-acquired mic audio track
+    console.log('[StreamCompositor] → Capturing canvas stream at', this.fps, 'fps...');
+    console.log('[StreamCompositor]   this.canvas:', this.canvas?.constructor?.name, this.canvas?.width, 'x', this.canvas?.height);
+    console.log('[StreamCompositor]   this.video:', this.video ? 'EXISTS (BAD!)' : 'null (good)');
+
+    // DEBUG: Sample canvas pixel data to see what's actually on the canvas
+    try {
+      const testCtx = this.canvas.getContext('2d');
+      const imageData = testCtx.getImageData(0, 0, 10, 10);
+      const pixels = Array.from(imageData.data.slice(0, 16));
+      console.log('[StreamCompositor]   ⚠ Canvas pixel sample (top-left 4 pixels RGBA):', pixels);
+    } catch (e) {
+      console.warn('[StreamCompositor]   Could not sample canvas pixels:', e.message);
+    }
+
     this.outStream = this.canvas.captureStream(this.fps);
+    const videoTracks = this.outStream.getVideoTracks();
+    console.log('[StreamCompositor]   ✓ Canvas captureStream() called');
+    console.log('[StreamCompositor]   Video tracks from canvas:', videoTracks.length);
+    if (videoTracks.length > 0) {
+      const vt = videoTracks[0];
+      console.log('[StreamCompositor]     Track 0: enabled=' + vt.enabled + ', readyState=' + vt.readyState + ', label=' + vt.label);
+    }
+
     const audioTracks = this.micStream ? this.micStream.getAudioTracks() : [];
-    audioTracks.forEach(t => this.outStream.addTrack(t));
+    console.log('[StreamCompositor] → Microphone audio tracks available:', audioTracks.length);
+    audioTracks.forEach((t, i) => {
+      console.log('[StreamCompositor]     Track ' + i + ': enabled=' + t.enabled + ', readyState=' + t.readyState + ', label=' + t.label);
+      this.outStream.addTrack(t);
+    });
+    console.log('[StreamCompositor]   ✓ Audio tracks added, total tracks in outStream:', this.outStream.getTracks().length);
 
     const mimeType = bestWebmMimeType();
+    console.log('[StreamCompositor] → Creating MediaRecorder');
+    console.log('[StreamCompositor]   mime type:', mimeType);
+    console.log('[StreamCompositor]   videoBitsPerSecond:', videoBitsPerSecond);
+    console.log('[StreamCompositor]   timeslice (chunk interval):', timeslice, 'ms');
+
+    let chunkCallCount = 0;
+    let totalChunkBytes = 0;
+    let firstChunkTime = null;
+
     this.recorder = new MediaRecorder(this.outStream, { mimeType, videoBitsPerSecond });
+    console.log('[StreamCompositor]   MediaRecorder created, state:', this.recorder.state);
+
     this.recorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0 && onChunk) {
-        e.data.arrayBuffer().then(buf => onChunk(new Uint8Array(buf))).catch(() => {});
+      chunkCallCount++;
+      if (!firstChunkTime) firstChunkTime = Date.now();
+
+      if (!e.data) {
+        console.warn(`[StreamCompositor] ✗ ondataavailable #${chunkCallCount}: e.data is falsy!`);
+        return;
+      }
+
+      if (e.data.size === 0) {
+        console.warn(`[StreamCompositor] ✗ ondataavailable #${chunkCallCount}: EMPTY CHUNK (0 bytes)`);
+        return;
+      }
+
+      totalChunkBytes += e.data.size;
+      if (chunkCallCount === 1 || chunkCallCount % 10 === 0) {
+        const elapsed = firstChunkTime ? Math.round((Date.now() - firstChunkTime) / 1000) : 0;
+        console.log(`[StreamCompositor] → ondataavailable #${chunkCallCount}, chunk size: ${e.data.size} bytes, total: ${(totalChunkBytes / 1024 / 1024).toFixed(2)} MB, elapsed: ${elapsed}s`);
+      }
+
+      if (onChunk) {
+        e.data.arrayBuffer().then(buf => {
+          if (chunkCallCount === 1) console.log(`[StreamCompositor] ✓ First chunk converted to ArrayBuffer, size: ${buf.byteLength}`);
+          onChunk(new Uint8Array(buf));
+        }).catch((err) => {
+          console.error('[StreamCompositor] ✗ arrayBuffer conversion failed:', err.message);
+        });
       }
     };
-    this.recorder.onerror = (e) => onError?.(e?.error?.message || 'Recorder error');
+    this.recorder.onerror = (e) => {
+      const errMsg = e?.error?.message || 'Recorder error';
+      console.error('[StreamCompositor] ✗ Recorder error:', errMsg);
+      onError?.(errMsg);
+    };
+    this.recorder.onstart = () => {
+      console.log('[StreamCompositor] ✓ MediaRecorder state changed to: RECORDING');
+    };
+    this.recorder.onstop = () => {
+      console.log('[StreamCompositor] ✓ MediaRecorder state changed to: STOPPED');
+    };
+
+    console.log('[StreamCompositor] → Starting MediaRecorder with', timeslice, 'ms timeslice...');
     this.recorder.start(timeslice);
+    console.log('[StreamCompositor] ✓ StreamCompositor fully initialized and recording');
     return true;
   }
 

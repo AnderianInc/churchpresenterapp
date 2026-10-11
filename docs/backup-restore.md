@@ -1,10 +1,23 @@
 # Backup & Restore Guide
 
-Church Presenter stores all data as plain JSON files. Backing up is as simple as copying three files. This guide explains where those files live, how to back them up, and how to restore them.
+Church Presenter stores all data as plain JSON files. This guide covers the one-click in-app backup, and the manual file method for advanced users.
+
+> **Your data is already safe across app upgrades.** It lives outside the app, is auto-recovered from older install folders, and is auto-snapshotted each time you upgrade. See [releasing.md](releasing.md). A manual backup is an extra safety copy.
 
 ---
 
-## What to back up
+## Easiest: in-app Backup & Restore (recommended)
+
+**Settings → 💾 Data & Updates → Backup & Restore**
+
+- **Export Backup** — saves everything (songs, schedules, settings, and media) into a single `.cpbackup` file you can keep on a USB drive or cloud folder.
+- **Restore Backup** — loads a `.cpbackup` file. Your current data is snapshotted first, then the app restarts to load the restored data.
+
+This is the simplest way to move a full setup to another computer, or to take a safety copy before a big service or an upgrade.
+
+---
+
+## What to back up (manual method)
 
 | File | Contains |
 |---|---|
@@ -20,9 +33,11 @@ Church Presenter stores all data as plain JSON files. Backing up is as simple as
 
 | Platform | Data directory |
 |---|---|
-| macOS | `~/Library/Application Support/church-presenter/data/` |
-| Windows | `%APPDATA%\church-presenter\data\` — type this path in File Explorer's address bar |
-| Linux | `~/.config/church-presenter/data/` |
+| macOS | `~/Library/Application Support/Church Presenter/data/` |
+| Windows | `%APPDATA%\Church Presenter\data\` — type this path in File Explorer's address bar |
+| Linux | `~/.config/Church Presenter/data/` |
+
+> Builds before this release used a `church-presenter` folder instead of `Church Presenter`. The app migrates that data automatically on first launch — if you're hunting for an old backup, check both names.
 
 ---
 
@@ -32,7 +47,7 @@ Church Presenter stores all data as plain JSON files. Backing up is as simple as
 
 ```bash
 # Create a dated backup
-cp -r ~/Library/Application\ Support/church-presenter/data/ \
+cp -r ~/Library/Application\ Support/Church\ Presenter/data/ \
   ~/Desktop/church-presenter-backup-$(date +%Y-%m-%d)/
 ```
 
@@ -40,7 +55,7 @@ Or open Finder → Go → Go to Folder (`⇧⌘G`) → paste `~/Library/Applicat
 
 ### Windows
 
-1. Press `Win + R`, type `%APPDATA%\church-presenter\data\` and press Enter
+1. Press `Win + R`, type `%APPDATA%\Church Presenter\data\` and press Enter
 2. Select all files (`Ctrl+A`) and copy them (`Ctrl+C`)
 3. Navigate to your backup destination and paste (`Ctrl+V`)
 
@@ -66,12 +81,12 @@ Because the data files are plain JSON, they work well with any file sync tool:
 1. Move the data directory to a cloud-synced folder:
    ```bash
    # macOS example — move data to iCloud Drive
-   mv ~/Library/Application\ Support/church-presenter/data/ ~/Library/Mobile\ Documents/com~apple~CloudDocs/church-presenter-data/
+   mv ~/Library/Application\ Support/Church\ Presenter/data/ ~/Library/Mobile\ Documents/com~apple~CloudDocs/church-presenter-data/
    ```
 2. Create a symlink so Church Presenter still finds its data in the expected location:
    ```bash
    ln -s ~/Library/Mobile\ Documents/com~apple~CloudDocs/church-presenter-data/ \
-     ~/Library/Application\ Support/church-presenter/data
+     ~/Library/Application\ Support/Church\ Presenter/data
    ```
 
 **Caution:** If two computers sync the same folder and both run Church Presenter simultaneously, the last write wins. Do not run Church Presenter on two computers pointing at the same cloud-synced folder at the same time.
@@ -89,13 +104,13 @@ Because the data files are plain JSON, they work well with any file sync tool:
 ```bash
 # macOS / Linux — restore from a dated backup
 cp ~/Desktop/church-presenter-backup-2024-12-01/songs.json \
-   ~/Library/Application\ Support/church-presenter/data/songs.json
+   ~/Library/Application\ Support/Church\ Presenter/data/songs.json
 
 cp ~/Desktop/church-presenter-backup-2024-12-01/schedules.json \
-   ~/Library/Application\ Support/church-presenter/data/schedules.json
+   ~/Library/Application\ Support/Church\ Presenter/data/schedules.json
 
 cp ~/Desktop/church-presenter-backup-2024-12-01/settings.json \
-   ~/Library/Application\ Support/church-presenter/data/settings.json
+   ~/Library/Application\ Support/Church\ Presenter/data/settings.json
 ```
 
 4. Relaunch Church Presenter — your library and settings are restored

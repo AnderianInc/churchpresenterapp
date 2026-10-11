@@ -3,6 +3,7 @@ import SlideRenderer from './SlideRenderer';
 import FadeSlide from './FadeSlide';
 import ConfidenceMonitor from './ConfidenceMonitor';
 import TimerOutput from './TimerOutput';
+import LowerThird from './LowerThird';
 import { readLiveState } from '../store/liveStateSync';
 import { makeBroadcastMsg, BROADCAST_CHANNEL } from '../store/AppContext';
 
@@ -132,10 +133,13 @@ export default function OutputView() {
   const [nextSlide, setNextSlide] = useState(null);
   const [isBlackout, setIsBlackout] = useState(false);
   const [isClear, setIsClear] = useState(false);
+  const [hideBackground, setHideBackground] = useState(false);
   const [roleLabel, setRoleLabel] = useState(role.replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
   useEffect(() => { document.title = roleLabel; }, [roleLabel]);
 
-  // Native <video> element ref (for video background control)
+  // Native <video> element ref (for local-video background control). Live camera
+  // backgrounds now render through SlideRenderer like any other slide, so this
+  // window no longer opens its own camera stream.
   const videoRef = useRef(null);
 
   // ── YouTube control via embed postMessage (works in every output window) ──────
@@ -190,6 +194,8 @@ export default function OutputView() {
     switch (func) {
       case 'play':   video.play(); break;
       case 'pause':  video.pause(); break;
+      case 'stop':   video.pause(); try { video.currentTime = 0; } catch (_) {} break;
+      case 'restart': try { video.currentTime = 0; } catch (_) {} video.play(); break;
       case 'mute':   video.muted = true; break;
       case 'seek':   video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
       // Audio commands only reach the program output — all other roles stay muted
@@ -241,6 +247,7 @@ export default function OutputView() {
     setNextSlide(initial.nextSlide ?? null);
     setIsBlackout(initial.isBlackout);
     setIsClear(initial.isClear);
+    setHideBackground(!!initial.hideBackground);
 
     if (window.electronAPI) {
       const offs = [
@@ -250,6 +257,7 @@ export default function OutputView() {
           setRoleLabel((data.outputs?.[outputId]?.role || role).replace(/[-_]/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()));
           setIsBlackout(!!data.isBlackout);
           setIsClear(!!data.isClear);
+          setHideBackground(!!data.hideBackground);
         }),
         window.electronAPI.onReceiveYouTubeControl(sendYouTubeCommand),
         window.electronAPI.onReceiveVideoControl(sendVideoCommand),
@@ -270,9 +278,11 @@ export default function OutputView() {
         setNextSlide(payload?.nextSlide ?? null);
         setIsBlackout(!!payload?.isBlackout);
         setIsClear(!!payload?.isClear);
+        setHideBackground(!!payload?.hideBackground);
       }
       if (type === 'blackout') setIsBlackout(payload);
       if (type === 'clear') setIsClear(payload);
+      if (type === 'hide-background') setHideBackground(payload);
       if (type === 'youtube-control') sendYouTubeCommand(payload);
       if (type === 'video-control') sendVideoCommand(payload);
       if (type === 'slide-program' && role !== 'stage') {
@@ -364,8 +374,9 @@ export default function OutputView() {
     );
   }
 
-  // Clear: show the item background without text (YouTube bg keeps playing)
-  if (isClear && slide) {
+  // Clear: show the item background without text (YouTube bg keeps playing).
+  // If the background is also hidden, fall through to a plain black screen.
+  if (isClear && slide && !hideBackground) {
     return (
       <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
         {macDragStrip}
@@ -393,10 +404,17 @@ export default function OutputView() {
     );
   }
 
+  // Hide background: force a black background but keep the text (foreground).
+  // Hide foreground (isClear) on top of that → nothing but the lower-third.
+  const renderSlide = hideBackground
+    ? { ...slide, chords: isClear ? '' : slide.chords, lines: isClear ? '' : slide.lines, background: { type: 'color', value: '#000000' } }
+    : slide;
+
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', overflow: 'hidden', background: '#000' }}>
       {macDragStrip}
-      <FadeSlide slide={slide} item={slide?.item} videoRef={videoRef} />
+      <FadeSlide slide={renderSlide} item={hideBackground ? { ...(slide?.item || {}), background: { type: 'color', value: '#000000' } } : slide?.item} videoRef={videoRef} />
+      <LowerThird />
       <HoverToolbar outputId={outputId} />
     </div>
   );

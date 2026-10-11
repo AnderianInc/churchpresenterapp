@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import CameraBackground from './CameraBackground';
 
 /**
  * Shared slide preview panel used by both StageView and ConfidenceMonitor.
@@ -70,7 +71,6 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
       {bgType === 'video' && videoSrc && !isBlackout && (
         <video
           ref={dimmed ? dimmedVideoRef : videoRef}
-          autoPlay={!dimmed}
           muted
           loop={!dimmed}
           playsInline
@@ -83,6 +83,25 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
             zIndex: 0,
           }}
         />
+      )}
+
+      {/* Live camera background — real feed for current, static placeholder when dimmed
+          (the "Next" panel never needs its own camera stream open) */}
+      {bgType === 'camera' && bgValue && !isBlackout && (
+        dimmed ? (
+          <div style={{
+            position: 'absolute', inset: 0, background: '#0a0d14',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 4, color: 'rgba(255,255,255,0.35)', zIndex: 0,
+          }}>
+            <span style={{ fontSize: 20 }}>📷</span>
+            <span style={{ fontSize: 10 }}>{effectiveBg.name || 'Live Camera'}</span>
+          </div>
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
+            <CameraBackground deviceId={bgValue} brightness={effectiveBg.brightness ?? 1} />
+          </div>
+        )
       )}
 
       {/* YouTube background — iframe for current, thumbnail for dimmed */}

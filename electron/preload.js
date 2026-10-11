@@ -78,9 +78,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkFfmpeg:       ()           => ipcRenderer.invoke('check-ffmpeg'),
   getStreamSources:  ()           => ipcRenderer.invoke('get-stream-sources'),
   setRtmpSource:     (sourceId)   => ipcRenderer.invoke('set-rtmp-source', sourceId),
-  startRtmp:         (opts)       => ipcRenderer.invoke('start-rtmp', opts),
-  stopRtmp:          (destId)     => ipcRenderer.invoke('stop-rtmp', destId),
-  sendRtmpChunk:     (destId, chunk) => ipcRenderer.send('rtmp-chunk', { destId, chunk }),
+  startRtmp:         (opts)       => { console.log('[preload] → startRtmp', opts); return ipcRenderer.invoke('start-rtmp', opts); },
+  stopRtmp:          (destId)     => { console.log('[preload] → stopRtmp', destId); return ipcRenderer.invoke('stop-rtmp', destId); },
+  sendRtmpChunk:     (destId, chunk) => {
+    if (!window.__rtmpChunkCount) window.__rtmpChunkCount = {};
+    if (!window.__rtmpChunkCount[destId]) window.__rtmpChunkCount[destId] = 0;
+    window.__rtmpChunkCount[destId]++;
+    if (window.__rtmpChunkCount[destId] === 1 || window.__rtmpChunkCount[destId] % 50 === 0) {
+      console.log(`[preload] → sendRtmpChunk ${destId} #${window.__rtmpChunkCount[destId]}, size: ${chunk?.byteLength || 'unknown'}`);
+    }
+    return ipcRenderer.send('rtmp-chunk', { destId, chunk });
+  },
 
   // ── Planning Center ────────────────────────────────────────────────────────
   searchPcoSongs:      (opts) => ipcRenderer.invoke('search-pco-songs', opts),

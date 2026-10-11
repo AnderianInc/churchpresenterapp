@@ -181,7 +181,7 @@ function QuadrantLabel({ text, accent = 'rgba(255,255,255,0.25)' }) {
 // subscription), and subscribes internally to timer-state and stage-announcement
 // via BroadcastChannel / electronAPI — so no changes to OutputView are needed.
 
-export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoRef }) {
+export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoRef, fullscreen = true }) {
   const [timers, setTimers]           = useState([]);
   const [announcement, setAnnouncement] = useState(null);
   const [clock, setClock]             = useState(formatClock());
@@ -237,9 +237,11 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoR
     };
   }, []);
 
+  const boxSize = fullscreen ? { width: '100vw', height: '100vh' } : { width: '100%', height: '100%' };
+
   if (isBlackout) {
     return (
-      <div style={{ width: '100vw', height: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ ...boxSize, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14, letterSpacing: '2px', textTransform: 'uppercase' }}>Blackout</span>
       </div>
     );
@@ -247,7 +249,7 @@ export default function ConfidenceMonitor({ slide, nextSlide, isBlackout, videoR
 
   return (
     <div style={{
-      width: '100vw', height: '100vh',
+      ...boxSize,
       display: 'flex', flexDirection: 'column',
       background: '#0a0c10', fontFamily: 'Inter, sans-serif', overflow: 'hidden',
     }}>

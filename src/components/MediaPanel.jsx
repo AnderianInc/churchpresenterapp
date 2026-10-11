@@ -3,6 +3,7 @@ import { useApp, BROADCAST_CHANNEL } from '../store/AppContext';
 import { v4 as uuidv4 } from 'uuid';
 import { parsePptx } from '../utils/pptxParser';
 import { shouldAcceptYtState, muteCommandFor } from '../utils/youtubeControl';
+import CameraBackground from './CameraBackground';
 
 const PRESET_BACKGROUNDS = [
   { id: 'b1', name: 'Deep Navy', type: 'color', value: '#0a0f1e', category: 'solid' },
@@ -20,7 +21,8 @@ const PRESET_BACKGROUNDS = [
 ];
 
 const NUM_FAVORITE_SLOTS = 4;
-const TABS = ['solid', 'gradient', 'image', 'video', 'youtube', 'slides'];
+// 'live' first — live camera/video input is the primary media type.
+const TABS = ['live', 'solid', 'gradient', 'image', 'video', 'youtube', 'slides'];
 
 // ── YouTube helpers ───────────────────────────────────────────────────────────
 
@@ -51,8 +53,8 @@ function youTubeThumbnailUrl(videoId) {
 }
 
 export default function MediaPanel() {
-  const { addToSchedule, settings, saveSettings, liveProgram, sendYouTubeControl } = useApp();
-  const [category, setCategory] = useState('solid');
+  const { addToSchedule, settings, saveSettings, liveProgram, sendYouTubeControl, addLiveSourceToSchedule, goLiveSource } = useApp();
+  const [category, setCategory] = useState('live');
   const [customColor, setCustomColor] = useState('#0a0f1e');
   const fileInputRef = useRef(null);
   const imageFileInputRef = useRef(null);
@@ -230,7 +232,7 @@ export default function MediaPanel() {
           <button
             key={cat}
             onClick={() => setCategory(cat)}
-            title={cat === 'solid' ? 'Solid Colors' : cat === 'gradient' ? 'Gradients' : cat === 'image' ? 'Images' : cat === 'video' ? 'Videos' : cat === 'youtube' ? 'YouTube' : 'Slides'}
+            title={cat === 'live' ? 'Live Camera / Input' : cat === 'solid' ? 'Solid Colors' : cat === 'gradient' ? 'Gradients' : cat === 'image' ? 'Images' : cat === 'video' ? 'Videos' : cat === 'youtube' ? 'YouTube' : 'Slides'}
             style={{
               flex: 1, padding: '7px 2px', fontSize: 14, cursor: 'pointer',
               background: 'transparent', border: 'none',
@@ -239,12 +241,21 @@ export default function MediaPanel() {
               fontFamily: 'var(--font)', transition: 'all 0.15s', whiteSpace: 'nowrap',
             }}
           >
-            {cat === 'solid' ? '🎨' : cat === 'gradient' ? '🌈' : cat === 'image' ? '🖼️' : cat === 'video' ? '🎬' : cat === 'youtube' ? '📺' : '📊'}
+            {cat === 'live' ? '📷' : cat === 'solid' ? '🎨' : cat === 'gradient' ? '🌈' : cat === 'image' ? '🖼️' : cat === 'video' ? '🎬' : cat === 'youtube' ? '📺' : '📊'}
           </button>
         ))}
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+        {category === 'live' && (
+          <LivePanel
+            settings={settings}
+            saveSettings={saveSettings}
+            addLiveSourceToSchedule={addLiveSourceToSchedule}
+            goLiveSource={goLiveSource}
+          />
+        )}
+
         {category === 'solid' && (
           <>
             {/* Custom color */}
@@ -509,6 +520,122 @@ export default function MediaPanel() {
           >＋ Add Blank Slide</button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Live camera / input panel ─────────────────────────────────────────────────
+
+function LivePanel({ settings, saveSettings, addLiveSourceToSchedule, goLiveSource }) {
+  const [devices, setDevices] = useState([]);
+  const [deviceId, setDeviceId] = useState(settings?.preferredCameraId || '');
+  const [previewOn, setPreviewOn] = useState(false);
+  const [permissionNeeded, setPermissionNeeded] = useState(false);
+
+  const refreshDevices = useCallback(async () => {
+    try {
+      const all = await navigator.mediaDevices.enumerateDevices();
+      const cams = all.filter(d => d.kind === 'videoinput');
+      setDevices(cams);
+      // Labels are hidden until the user has granted camera permission once.
+      setPermissionNeeded(cams.length > 0 && !cams[0].label);
+      setDeviceId(prev => prev || settings?.preferredCameraId || cams[0]?.deviceId || '');
+    } catch (_) { /* enumeration unavailable */ }
+  }, [settings]);
+
+  useEffect(() => { refreshDevices(); }, [refreshDevices]);
+
+  const selectedLabel = devices.find(d => d.deviceId === deviceId)?.label || 'Camera';
+
+  const buildSource = () => ({
+    sourceType: 'camera',
+    sourceId: deviceId || null,
+    label: selectedLabel || 'Camera',
+    cameraDeviceId: deviceId || null,
+    captureSourceId: null,
+  });
+
+  const onPick = (id) => {
+    setDeviceId(id);
+    if (id) saveSettings({ preferredCameraId: id });
+  };
+
+  const requestPermission = async () => {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      s.getTracks().forEach(t => t.stop());
+      await refreshDevices();
+      setPreviewOn(true);
+    } catch (_) { /* denied */ }
+  };
+
+  const btnPrimary = {
+    background: 'var(--accent)', border: 'none', color: '#fff', padding: '7px 10px',
+    borderRadius: 5, cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)', fontWeight: 600,
+  };
+  const btnGhost = {
+    background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-muted)',
+    padding: '7px 10px', borderRadius: 5, cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)',
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+        Send a live camera or video input to your outputs like any other slide. Add it to the schedule, then Send to program / all outputs.
+      </div>
+
+      {/* Device selector */}
+      <div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4 }}>Camera / Input</div>
+        <select
+          value={deviceId}
+          onChange={e => onPick(e.target.value)}
+          style={{ width: '100%', background: '#13171f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 5, color: '#fff', padding: '7px 8px', fontSize: 12, fontFamily: 'var(--font)' }}
+        >
+          {devices.length === 0 && <option value="">No cameras found</option>}
+          {devices.map((d, i) => (
+            <option key={d.deviceId || i} value={d.deviceId}>{d.label || `Camera ${i + 1}`}</option>
+          ))}
+        </select>
+      </div>
+
+      {permissionNeeded && (
+        <button onClick={requestPermission} style={btnGhost}>
+          🔓 Allow camera access to list devices
+        </button>
+      )}
+
+      {/* Preview */}
+      <div style={{ width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: 6, border: '1px solid var(--border)', overflow: 'hidden', position: 'relative' }}>
+        {previewOn ? (
+          <CameraBackground deviceId={deviceId || undefined} brightness={1} objectFit="contain" />
+        ) : (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'var(--text-dim)' }}>
+            <span style={{ fontSize: 26 }}>📷</span>
+            <span style={{ fontSize: 11 }}>Preview off</span>
+          </div>
+        )}
+      </div>
+      <button onClick={() => setPreviewOn(v => !v)} style={btnGhost}>
+        {previewOn ? '⏹ Stop preview' : '▶ Start preview'}
+      </button>
+
+      {/* Actions */}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <button
+          onClick={() => addLiveSourceToSchedule(buildSource())}
+          style={{ ...btnGhost, flex: 1 }}
+          title="Add this live input to the service as a schedule item"
+        >＋ Add to Schedule</button>
+        <button
+          onClick={() => goLiveSource(buildSource())}
+          style={{ ...btnPrimary, flex: 1 }}
+          title="Send this live input to the program output now"
+        >▶ Send Live</button>
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--text-dim)', lineHeight: 1.5 }}>
+        Audio, streaming to social media, and Bible lower-thirds / text overlays for live video are coming in the next update.
+      </div>
     </div>
   );
 }

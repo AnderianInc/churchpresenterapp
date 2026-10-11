@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
 import { bgToCss } from './BackgroundPicker';
+import CameraBackground from './CameraBackground';
 
 /**
  * Renders a single slide for preview thumbnails, live output, and stage views.
@@ -21,6 +22,10 @@ function SlideRenderer({
   iframeRef: externalIframeRef,
   videoLoop = true,
   videoBrightness,
+  // Opt a non-fullscreen caller (e.g. a small, bounded set of console monitor
+  // tiles) into a real live camera feed instead of the static name placeholder —
+  // used sparingly to avoid opening the camera once per thumbnail on screen.
+  allowLiveCamera = false,
 }) {
   // Per-slide background overrides item-level background
   const effectiveBg = slide?.background || item?.background;
@@ -85,7 +90,7 @@ function SlideRenderer({
     let frozenTicks = 0;
 
     const tryRecover = () => {
-      if (disposed) return;
+      if (disposed || video.paused) return;
       if (attempts >= 6) { setVideoError(fatalMsgRef.current); return; }
       attempts += 1;
       const resumeAt = video.currentTime || 0;
@@ -94,18 +99,18 @@ function SlideRenderer({
         try {
           if (resumeAt > 0 && resumeAt < (video.duration || Infinity)) video.currentTime = resumeAt;
         } catch (_) {}
-        video.play().catch(() => {});
+        if (!video.paused) video.play().catch(() => {});
       };
       try {
         video.addEventListener('loadeddata', onReady);
         video.load();
-        video.play().catch(() => {});
+        if (!video.paused) video.play().catch(() => {});
       } catch (_) {}
     };
     recoverRef.current = tryRecover;
 
     const onPlaying = () => { attempts = 0; frozenTicks = 0; setVideoError(null); };
-    const onStalled = () => tryRecover();
+    const onStalled = () => { if (!video.paused) tryRecover(); };
     video.addEventListener('playing', onPlaying);
     video.addEventListener('stalled', onStalled);
 
@@ -141,6 +146,13 @@ function SlideRenderer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgType, externalVideoRef]);
 
+  useEffect(() => {
+    if (bgType !== 'video' || !internalVideoRef.current) return;
+    const video = internalVideoRef.current;
+    video.pause();
+    try { video.currentTime = 0; } catch (_) {}
+  }, [bgType, videoSrc]);
+
   // Internal iframe ref — merged with external if provided
   const internalIframeRef = useRef(null);
   useEffect(() => {
@@ -168,6 +180,8 @@ function SlideRenderer({
   // Per-background brightness (stored on video backgrounds via the picker) takes
   // precedence, then an explicit prop override, then the default dim level.
   const dimLevel = effectiveBg?.brightness ?? videoBrightness ?? 0.45;
+  // Live camera defaults to full brightness (not the darker video dim default).
+  const cameraBrightness = effectiveBg?.brightness ?? 1;
 
   return (
     <div style={containerStyle}>
@@ -202,7 +216,6 @@ function SlideRenderer({
         <>
           <video
             ref={internalVideoRef}
-            autoPlay
             muted
             loop={shouldLoopVideo}
             playsInline
@@ -241,6 +254,27 @@ function SlideRenderer({
             </div>
           )}
         </>
+      )}
+
+      {/* Live camera background
+            fullscreen (real outputs) → live getUserMedia feed
+            otherwise (previews/thumbnails) → static placeholder so the operator
+            window never opens the camera dozens of times (loop prevention) */}
+      {bgType === 'camera' && (
+        (fullscreen || allowLiveCamera) ? (
+          <CameraBackground deviceId={effectiveBg.value} brightness={cameraBrightness} />
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0, background: '#0a0d14',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 6, color: 'rgba(255,255,255,0.5)',
+          }}>
+            <span style={{ fontSize: `${28 * scale + 10}px` }}>📷</span>
+            <span style={{ fontSize: `${11 * scale + 8}px`, fontFamily: 'Inter, sans-serif' }}>
+              {effectiveBg.name || 'Live Camera'}
+            </span>
+          </div>
+        )
       )}
 
       {/* YouTube background

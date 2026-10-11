@@ -440,7 +440,7 @@ export default function StreamPanel() {
   const getLiveSlideForStream = useCallback(() => {
     if (!streamSourceOutput) return null;
     const outputId = streamSourceOutput.id;
-    return liveOutputs[outputId]?.slide || null;
+    return liveOutputs[outputId] || null;
   }, [streamSourceOutput, liveOutputs]);
 
   // Separate source pick for the Stream Window (manually screen-shared into Zoom/OBS) —
@@ -452,15 +452,24 @@ export default function StreamPanel() {
     setStreamWindowSourceId(streamableOutputs[0]?.id || '');
   }, [streamableOutputs, streamWindowSourceId]);
 
-  // Initialize hidden canvas for rendering slides to stream
+  // Initialize canvas for rendering slides to stream (TEMPORARILY VISIBLE FOR DEBUG)
   useEffect(() => {
     if (!renderCanvasRef.current) {
       const canvas = document.createElement('canvas');
       canvas.width = 1280;
       canvas.height = 720;
-      canvas.style.display = 'none';
+      canvas.style.position = 'fixed';
+      canvas.style.bottom = '20px';
+      canvas.style.right = '20px';
+      canvas.style.border = '3px solid red';
+      canvas.style.zIndex = '99999';
+      canvas.style.width = '320px';
+      canvas.style.height = '180px';
+      canvas.style.objectFit = 'contain';
+      canvas.style.backgroundColor = '#000';
       document.body.appendChild(canvas);
       renderCanvasRef.current = canvas;
+      console.log('[StreamPanel] 🔴 DEBUG: Canvas element VISIBLE in bottom-right corner for debugging');
       return () => {
         if (renderCanvasRef.current && renderCanvasRef.current.parentNode) {
           renderCanvasRef.current.parentNode.removeChild(renderCanvasRef.current);
@@ -492,7 +501,15 @@ export default function StreamPanel() {
   // is what gets screen-shared into Zoom/OBS/Teams.
   const handleSendOutputToStreamWindow = () => {
     const out = streamableOutputs.find(w => w.id === streamWindowSourceId);
-    if (!out) return;
+    if (!out) {
+      console.warn('[StreamPanel] handleSendOutputToStreamWindow: output not found for id', streamWindowSourceId);
+      return;
+    }
+    console.log('[StreamPanel] 📤 Sending output to Stream Window:', {
+      outputId: out.id,
+      title: out.title,
+      mediaSourceId: out.mediaSourceId,
+    });
     sendStreamConfig({
       sourceType: 'output',
       sourceId: out.id,
@@ -563,10 +580,18 @@ export default function StreamPanel() {
     if (activeDests.length === 0) { setRtmpError('No destinations configured. Add a platform with a stream key.'); return; }
     if (!streamSourceOutput) { setRtmpError('Choose an output as the stream source first — create or open one in Output Manager.'); return; }
 
+    console.log('[StreamPanel] =================================================================');
+    console.log('[StreamPanel] STARTING SOCIAL STREAM');
+    console.log('[StreamPanel] Available outputs:', streamableOutputs.map(o => ({ id: o.id, title: o.title, mediaSourceId: o.mediaSourceId })));
+    console.log('[StreamPanel] Selected stream source:', { id: streamSourceOutput?.id, title: streamSourceOutput?.title, mediaSourceId: streamSourceOutput?.mediaSourceId });
+    console.log('[StreamPanel] liveOutputs state:', Object.entries(liveOutputs).map(([k, v]) => ({ key: k, slideText: v?.lines?.slice(0, 40), hasBg: !!v?.background })));
+    console.log('[StreamPanel] Destinations:', activeDests.map(d => ({ id: d.id, platform: d.platform, url: d.rtmpUrl })));
+
     let started = [];
     try {
       // Spawn ffmpeg for each destination first so stdin is ready before chunks flow.
       for (const dest of activeDests) {
+        console.log(`[StreamPanel] Spawning ffmpeg for destination: ${dest.id}`);
         const result = await window.electronAPI.startRtmp({ destId: dest.id, rtmpUrl: dest.rtmpUrl + dest.streamKey });
         if (result?.error) {
           setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error);
@@ -574,29 +599,36 @@ export default function StreamPanel() {
           return;
         }
         started.push(dest);
+        console.log(`[StreamPanel] FFmpeg spawned successfully for: ${dest.id}`);
       }
 
       // Use canvas-based rendering: stream the actual live slide content, not a window capture.
       // This ensures we stream exactly what's being sent to the output.
       let frameCount = 0;
+      let chunkCount = 0;
+      const chunkTimestamps = [];
+
       const getRenderFrame = () => {
         const slide = getLiveSlideForStream();
         frameCount++;
-        if (frameCount === 1 || frameCount % 100 === 0) {
-          console.log(`[StreamPanel] getRenderFrame called (frame ${frameCount}), slide:`, slide?.lines?.slice(0, 30));
+        if (frameCount === 1) {
+          console.log('[StreamPanel] ↳ getRenderFrame() FIRST CALL - slide:', slide ? `"${slide.lines?.slice(0, 50)}..."` : 'NULL', 'outputId:', streamSourceOutput?.id);
+        }
+        if (frameCount % 60 === 0) {
+          console.log(`[StreamPanel] ↳ getRenderFrame() frame ${frameCount}, slide available:`, !!slide);
         }
         if (!renderCanvasRef.current) {
-          console.warn('[StreamPanel] renderCanvas not initialized');
+          if (frameCount === 1) console.warn('[StreamPanel] ↳ renderCanvas not initialized');
           return null;
         }
         if (!slide) {
-          if (frameCount === 1) console.warn('[StreamPanel] No slide data for stream source output');
+          if (frameCount === 1) console.warn('[StreamPanel] ↳ No slide data in liveOutputs[' + streamSourceOutput?.id + ']');
           return null;
         }
 
-        const ctx = renderCanvasRef.current.getContext('2d');
+        const ctx = renderCanvasRef.current.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
-          console.warn('[StreamPanel] Canvas context unavailable');
+          console.warn('[StreamPanel] ↳ Canvas context unavailable');
           return null;
         }
 
@@ -606,34 +638,68 @@ export default function StreamPanel() {
         const bgType = bg?.type;
         const bgColor = bgType === 'color' ? (bg.value || '#0d1117') : '#0d1117';
 
+        if (frameCount === 1) {
+          console.log('[StreamPanel] ↳ Canvas context obtained, willReadFrequently=true');
+          console.log('[StreamPanel] ↳ Rendering background color:', bgColor, 'bgType:', bgType);
+        }
+
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, 1280, 720);
 
+        if (frameCount === 1) {
+          const bgPixels = ctx.getImageData(0, 0, 1, 1).data;
+          console.log('[StreamPanel] ↳ Background rendered, pixel at (0,0):', Array.from(bgPixels));
+        }
+
         // Render slide text
         if (slide.lines) {
-          ctx.font = `${slide.item?.fontSize || 44}px ${slide.item?.fontFamily || 'Georgia'}`;
-          ctx.fillStyle = slide.item?.textColor || '#ffffff';
+          const fontSize = slide.item?.fontSize || 44;
+          const fontFamily = slide.item?.fontFamily || 'Georgia';
+          const textColor = slide.item?.textColor || '#ffffff';
+
+          ctx.font = `${fontSize}px "${fontFamily}", Georgia, serif`;
+          ctx.fillStyle = textColor;
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
+
           const lines = slide.lines.split('\n');
-          const lineHeight = 60;
-          const startY = (720 - lines.length * lineHeight) / 2;
+          const lineHeight = Math.round(fontSize * 1.3);
+          const totalHeight = lines.length * lineHeight;
+          const startY = (720 - totalHeight) / 2 + fontSize;
+
+          if (frameCount === 1) {
+            console.log('[StreamPanel] ↳ Drawing text to canvas:', {
+              fontSize, fontFamily, textColor, lineCount: lines.length, startY
+            });
+          }
+
           lines.forEach((line, i) => {
-            ctx.fillText(line, 640, startY + i * lineHeight);
+            const y = startY + i * lineHeight;
+            ctx.fillText(line, 640, y);
           });
+
+          if (frameCount === 1) {
+            // Check if text was actually rendered by sampling a pixel from the middle of the canvas
+            const testPixels = ctx.getImageData(640, 360, 1, 1).data;
+            console.log('[StreamPanel] ↳ Text rendered, pixel at (640,360):', Array.from(testPixels));
+          }
         }
 
         try {
-          return ctx.getImageData(0, 0, 1280, 720);
-        } catch (_) {
+          const imageData = ctx.getImageData(0, 0, 1280, 720);
+          if (frameCount === 1) {
+            console.log('[StreamPanel] ↳ Canvas rendering successful, getImageData returned');
+            const sample = imageData.data.slice(0, 16);
+            console.log('[StreamPanel] ↳ ImageData first 4 pixels:', Array.from(sample));
+          }
+          return imageData;
+        } catch (e) {
+          console.error('[StreamPanel] ↳ getImageData failed:', e.message);
           return null;
         }
       };
 
-      console.log('[StreamPanel] Starting social stream with canvas rendering');
-      console.log('[StreamPanel] - getRenderFrame type:', typeof getRenderFrame);
-      console.log('[StreamPanel] - streamSourceOutput:', streamSourceOutput?.id, streamSourceOutput?.title);
-      console.log('[StreamPanel] - liveOutputs keys:', Object.keys(liveOutputs));
+      console.log('[StreamPanel] Creating StreamCompositor...');
 
       const compositor = new StreamCompositor({
         width: 1280,
@@ -642,16 +708,29 @@ export default function StreamPanel() {
         getRenderFrame,
       });
       compositorRef.current = compositor;
-      console.log('[StreamPanel] - Created StreamCompositor with getRenderFrame');
 
       await compositor.start({
         audio: true,
         getOverlay: () => lowerThirdRef.current,
         videoBitsPerSecond: 2_500_000,
-        onChunk: (chunk) => { for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk); },
-        onError: (msg) => setRtmpError(msg),
+        onChunk: (chunk) => {
+          chunkCount++;
+          chunkTimestamps.push(Date.now());
+          if (chunkTimestamps.length > 100) chunkTimestamps.shift();
+          if (chunkCount === 1 || chunkCount % 20 === 0) {
+            const recentRate = chunkTimestamps.length > 1
+              ? (chunkTimestamps.length / ((chunkTimestamps[chunkTimestamps.length - 1] - chunkTimestamps[0]) / 1000)).toFixed(1)
+              : 'N/A';
+            console.log(`[StreamPanel] ↳ onChunk callback #${chunkCount}, size: ${chunk.byteLength} bytes, rate: ~${recentRate} chunks/sec`);
+          }
+          for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk);
+        },
+        onError: (msg) => {
+          console.error('[StreamPanel] ↳ Compositor error:', msg);
+          setRtmpError(msg);
+        },
       });
-      console.log('[StreamPanel] - StreamCompositor.start() completed successfully');
+      console.log('[StreamPanel] StreamCompositor.start() completed successfully');
 
       setIsRtmpStreaming(true); setRtmpElapsed(0);
       rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);

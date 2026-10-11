@@ -909,6 +909,9 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
       rtmpUrl,
     ];
 
+    console.log(`[rtmp] Spawning ffmpeg for ${destId}, RTMP URL: ${rtmpUrl.replace(/^rtmps?:\/\//, '').replace(/\?.*/, '...')}`);
+    console.log(`[rtmp] FFmpeg args:`, args.slice(0, 10).join(' '), '...');
+
     const proc = spawn(ffmpegPath, args, {
       stdio: ['pipe', 'ignore', 'pipe'],
     });
@@ -916,35 +919,53 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
     rtmpProcesses.set(destId, proc);
     const startTime = Date.now();
     let stderrTail = '';
+    let loggedFirstData = false;
+
+    proc.on('error', (err) => {
+      console.error(`[rtmp] ✗ FFmpeg spawn error for ${destId}:`, err.message);
+    });
 
     proc.stderr.on('data', (data) => {
       const output = data.toString();
       // Keep the last ~2KB of ffmpeg log so we can explain a non-zero exit.
       stderrTail = (stderrTail + output).slice(-2000);
+
+      if (!loggedFirstData) {
+        console.log(`[rtmp] ✓ FFmpeg process started, stderr received for ${destId}`);
+        loggedFirstData = true;
+      }
+
       const bitrateMatch = output.match(/bitrate=\s*([\d.]+)kbits/);
+      const fpsMatch = output.match(/fps=\s*([\d.]+)/);
       const bitrate = bitrateMatch ? parseFloat(bitrateMatch[1]) : null;
+      const fps = fpsMatch ? parseFloat(fpsMatch[1]) : null;
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+      if (bitrate || fps) {
+        const infoStr = [];
+        if (bitrate) infoStr.push(`${bitrate}kbps`);
+        if (fps) infoStr.push(`${fps}fps`);
+        if (infoStr.length > 0) {
+          console.log(`[rtmp] → ${destId}: ${infoStr.join(', ')}, elapsed: ${elapsed}s`);
+        }
+      }
+
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('rtmp-status', { destId, type: 'progress', bitrate, elapsed });
+        mainWindow.webContents.send('rtmp-status', { destId, type: 'progress', bitrate, fps, elapsed });
       }
     });
 
     proc.on('close', (code) => {
       rtmpProcesses.delete(destId);
+      console.log(`[rtmp] ✓ FFmpeg process closed for ${destId}, exit code: ${code}`);
       if (code && code !== 0) {
+        console.error(`[rtmp] ✗ FFmpeg exited with error code ${code}`, stderrTail.slice(-400));
         logger.error('rtmp', `ffmpeg exited (code ${code})`, { tail: stderrTail.slice(-600) });
       }
       if (mainWindow && !mainWindow.isDestroyed()) {
         // Pull a human-readable reason out of ffmpeg's log tail when it failed.
         const reasonMatch = stderrTail.match(/(Connection refused|Operation not permitted|Server error|Input\/output error|Invalid data[^\n]*|No such file[^\n]*|Failed to [^\n]*|.+: not found)/i);
         mainWindow.webContents.send('rtmp-status', { destId, type: 'closed', code, reason: reasonMatch ? reasonMatch[0] : null });
-      }
-    });
-
-    proc.on('error', (err) => {
-      rtmpProcesses.delete(destId);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('rtmp-status', { destId, type: 'error', error: err.message });
       }
     });
 
@@ -957,12 +978,31 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
 
 ipcMain.on('rtmp-chunk', (_, { destId, chunk }) => {
   const proc = rtmpProcesses.get(destId);
+  const procState = `proc: ${proc ? 'exists' : 'missing'}, stdin: ${proc?.stdin ? 'exists' : 'missing'}, writable: ${proc?.stdin?.writable ? 'yes' : 'no'}`;
+
+  if (!chunk) {
+    console.warn(`[rtmp] CHUNK RECEIVED: destId=${destId}, chunk is falsy (${typeof chunk}), ${procState}`);
+    return;
+  }
+
   if (proc && proc.stdin && proc.stdin.writable) {
     try {
+      const bufSize = chunk.byteLength || chunk.length || 0;
+      if (proc.rtmpChunkCount === undefined) proc.rtmpChunkCount = 0;
+      if (proc.rtmpTotalBytes === undefined) proc.rtmpTotalBytes = 0;
+      proc.rtmpChunkCount++;
+      proc.rtmpTotalBytes += bufSize;
+
+      if (proc.rtmpChunkCount === 1 || proc.rtmpChunkCount % 20 === 0) {
+        console.log(`[rtmp] → CHUNK #${proc.rtmpChunkCount} for ${destId}: ${bufSize} bytes, total: ${(proc.rtmpTotalBytes / 1024 / 1024).toFixed(2)} MB`);
+      }
+
       proc.stdin.write(Buffer.from(chunk));
     } catch (err) {
-      console.error(`[rtmp] Failed to write chunk for ${destId}:`, err.message);
+      console.error(`[rtmp] ✗ Failed to write chunk for ${destId}:`, err.message);
     }
+  } else {
+    console.warn(`[rtmp] ✗ Cannot write chunk for ${destId}, ${procState}`);
   }
 });
 
