@@ -179,15 +179,19 @@ export class StreamCompositor {
       // of a physical camera — this is the normal path. Audio is not requestable
       // alongside chromeMediaSource:'desktop' video reliably, so it's acquired
       // separately below (microphone), independent of the video source.
-      this.camStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-            chromeMediaSourceId: mediaSourceId,
+      try {
+        this.camStream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: mediaSourceId,
+            },
           },
-        },
-      });
+        });
+      } catch (err) {
+        throw new Error(`Desktop capture failed (mediaSourceId may be stale): ${err.message}`);
+      }
     } else {
       // Legacy fallback: a raw camera device as the video source.
       const videoConstraint = cameraDeviceId
@@ -208,7 +212,33 @@ export class StreamCompositor {
     this.video.muted = true;
     this.video.playsInline = true;
     this.video.srcObject = this.camStream;
-    await this.video.play().catch(() => {});
+
+    // Wait for video to start playing and have frames ready before starting recorder.
+    // This prevents ffmpeg from receiving an empty stream.
+    try {
+      await this.video.play();
+      // Wait up to 2 seconds for the first frame to arrive (readyState >= 2 means HAVE_CURRENT_DATA)
+      const frameReady = await new Promise((resolve) => {
+        if (this.video.readyState >= 2) {
+          resolve(true);
+          return;
+        }
+        const onCanPlay = () => {
+          this.video.removeEventListener('canplay', onCanPlay);
+          resolve(true);
+        };
+        this.video.addEventListener('canplay', onCanPlay);
+        setTimeout(() => {
+          this.video.removeEventListener('canplay', onCanPlay);
+          resolve(false); // timeout — no frames yet, but proceed anyway
+        }, 2000);
+      });
+      if (!frameReady) {
+        console.warn('[StreamCompositor] No video frames received within 2s, proceeding anyway');
+      }
+    } catch (err) {
+      throw new Error(`Video playback failed: ${err.message}`);
+    }
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.width;

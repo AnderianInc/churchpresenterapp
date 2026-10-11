@@ -561,7 +561,15 @@ export default function StreamPanel() {
       setIsRtmpStreaming(true); setRtmpElapsed(0);
       rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);
     } catch (err) {
-      setRtmpError(err?.message || `Failed to capture "${streamSourceOutput.title}". Try choosing it again or reopening the output.`);
+      const errMsg = err?.message || `Failed to capture "${streamSourceOutput?.title || 'unknown output'}".`;
+      console.error('[StreamPanel] Social streaming failed:', errMsg, err);
+      setRtmpError(
+        errMsg.includes('Desktop capture')
+          ? 'The output window is not available. It may have been closed or its ID changed. Try selecting it again from the dropdown and retrying.'
+          : errMsg.includes('Video playback')
+          ? 'Failed to play video stream. The output window may not be rendering. Ensure it is open and visible, then try again.'
+          : errMsg
+      );
       if (compositorRef.current) { compositorRef.current.stop(); compositorRef.current = null; }
       for (const d of started) { try { await window.electronAPI.stopRtmp(d.id); } catch (_) {} }
     }
