@@ -146,11 +146,8 @@ function LevelMeter({ level, active }) {
 
 function DevicesTab({ settings, saveSettings }) {
   const [micDevices, setMicDevices] = useState([]);
-  const [camDevices, setCamDevices] = useState([]);
   const [micPermission, setMicPermission] = useState('unknown'); // 'granted' | 'denied' | 'unknown'
-  const [camPermission, setCamPermission] = useState('unknown');
   const [preferredMicId, setPreferredMicId] = useState(settings?.preferredMicId || '');
-  const [preferredCamId, setPreferredCamId] = useState(settings?.preferredCameraId || '');
   const [fontDraft, setFontDraft] = useState(settings?.defaultFont || 'Georgia');
   const [sizeDraft, setSizeDraft] = useState(settings?.defaultFontSize || 44);
   const [transition, setTransitionState] = useState(getTransition);
@@ -167,11 +164,8 @@ function DevicesTab({ settings, saveSettings }) {
   useEffect(() => {
     navigator.mediaDevices.enumerateDevices().then(devices => {
       const mics = devices.filter(d => d.kind === 'audioinput');
-      const cams = devices.filter(d => d.kind === 'videoinput');
       if (mics.length > 0 && mics[0].label) setMicPermission('granted');
-      if (cams.length > 0 && cams[0].label) setCamPermission('granted');
       setMicDevices(mics);
-      setCamDevices(cams);
     }).catch(() => {});
   }, []);
 
@@ -189,23 +183,6 @@ function DevicesTab({ settings, saveSettings }) {
       }
     } catch {
       setMicPermission('denied');
-    }
-  };
-
-  const grantCamAccess = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      stream.getTracks().forEach(t => t.stop());
-      setCamPermission('granted');
-      const all = await navigator.mediaDevices.enumerateDevices();
-      const cams = all.filter(d => d.kind === 'videoinput');
-      setCamDevices(cams);
-      if (!preferredCamId && cams.length > 0) {
-        setPreferredCamId(cams[0].deviceId);
-        saveSettings({ preferredCameraId: cams[0].deviceId });
-      }
-    } catch {
-      setCamPermission('denied');
     }
   };
 
@@ -249,11 +226,6 @@ function DevicesTab({ settings, saveSettings }) {
     if (testActive) stopMicTest();
     setPreferredMicId(deviceId);
     saveSettings({ preferredMicId: deviceId });
-  };
-
-  const handleCamChange = (deviceId) => {
-    setPreferredCamId(deviceId);
-    saveSettings({ preferredCameraId: deviceId });
   };
 
   const handleFontChange = (font) => {
