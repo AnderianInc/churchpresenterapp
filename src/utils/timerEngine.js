@@ -71,6 +71,15 @@ export function getRemainingMs(timer, now = Date.now()) {
   return Math.max(0, timer.durationMs - getElapsedMs(timer, now));
 }
 
+/**
+ * Signed remaining ms for a COUNTDOWN timer — goes negative once the timer
+ * passes zero so the display can count up into overtime instead of stopping.
+ */
+export function getCountdownMs(timer, now = Date.now()) {
+  if (timer.type !== TIMER_TYPES.COUNTDOWN) return 0;
+  return timer.durationMs - getElapsedMs(timer, now);
+}
+
 /** True when a countdown has reached zero. */
 export function isExpired(timer, now = Date.now()) {
   return (

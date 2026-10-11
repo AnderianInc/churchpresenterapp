@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import ImageCropModal from './ImageCropModal';
 
 // ── Preset palettes ───────────────────────────────────────────────────────────
@@ -53,6 +53,7 @@ export function bgToCss(bg) {
     }
   }
   if (bg.type === 'youtube') return '#000000'; // iframe renders on top; CSS bg is a dark placeholder
+  if (bg.type === 'camera' || bg.type === 'stream') return '#0a0d14'; // live feed renders on top
   return '#0d1117';
 }
 
@@ -67,9 +68,18 @@ export function bgToCss(bg) {
  *   compact  – smaller layout (no labels, tighter grid) for per-slide use
  */
 export default function BackgroundPicker({ value, onChange, compact = false }) {
-  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : value?.type === 'video' ? 'video' : 'solid';
+  const initialMode = value?.type === 'gradient' ? 'gradient' : value?.type === 'image' ? 'image' : value?.type === 'video' ? 'video' : value?.type === 'camera' ? 'camera' : 'solid';
   const [mode, setMode] = useState(initialMode);
+  const [cameras, setCameras] = useState([]);
   const imgInputRef = useRef(null);
+
+  // Enumerate cameras when the Live tab is opened (labels need prior permission)
+  useEffect(() => {
+    if (mode !== 'camera') return;
+    navigator.mediaDevices?.enumerateDevices?.()
+      .then(list => setCameras(list.filter(d => d.kind === 'videoinput')))
+      .catch(() => {});
+  }, [mode]);
   const videoInputRef = useRef(null);
 
   // Custom gradient builder state
@@ -114,7 +124,7 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
     } else {
       url = URL.createObjectURL(file);
     }
-    onChange({ type: 'video', value: url, name: file.name, loop: true });
+    onChange({ type: 'video', value: url, name: file.name, loop: true, brightness: 0.45 });
     e.target.value = '';
   };
 
@@ -140,12 +150,59 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
   return (
     <div>
       {/* Mode selector */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: compact ? 8 : 12 }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: compact ? 8 : 12, flexWrap: 'wrap' }}>
+        {tabBtn('camera', '📷 Live')}
         {tabBtn('solid', '🎨 Solid')}
         {tabBtn('gradient', '🌈 Gradient')}
         {tabBtn('image', '🖼 Image')}
         {tabBtn('video', '🎬 Video')}
       </div>
+
+      {/* ── Live camera ── */}
+      {mode === 'camera' && (
+        <div>
+          <div style={{ fontSize: 11, color: 'var(--text-dim)', marginBottom: 8, lineHeight: 1.5 }}>
+            Use a live camera feed as this screen background. Text (lyrics, scripture, announcements) shows on top.
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Camera / Input</div>
+          <select
+            value={value?.type === 'camera' ? (value.value || '') : ''}
+            onChange={e => {
+              const id = e.target.value;
+              const label = cameras.find(c => c.deviceId === id)?.label || 'Live Camera';
+              onChange({ type: 'camera', value: id, name: label });
+            }}
+            style={{ width: '100%', background: '#13171f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 5, color: '#fff', padding: '7px 8px', fontSize: 12, fontFamily: 'var(--font)' }}
+          >
+            <option value="">Default camera</option>
+            {cameras.map((c, i) => (
+              <option key={c.deviceId || i} value={c.deviceId}>{c.label || `Camera ${i + 1}`}</option>
+            ))}
+          </select>
+          {cameras.length > 0 && !cameras[0].label && (
+            <button
+              onClick={async () => {
+                try { const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: false }); s.getTracks().forEach(t => t.stop()); } catch (_) {}
+                navigator.mediaDevices?.enumerateDevices?.().then(list => setCameras(list.filter(d => d.kind === 'videoinput'))).catch(() => {});
+              }}
+              style={{ marginTop: 8, width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--text-muted)', padding: '6px', borderRadius: 5, cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font)' }}
+            >🔓 Allow camera access to list devices</button>
+          )}
+          {value?.type === 'camera' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 86 }}>
+                Brightness: {Math.round((value.brightness ?? 1) * 100)}%
+              </span>
+              <input
+                type="range" min={10} max={150} step={5}
+                value={Math.round((value.brightness ?? 1) * 100)}
+                onChange={e => onChange({ ...value, brightness: Number(e.target.value) / 100 })}
+                style={{ flex: 1, accentColor: 'var(--accent)' }}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Solid ── */}
       {mode === 'solid' && (
@@ -410,6 +467,18 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{value.name || 'Video background'}</span>
+              </div>
+              {/* Brightness slider — dims or brightens the video behind the text */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 86 }}>
+                  Brightness: {Math.round((value.brightness ?? 0.45) * 100)}%
+                </span>
+                <input
+                  type="range" min={10} max={150} step={5}
+                  value={Math.round((value.brightness ?? 0.45) * 100)}
+                  onChange={e => onChange({ ...value, brightness: Number(e.target.value) / 100 })}
+                  style={{ flex: 1, accentColor: 'var(--accent)' }}
+                />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>Loop</span>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 import { detectReferences } from '../utils/referenceDetector';
+import { StreamCompositor } from '../utils/streamCompositor';
 
 const PLATFORM_COLORS = { facebook: '#1877F2', youtube: '#FF0000', instagram: '#E1306C', custom: '#888' };
 const PLATFORM_ICONS  = { facebook: '📘', youtube: '▶️', instagram: '📷', custom: '📡' };
@@ -392,26 +393,94 @@ export default function StreamPanel() {
     lowerThird, pushLowerThird, sendStreamConfig,
     currentItem, currentSlide,
     isBlackout, toggleBlackout,
-    settings, saveSettings, ffmpegAvailable, isElectron,
+    settings, ffmpegAvailable, isElectron,
+    outputWindows, liveOutputs,
   } = useApp();
 
-  const [previewStream, setPreviewStream] = useState(null);
-  const [previewError, setPreviewError] = useState('');
-  const [activeStreamDeviceId, setActiveStreamDeviceId] = useState(null);
+  // Which output window is currently being fed into the Stream Window (screen-share target)
+  const [activeStreamWindowOutputId, setActiveStreamWindowOutputId] = useState(null);
   const [ltText, setLtText] = useState('');
   const [ltLabel, setLtLabel] = useState('');
   const [ltSource, setLtSource] = useState('');
-  const previewRef = useRef(null);
+  // Lower-third text styling (applies on-screen AND on the social stream)
+  const [ltPosition, setLtPosition] = useState('bottom');
+  const [ltAlign, setLtAlign] = useState('left');
+  const [ltFont, setLtFont] = useState('Georgia, serif');
+  const [ltScale, setLtScale] = useState(1);
 
   // ── Social / RTMP streaming state ───────────────────────────────────────
   const [isRtmpStreaming, setIsRtmpStreaming] = useState(false);
   const [rtmpStatus, setRtmpStatus] = useState({});
   const [rtmpError, setRtmpError] = useState('');
-  const recorderRef = useRef(null);
-  const captureStreamRef = useRef(null);
+  const compositorRef = useRef(null);
   const rtmpDurationRef = useRef(null);
   const [rtmpElapsed, setRtmpElapsed] = useState(0);
   const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
+
+  // The stream's video source is one of the app's own output windows (created in
+  // Output Manager), captured via its Electron mediaSourceId — not a camera device.
+  const streamableOutputs = useMemo(
+    () => outputWindows.filter(w => w.isOpen !== false && w.mediaSourceId),
+    [outputWindows]
+  );
+  const [streamSourceId, setStreamSourceId] = useState('');
+  useEffect(() => {
+    // Keep the selection valid as outputs are opened/closed/created.
+    if (streamSourceId && streamableOutputs.some(w => w.id === streamSourceId)) return;
+    setStreamSourceId(streamableOutputs[0]?.id || '');
+  }, [streamableOutputs, streamSourceId]);
+  const streamSourceOutput = streamableOutputs.find(w => w.id === streamSourceId) || null;
+
+  // Hidden canvas for rendering live slide content to stream — ensures we stream
+  // the actual slide (text, background, overlays) not just a camera feed or window capture.
+  const renderCanvasRef = useRef(null);
+  const slideRenderRef = useRef(null);
+
+  // Get the slide currently being streamed (if streaming via output selection)
+  const getLiveSlideForStream = useCallback(() => {
+    if (!streamSourceOutput) return null;
+    const outputId = streamSourceOutput.id;
+    return liveOutputs[outputId] || null;
+  }, [streamSourceOutput, liveOutputs]);
+
+  // Separate source pick for the Stream Window (manually screen-shared into Zoom/OBS) —
+  // independent of the Social Streaming (RTMP) source above, since an operator may want
+  // to screen-share one output while RTMP-streaming a different one.
+  const [streamWindowSourceId, setStreamWindowSourceId] = useState('');
+  useEffect(() => {
+    if (streamWindowSourceId && streamableOutputs.some(w => w.id === streamWindowSourceId)) return;
+    setStreamWindowSourceId(streamableOutputs[0]?.id || '');
+  }, [streamableOutputs, streamWindowSourceId]);
+
+  // Initialize canvas for rendering slides to stream (TEMPORARILY VISIBLE FOR DEBUG)
+  useEffect(() => {
+    if (!renderCanvasRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1280;
+      canvas.height = 720;
+      canvas.style.position = 'fixed';
+      canvas.style.bottom = '20px';
+      canvas.style.right = '20px';
+      canvas.style.border = '3px solid red';
+      canvas.style.zIndex = '99999';
+      canvas.style.width = '320px';
+      canvas.style.height = '180px';
+      canvas.style.objectFit = 'contain';
+      canvas.style.backgroundColor = '#000';
+      document.body.appendChild(canvas);
+      renderCanvasRef.current = canvas;
+      console.log('[StreamPanel] 🔴 DEBUG: Canvas element VISIBLE in bottom-right corner for debugging');
+      return () => {
+        if (renderCanvasRef.current && renderCanvasRef.current.parentNode) {
+          renderCanvasRef.current.parentNode.removeChild(renderCanvasRef.current);
+        }
+      };
+    }
+  }, []);
+
+  // Live overlay (Bible verse / text lower-third) read by the stream compositor each frame
+  const lowerThirdRef = useRef(lowerThird);
+  useEffect(() => { lowerThirdRef.current = lowerThird; }, [lowerThird]);
 
   // ── Local recording state ────────────────────────────────────────────────
   const [isLocalRecording, setIsLocalRecording] = useState(false);
@@ -427,61 +496,43 @@ export default function StreamPanel() {
   const localSizeRef = useRef(0);
   const localDurationRef = useRef(null);
 
-  const cameraDeviceId = settings?.preferredCameraId || '';
-
-  // ── Auto-start camera preview using preferred device from settings ───────
-  useEffect(() => {
-    let active = true;
-    if (!cameraDeviceId) { setPreviewStream(null); return; }
-    (async () => {
-      try {
-        let stream;
-try {
-  stream = await navigator.mediaDevices.getUserMedia({
-    video: { deviceId: { ideal: cameraDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } },
-    audio: false,
-  });
-} catch {
-  stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-}
-        if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
-        setPreviewStream(stream);
-        setPreviewError('');
-      } catch (err) {
-        if (!active) return;
-        setPreviewError(
-          err.name === 'NotAllowedError'
-            ? 'Camera access denied — go to ⚙ Settings → Devices and click 🔄 Try Again'
-            : err.name === 'NotFoundError'
-              ? 'Camera not found — check ⚙ Settings → Devices'
-              : 'Preview unavailable: ' + (err.message || err.name)
-        );
-      }
-    })();
-    return () => { active = false; };
-  }, [cameraDeviceId]);
-
-  // Attach preview stream to video element
-  useEffect(() => {
-    if (previewRef.current) previewRef.current.srcObject = previewStream || null;
-    return () => { if (previewStream) previewStream.getTracks().forEach(t => t.stop()); };
-  }, [previewStream]);
-
-  const handleUseCamera = () => {
-    sendStreamConfig({ cameraDeviceId: cameraDeviceId || null });
-    setActiveStreamDeviceId(cameraDeviceId || null);
-    if (cameraDeviceId) saveSettings({ preferredCameraId: cameraDeviceId });
+  // Feed an existing output window's own rendered content into the Stream Window,
+  // instead of a raw camera — so whatever's on that output (program, confidence, etc.)
+  // is what gets screen-shared into Zoom/OBS/Teams.
+  const handleSendOutputToStreamWindow = () => {
+    const out = streamableOutputs.find(w => w.id === streamWindowSourceId);
+    if (!out) {
+      console.warn('[StreamPanel] handleSendOutputToStreamWindow: output not found for id', streamWindowSourceId);
+      return;
+    }
+    console.log('[StreamPanel] 📤 Sending output to Stream Window:', {
+      outputId: out.id,
+      title: out.title,
+      mediaSourceId: out.mediaSourceId,
+    });
+    sendStreamConfig({
+      sourceType: 'output',
+      sourceId: out.id,
+      outputId: out.id,
+      mediaSourceId: out.mediaSourceId,
+      label: out.title,
+    });
+    setActiveStreamWindowOutputId(out.id);
   };
 
-  const handleStopCamera = () => {
-    sendStreamConfig({ cameraDeviceId: null });
-    setActiveStreamDeviceId(null);
+  const handleStopStreamWindowSource = () => {
+    sendStreamConfig({ sourceType: 'output', sourceId: null, outputId: null, mediaSourceId: null, label: null });
+    setActiveStreamWindowOutputId(null);
   };
 
   // ── Lower-third helpers ─────────────────────────────────────────────────
+  const ltStyle = useCallback(() => ({
+    position: ltPosition, align: ltAlign, fontFamily: ltFont, fontScale: ltScale,
+  }), [ltPosition, ltAlign, ltFont, ltScale]);
+
   const sendLowerThird = () => {
     if (!ltText.trim()) return;
-    pushLowerThird({ active: true, text: ltText.trim(), label: ltLabel.trim(), source: ltSource.trim() });
+    pushLowerThird({ active: true, text: ltText.trim(), label: ltLabel.trim(), source: ltSource.trim(), ...ltStyle() });
   };
   const clearLowerThird = () => pushLowerThird({ active: false, text: '', label: '', source: '' });
   const sendSlideAsLowerThird = () => {
@@ -491,11 +542,20 @@ try {
     const attrMatch = raw.match(/— (.+)$/m);
     const source = attrMatch ? attrMatch[1].trim() : '';
     const label = currentItem?.title || currentSlide.label || '';
-    pushLowerThird({ active: true, text: textPart, label, source });
+    pushLowerThird({ active: true, text: textPart, label, source, ...ltStyle() });
     setLtText(textPart); setLtLabel(label); setLtSource(source);
   };
 
-  useEffect(() => { if (!streamOpen) setActiveStreamDeviceId(null); }, [streamOpen]);
+  // Re-push styling live while a lower-third is already on screen, so position/
+  // font/size tweaks are reflected immediately without re-sending.
+  useEffect(() => {
+    if (lowerThird?.active && lowerThird?.text) {
+      pushLowerThird({ ...lowerThird, position: ltPosition, align: ltAlign, fontFamily: ltFont, fontScale: ltScale });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ltPosition, ltAlign, ltFont, ltScale]);
+
+  useEffect(() => { if (!streamOpen) setActiveStreamWindowOutputId(null); }, [streamOpen]);
 
   // ── RTMP status listener ────────────────────────────────────────────────
   useEffect(() => {
@@ -503,7 +563,11 @@ try {
     const handler = (data) => {
       setRtmpStatus(prev => ({ ...prev, [data.destId]: data }));
       if (data.type === 'error') setRtmpError(`Stream error: ${data.error}`);
-      if (data.type === 'closed' && data.code !== 0) setRtmpError(`FFmpeg exited (code ${data.code})`);
+      if (data.type === 'closed' && data.code !== 0) {
+        setRtmpError(data.reason
+          ? `Stream stopped: ${data.reason}. Check the stream key and your connection.`
+          : `Streaming ended unexpectedly (ffmpeg code ${data.code}). Check the stream key and your connection.`);
+      }
     };
     const off = window.electronAPI.onRtmpStatus(handler);
     return off;
@@ -514,41 +578,177 @@ try {
     setRtmpError('');
     const activeDests = destinations.filter(d => d.enabled && d.streamKey.trim());
     if (activeDests.length === 0) { setRtmpError('No destinations configured. Add a platform with a stream key.'); return; }
-    if (!streamOpen) { setRtmpError('Open the Stream Window first.'); return; }
+    if (!streamSourceOutput) { setRtmpError('Choose an output as the stream source first — create or open one in Output Manager.'); return; }
+
+    console.log('[StreamPanel] =================================================================');
+    console.log('[StreamPanel] STARTING SOCIAL STREAM');
+    console.log('[StreamPanel] Available outputs:', streamableOutputs.map(o => ({ id: o.id, title: o.title, mediaSourceId: o.mediaSourceId })));
+    console.log('[StreamPanel] Selected stream source:', { id: streamSourceOutput?.id, title: streamSourceOutput?.title, mediaSourceId: streamSourceOutput?.mediaSourceId });
+    console.log('[StreamPanel] liveOutputs state:', Object.entries(liveOutputs).map(([k, v]) => ({ key: k, slideText: v?.lines?.slice(0, 40), hasBg: !!v?.background })));
+    console.log('[StreamPanel] Destinations:', activeDests.map(d => ({ id: d.id, platform: d.platform, url: d.rtmpUrl })));
+
+    let started = [];
     try {
-      const sources = await window.electronAPI.getStreamSources();
-      const streamSrc = sources.find(s => s.name && s.name.includes('Stream View'));
-      if (!streamSrc) { setRtmpError('Stream window not found. Make sure it is open.'); return; }
-      await window.electronAPI.setRtmpSource(streamSrc.id);
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { width: 1280, height: 720, frameRate: 30 }, audio: false });
-      captureStreamRef.current = stream;
+      // Spawn ffmpeg for each destination first so stdin is ready before chunks flow.
       for (const dest of activeDests) {
+        console.log(`[StreamPanel] Spawning ffmpeg for destination: ${dest.id}`);
         const result = await window.electronAPI.startRtmp({ destId: dest.id, rtmpUrl: dest.rtmpUrl + dest.streamKey });
-        if (result?.error) { setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error); return; }
+        if (result?.error) {
+          setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error);
+          for (const d of started) { try { await window.electronAPI.stopRtmp(d.id); } catch (_) {} }
+          return;
+        }
+        started.push(dest);
+        console.log(`[StreamPanel] FFmpeg spawned successfully for: ${dest.id}`);
       }
-      const mimeType = bestWebmMimeType();
-      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
-      recorderRef.current = recorder;
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) e.data.arrayBuffer().then(buf => {
-          const chunk = new Uint8Array(buf);
-          for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk);
-        });
+
+      // Use canvas-based rendering: stream the actual live slide content, not a window capture.
+      // This ensures we stream exactly what's being sent to the output.
+      let frameCount = 0;
+      let chunkCount = 0;
+      const chunkTimestamps = [];
+
+      const getRenderFrame = () => {
+        const slide = getLiveSlideForStream();
+        frameCount++;
+        if (frameCount === 1) {
+          console.log('[StreamPanel] ↳ getRenderFrame() FIRST CALL - slide:', slide ? `"${slide.lines?.slice(0, 50)}..."` : 'NULL', 'outputId:', streamSourceOutput?.id);
+        }
+        if (frameCount % 60 === 0) {
+          console.log(`[StreamPanel] ↳ getRenderFrame() frame ${frameCount}, slide available:`, !!slide);
+        }
+        if (!renderCanvasRef.current) {
+          if (frameCount === 1) console.warn('[StreamPanel] ↳ renderCanvas not initialized');
+          return null;
+        }
+        if (!slide) {
+          if (frameCount === 1) console.warn('[StreamPanel] ↳ No slide data in liveOutputs[' + streamSourceOutput?.id + ']');
+          return null;
+        }
+
+        const ctx = renderCanvasRef.current.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+          console.warn('[StreamPanel] ↳ Canvas context unavailable');
+          return null;
+        }
+
+        // Render the slide to the canvas. Use SlideRenderer's background/text rendering logic.
+        // For now, a simplified approach: render background color + slide text.
+        const bg = slide.background || slide.item?.background;
+        const bgType = bg?.type;
+        const bgColor = bgType === 'color' ? (bg.value || '#0d1117') : '#0d1117';
+
+        if (frameCount === 1) {
+          console.log('[StreamPanel] ↳ Canvas context obtained, willReadFrequently=true');
+          console.log('[StreamPanel] ↳ Rendering background color:', bgColor, 'bgType:', bgType);
+        }
+
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, 1280, 720);
+
+        if (frameCount === 1) {
+          const bgPixels = ctx.getImageData(0, 0, 1, 1).data;
+          console.log('[StreamPanel] ↳ Background rendered, pixel at (0,0):', Array.from(bgPixels));
+        }
+
+        // Render slide text
+        if (slide.lines) {
+          const fontSize = slide.item?.fontSize || 44;
+          const fontFamily = slide.item?.fontFamily || 'Georgia';
+          const textColor = slide.item?.textColor || '#ffffff';
+
+          ctx.font = `${fontSize}px "${fontFamily}", Georgia, serif`;
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          const lines = slide.lines.split('\n');
+          const lineHeight = Math.round(fontSize * 1.3);
+          const totalHeight = lines.length * lineHeight;
+          const startY = (720 - totalHeight) / 2 + fontSize;
+
+          if (frameCount === 1) {
+            console.log('[StreamPanel] ↳ Drawing text to canvas:', {
+              fontSize, fontFamily, textColor, lineCount: lines.length, startY
+            });
+          }
+
+          lines.forEach((line, i) => {
+            const y = startY + i * lineHeight;
+            ctx.fillText(line, 640, y);
+          });
+
+          if (frameCount === 1) {
+            // Check if text was actually rendered by sampling a pixel from the middle of the canvas
+            const testPixels = ctx.getImageData(640, 360, 1, 1).data;
+            console.log('[StreamPanel] ↳ Text rendered, pixel at (640,360):', Array.from(testPixels));
+          }
+        }
+
+        try {
+          const imageData = ctx.getImageData(0, 0, 1280, 720);
+          if (frameCount === 1) {
+            console.log('[StreamPanel] ↳ Canvas rendering successful, getImageData returned');
+            const sample = imageData.data.slice(0, 16);
+            console.log('[StreamPanel] ↳ ImageData first 4 pixels:', Array.from(sample));
+          }
+          return imageData;
+        } catch (e) {
+          console.error('[StreamPanel] ↳ getImageData failed:', e.message);
+          return null;
+        }
       };
-      recorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); captureStreamRef.current = null; };
-      recorder.start(500);
+
+      console.log('[StreamPanel] Creating StreamCompositor...');
+
+      const compositor = new StreamCompositor({
+        width: 1280,
+        height: 720,
+        fps: 30,
+        getRenderFrame,
+      });
+      compositorRef.current = compositor;
+
+      await compositor.start({
+        audio: true,
+        getOverlay: () => lowerThirdRef.current,
+        videoBitsPerSecond: 2_500_000,
+        onChunk: (chunk) => {
+          chunkCount++;
+          chunkTimestamps.push(Date.now());
+          if (chunkTimestamps.length > 100) chunkTimestamps.shift();
+          if (chunkCount === 1 || chunkCount % 20 === 0) {
+            const recentRate = chunkTimestamps.length > 1
+              ? (chunkTimestamps.length / ((chunkTimestamps[chunkTimestamps.length - 1] - chunkTimestamps[0]) / 1000)).toFixed(1)
+              : 'N/A';
+            console.log(`[StreamPanel] ↳ onChunk callback #${chunkCount}, size: ${chunk.byteLength} bytes, rate: ~${recentRate} chunks/sec`);
+          }
+          for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk);
+        },
+        onError: (msg) => {
+          console.error('[StreamPanel] ↳ Compositor error:', msg);
+          setRtmpError(msg);
+        },
+      });
+      console.log('[StreamPanel] StreamCompositor.start() completed successfully');
+
       setIsRtmpStreaming(true); setRtmpElapsed(0);
       rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);
-    } catch (err) { setRtmpError(err.message || 'Failed to start streaming.'); }
-  }, [isElectron, destinations, streamOpen]);
+    } catch (err) {
+      const errMsg = err?.message || 'Failed to start streaming.';
+      console.error('[StreamPanel] Social streaming failed:', errMsg, err);
+      setRtmpError(errMsg);
+      if (compositorRef.current) { compositorRef.current.stop(); compositorRef.current = null; }
+      for (const d of started) { try { await window.electronAPI.stopRtmp(d.id); } catch (_) {} }
+    }
+  }, [isElectron, destinations, streamSourceOutput, getLiveSlideForStream]);
 
   const stopSocialStream = useCallback(async (destId) => {
     if (!isElectron) return;
     if (destId) {
       await window.electronAPI.stopRtmp(destId);
     } else {
-      if (recorderRef.current) { try { recorderRef.current.stop(); } catch {} recorderRef.current = null; }
-      if (captureStreamRef.current) { captureStreamRef.current.getTracks().forEach(t => t.stop()); captureStreamRef.current = null; }
+      if (compositorRef.current) { compositorRef.current.stop(); compositorRef.current = null; }
       clearInterval(rtmpDurationRef.current);
       await window.electronAPI.stopRtmp();
       setIsRtmpStreaming(false); setRtmpStatus({}); setRtmpElapsed(0);
@@ -712,42 +912,41 @@ try {
           <button onClick={streamOpen ? closeStream : () => openStream(0)} style={{ ...primaryBtn, background: streamOpen ? 'var(--red)' : 'var(--accent)', width: '100%' }}>
             {streamOpen ? '⏹ Close Stream Window' : '▶ Open Stream Window'}
           </button>
-        </div>
 
-        {/* ── Camera (uses preferred device from Settings → Devices) ────── */}
-        <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
-          <div style={sectionLabel}>Camera</div>
-
-          {!cameraDeviceId ? (
-            <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: 8 }}>
-              Set a preferred camera in <strong style={{ color: 'var(--text-muted)' }}>⚙ Settings → Devices</strong>.
-            </div>
-          ) : (
-            <>
-              {/* Preview */}
-              <div style={{ width: '100%', aspectRatio: '16/9', background: '#000', borderRadius: 6, overflow: 'hidden', marginBottom: 8, border: '1px solid var(--border)', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <video ref={previewRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', display: previewStream ? 'block' : 'none' }} />
-                {!previewStream && !previewError && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>Loading preview…</span>}
-                {previewError && <span style={{ fontSize: 10, color: 'var(--red)', textAlign: 'center', padding: 8, lineHeight: 1.5 }}>{previewError}</span>}
-                {previewStream && <div style={{ position: 'absolute', bottom: 4, right: 6, fontSize: 9, color: 'rgba(255,255,255,0.5)', background: 'rgba(0,0,0,0.5)', padding: '1px 4px', borderRadius: 3 }}>PREVIEW</div>}
+          {/* Video source — an existing output window's own content, not a camera */}
+          <div style={{ marginTop: 10 }}>
+            <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>Video Source</div>
+            {streamableOutputs.length === 0 ? (
+              <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, padding: '6px 8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 5 }}>
+                No outputs open. Create or open one in <strong style={{ color: 'var(--text-muted)' }}>Output Manager</strong>, then pick it here.
               </div>
+            ) : (
+              <select
+                value={streamWindowSourceId}
+                onChange={e => setStreamWindowSourceId(e.target.value)}
+                style={inputStyle}
+              >
+                {streamableOutputs.map(w => (
+                  <option key={w.id} value={w.id}>{w.title} ({w.role})</option>
+                ))}
+              </select>
+            )}
 
-              {activeStreamDeviceId && (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 5, marginBottom: 6, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                  <span style={{ fontSize: 10, color: 'var(--green)' }}>● Camera live on stream</span>
-                  <button onClick={handleStopCamera} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)' }}>Stop</button>
-                </div>
-              )}
-
-              <button onClick={handleUseCamera} disabled={!streamOpen} style={{ ...primaryBtn, width: '100%', opacity: !streamOpen ? 0.45 : 1, cursor: !streamOpen ? 'not-allowed' : 'pointer' }} title={!streamOpen ? 'Open the stream window first' : ''}>
-                {activeStreamDeviceId ? 'Restart Camera Source' : 'Send Camera to Stream'}
-              </button>
-              {!streamOpen && <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 5 }}>Open the stream window first.</div>}
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 6 }}>
-                Change camera in <strong style={{ color: 'var(--text-muted)' }}>⚙ Settings → Devices</strong>.
+            {activeStreamWindowOutputId && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5px 8px', borderRadius: 5, marginTop: 6, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }}>
+                <span style={{ fontSize: 10, color: 'var(--green)' }}>● Feeding Stream Window</span>
+                <button onClick={handleStopStreamWindowSource} style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.35)', color: '#f87171', padding: '2px 8px', borderRadius: 4, cursor: 'pointer', fontSize: 10, fontFamily: 'var(--font)' }}>Stop</button>
               </div>
-            </>
-          )}
+            )}
+
+            <button
+              onClick={handleSendOutputToStreamWindow}
+              disabled={!streamWindowSourceId}
+              style={{ ...primaryBtn, width: '100%', marginTop: 6, opacity: streamWindowSourceId ? 1 : 0.45, cursor: streamWindowSourceId ? 'pointer' : 'default' }}
+            >
+              {activeStreamWindowOutputId ? 'Switch Stream Window Source' : 'Send Output to Stream Window'}
+            </button>
+          </div>
         </div>
 
         {/* ── Record to Device ─────────────────────────────────────────── */}
@@ -834,6 +1033,36 @@ try {
             <input value={ltLabel} onChange={e => setLtLabel(e.target.value)} placeholder='Label (e.g. John 3:16 · Speaker Name)' style={inputStyle} />
             <textarea value={ltText} onChange={e => setLtText(e.target.value)} placeholder='Lower-third text…' rows={3} style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.5 }} />
             <input value={ltSource} onChange={e => setLtSource(e.target.value)} placeholder='Source line (e.g. NIV, Pastor Name)' style={inputStyle} />
+
+            {/* Text styling — position / alignment / font / size (live-updates while on air) */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <select value={ltPosition} onChange={e => setLtPosition(e.target.value)} style={{ ...inputStyle, flex: 1 }} title="Vertical placement">
+                <option value="bottom">Bottom</option>
+                <option value="center">Center</option>
+                <option value="top">Top</option>
+              </select>
+              <select value={ltAlign} onChange={e => setLtAlign(e.target.value)} style={{ ...inputStyle, flex: 1 }} title="Text alignment">
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <select value={ltFont} onChange={e => setLtFont(e.target.value)} style={inputStyle} title="Font">
+              <option value="Georgia, serif">Georgia (serif)</option>
+              <option value="Inter, sans-serif">Inter (sans-serif)</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="Arial, sans-serif">Arial</option>
+              <option value="'Courier New', monospace">Courier</option>
+            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 72 }}>
+                Size {Math.round(ltScale * 100)}%
+              </span>
+              <input type="range" min={60} max={180} step={5} value={Math.round(ltScale * 100)}
+                onChange={e => setLtScale(Number(e.target.value) / 100)}
+                style={{ flex: 1, accentColor: 'var(--accent)' }} />
+            </div>
+
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={clearLowerThird} style={{ ...ghostBtn, flex: 1 }} disabled={!isLtActive}>Clear</button>
               <button onClick={sendLowerThird} style={{ ...primaryBtn, flex: 2, background: '#166534', border: '1px solid rgba(34,197,94,0.3)', color: '#a7f3d0', opacity: ltText.trim() ? 1 : 0.45, cursor: ltText.trim() ? 'pointer' : 'not-allowed' }} disabled={!ltText.trim()}>
@@ -873,6 +1102,30 @@ try {
               <div style={{ fontSize: 10, color: 'var(--red)', marginBottom: 8, padding: '5px 8px', background: 'rgba(239,68,68,0.08)', borderRadius: 5, border: '1px solid rgba(239,68,68,0.2)' }}>{rtmpError}</div>
             )}
 
+            {/* Stream source — an output window's own rendered content, not a raw camera */}
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginBottom: 4 }}>Stream Source</div>
+              {streamableOutputs.length === 0 ? (
+                <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, padding: '6px 8px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 5 }}>
+                  No outputs open. Create or open one in <strong style={{ color: 'var(--text-muted)' }}>Output Manager</strong>, then pick it here as what gets streamed.
+                </div>
+              ) : (
+                <select
+                  value={streamSourceId}
+                  onChange={e => setStreamSourceId(e.target.value)}
+                  disabled={isRtmpStreaming}
+                  style={{ ...inputStyle, width: '100%', opacity: isRtmpStreaming ? 0.6 : 1 }}
+                >
+                  {streamableOutputs.map(w => (
+                    <option key={w.id} value={w.id}>{w.title} ({w.role})</option>
+                  ))}
+                </select>
+              )}
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 4, lineHeight: 1.4 }}>
+                Whatever that output window shows gets streamed — the Bible/text overlay below is composited on top.
+              </div>
+            </div>
+
             {destinations.length === 0 ? (
               <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: 8 }}>
                 No streaming destinations configured.<br />
@@ -905,14 +1158,13 @@ try {
                 <button onClick={() => stopSocialStream()} style={{ ...primaryBtn, width: '100%', background: 'var(--red)' }}>⏹ Stop Social Streaming</button>
               ) : (
                 <button onClick={startSocialStream}
-                  disabled={ffmpegAvailable === false || !streamOpen || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0}
-                  style={{ ...primaryBtn, width: '100%', background: 'linear-gradient(135deg, #1877F2 0%, #FF0000 50%, #E1306C 100%)', opacity: (ffmpegAvailable === false || !streamOpen || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0) ? 0.45 : 1 }}
-                  title={!streamOpen ? 'Open the Stream Window first' : ''}
+                  disabled={ffmpegAvailable === false || !streamSourceOutput || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0}
+                  style={{ ...primaryBtn, width: '100%', background: 'linear-gradient(135deg, #1877F2 0%, #FF0000 50%, #E1306C 100%)', opacity: (ffmpegAvailable === false || !streamSourceOutput || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0) ? 0.45 : 1 }}
                 >▶ Go Live — Social</button>
               )
             )}
-            {destinations.length > 0 && !streamOpen && !isRtmpStreaming && (
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 5 }}>Open the Stream Window first.</div>
+            {destinations.length > 0 && !isRtmpStreaming && (
+              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 5 }}>Optional: open the Stream Window to preview the live feed locally.</div>
             )}
           </div>
         )}

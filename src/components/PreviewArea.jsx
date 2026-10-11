@@ -1,7 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
 import SlideRenderer from './SlideRenderer';
 import BackgroundPicker, { bgToCss } from './BackgroundPicker';
+import VideoControls from './VideoControls';
+import ConfidenceMonitor from './ConfidenceMonitor';
+
+// ── Output monitor grid primitives ─────────────────────────────────────────────
+
+// ConfidenceMonitor is laid out in viewport units (100vw/100vh) like the real
+// output window. Rather than reimplement it at tile scale, render it at full
+// viewport size and visually scale the whole thing down with a CSS transform —
+// this keeps all 4 quadrants (current/next/timers/stage) proportional and in sync
+// with the real monitor's layout instead of just showing the current slide.
+function ScaledConfidencePreview({ slide, nextSlide, isBlackout }) {
+  const wrapRef = useRef(null);
+  const [scale, setScale] = useState(0.2);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => setScale(el.clientWidth / window.innerWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => { ro.disconnect(); window.removeEventListener('resize', update); };
+  }, []);
+
+  return (
+    <div ref={wrapRef} style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#000' }}>
+      <div style={{ width: window.innerWidth, height: window.innerHeight, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+        <ConfidenceMonitor slide={slide} nextSlide={nextSlide} isBlackout={isBlackout} />
+      </div>
+    </div>
+  );
+}
+
+function MonitorPlaceholder({ label, dim }) {
+  return (
+    <div style={{
+      position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: dim ? '#0d1117' : '#000', color: 'rgba(255,255,255,0.3)', fontSize: 12, letterSpacing: '0.5px',
+    }}>{label}</div>
+  );
+}
+
+// Renders the live preview inside a monitor card, honouring blackout / hide-text /
+// hide-background exactly like the real output.
+function MonitorBody({ slide, isBlackout, isClear, hideBackground, scale = 0.2, emptyLabel = 'No output' }) {
+  if (isBlackout) return <MonitorPlaceholder label="BLACKOUT" />;
+  if (isClear && !hideBackground) return <MonitorPlaceholder label="HIDE TEXT" />;
+  if (hideBackground && slide?.item) {
+    const black = { type: 'color', value: '#000000' };
+    return (
+      <SlideRenderer
+        slide={{ ...slide, ...(isClear ? { lines: '', chords: '' } : {}), background: black }}
+        item={{ ...slide.item, background: black }}
+        scale={scale}
+      />
+    );
+  }
+  // This grid only ever renders a small, bounded set of console monitor tiles
+  // (Stage + however many outputs are open), so a live camera feed per tile is
+  // safe here — unlike slide-list thumbnails, which can number in the dozens.
+  if (slide?.item) return <SlideRenderer slide={slide} item={slide.item} scale={scale} allowLiveCamera />;
+  return <MonitorPlaceholder label={emptyLabel} dim />;
+}
+
+function MonitorCard({ title, subtitle, accent = 'var(--border)', live = false, children }) {
+  return (
+    <div style={{
+      borderRadius: 10, overflow: 'hidden', background: '#090b10',
+      border: `1px solid ${live ? accent : 'var(--border)'}`,
+      display: 'flex', flexDirection: 'column', minWidth: 0,
+    }}>
+      <div style={{ padding: '6px 10px', background: '#0f1218', display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        {live && <span style={{ width: 7, height: 7, borderRadius: '50%', background: accent, flexShrink: 0, animation: 'pulse 1.5s infinite' }} />}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
+          {subtitle && <div style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</div>}
+        </div>
+      </div>
+      <div style={{ width: '100%', aspectRatio: '16 / 9', position: 'relative', overflow: 'hidden', background: '#000' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function PreviewArea() {
   const [target, setTarget] = useState('program');
@@ -9,12 +94,26 @@ export default function PreviewArea() {
   const {
     currentItem, currentSlide, currentSlides,
     liveProgram, liveStage, stageMirrorProgram, setStageMirrorProgram,
-    liveOutputs, liveRoleSlides,
+    liveOutputs, liveRoleSlides, liveNextSlide,
     activeSlideIdx, isBlackout, isClear,
     goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, nextSlide, prevSlide,
-    presentationOpen, stageOpen, displays, outputWindows,
-    updateScheduleItem,
+    displays, outputWindows,
+    updateScheduleItem, sendVideoControl,
   } = useApp();
+
+  // Live, locally-imported video background — checked across every destination
+  // (program, individual outputs, and role sends) so the transport controls show
+  // up even when a video was only sent to one output, not the whole program.
+  const liveVideoBg = (() => {
+    const candidates = [liveProgram, ...Object.values(liveOutputs || {}), ...Object.values(liveRoleSlides || {})];
+    for (const slide of candidates) {
+      const bg = (slide?.background?.type === 'video' && slide.background)
+        || (slide?.item?.background?.type === 'video' && slide.item.background)
+        || null;
+      if (bg) return bg;
+    }
+    return null;
+  })();
 
   const effectiveStage = stageMirrorProgram ? liveProgram : liveStage;
 
@@ -30,29 +129,28 @@ export default function PreviewArea() {
     output: outputWindows.find((output) => output.displayIdx === display.index),
   }));
 
-  const builtInRoles = [
-    { id: 'announcement', label: 'Announcement Screen', color: 'var(--yellow)' },
-    { id: 'background', label: 'Background Screen', color: 'var(--cyan)' },
-    { id: 'confidence', label: 'Confidence Monitor', color: 'var(--purple)' },
-  ];
-
-  const resolveRoleSlide = (role) => {
-    if (liveRoleSlides[role]) return liveRoleSlides[role];
-    const output = outputWindows.find((item) => item.role === role);
-    return output ? resolveOutputSlide(output) : null;
+  const ROLE_TILE_COLORS = {
+    presentation: 'var(--green)',
+    stage: 'var(--purple)',
+    announcement: 'var(--yellow)',
+    background: 'var(--cyan)',
+    confidence: 'var(--purple)',
+    timer: 'var(--cyan)',
+    stream: 'var(--pink, #ec4899)',
   };
+
+  // Any output not already shown as a physical-screen tile gets its own tile here,
+  // in creation order — so every output a user opens (including Stage, duplicates
+  // of a role, or roles with no dedicated tile) is visible and manageable the
+  // same way, with no special-cased/undeletable tiles.
+  const shownOutputIds = new Set(displayOutputs.filter((d) => d.output).map((d) => d.output.id));
+  const remainingOutputs = outputWindows.filter((o) => o.isOpen !== false && !shownOutputIds.has(o.id));
 
   const handleSend = () => {
     if (!currentSlide || !currentItem) return;
     const slideToSend = { ...currentSlide, item: currentItem };
     if (target === 'program') {
       goLiveProgram(slideToSend);
-      return;
-    }
-    if (target === 'stage') {
-      if (!stageMirrorProgram) {
-        goLiveStage(slideToSend);
-      }
       return;
     }
     if (target === 'all') {
@@ -62,17 +160,22 @@ export default function PreviewArea() {
     goLiveOutput(target, slideToSend);
   };
 
+  // Static role entries (stage/announcement/background/confidence) only appear
+  // when no actual output window has been opened for that role — otherwise the
+  // real output window entry (with its user-facing title) is used instead, to
+  // avoid listing the same destination twice.
+  const openRoles = new Set(outputWindows.map((output) => output.role));
   const targetOptions = [
     { value: 'program', label: 'Program' },
-    { value: 'stage', label: 'Stage' },
+    ...(openRoles.has('stage') ? [] : [{ value: 'stage', label: 'Stage' }]),
     { value: 'all', label: 'All Outputs' },
     ...outputWindows.map((output) => ({
       value: output.id,
       label: `${output.title} (${output.role})`,
     })),
-    { value: 'announcement', label: 'Announcements' },
-    { value: 'background', label: 'Background' },
-    { value: 'confidence', label: 'Confidence' },
+    ...(openRoles.has('announcement') ? [] : [{ value: 'announcement', label: 'Announcements' }]),
+    ...(openRoles.has('background') ? [] : [{ value: 'background', label: 'Background' }]),
+    ...(openRoles.has('confidence') ? [] : [{ value: 'confidence', label: 'Confidence' }]),
   ];
 
   const btnStyle = (primary = false) => ({
@@ -85,20 +188,14 @@ export default function PreviewArea() {
     fontWeight: primary ? 600 : 400, transition: 'all 0.15s',
   });
 
-  const liveBox = (open, colorVar) => ({
-    width: 320, height: 200, borderRadius: 8, overflow: 'hidden', position: 'relative',
-    border: `2px solid ${open ? colorVar : 'var(--border)'}`,
-    background: '#000',
-  });
-
   return (
     <div style={{
       flex: 1, display: 'flex', background: 'var(--bg)',
-      alignItems: 'center', justifyContent: 'center', gap: 20,
-      padding: 16, overflow: 'auto', flexWrap: 'wrap',
+      alignItems: 'flex-start', gap: 20,
+      padding: 16, overflow: 'auto',
     }}>
-      {/* Preview screen */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+      {/* Preview screen — operator's editor column, fixed width outside the output grid */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, width: 340, flexShrink: 0 }}>
         <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
           Preview
         </div>
@@ -205,7 +302,7 @@ export default function PreviewArea() {
                 background: bgToCss(currentItem.background),
                 border: '1px solid rgba(255,255,255,0.2)',
               }} />
-              <span style={{ flex: 1, textAlign: 'left' }}>Item Background</span>
+              <span style={{ flex: 1, textAlign: 'left' }}>Screen Background</span>
               <span style={{ fontSize: 10 }}>{showBgPicker ? '▲' : '▼'}</span>
             </button>
             {showBgPicker && (
@@ -224,137 +321,57 @@ export default function PreviewArea() {
         )}
       </div>
 
-      {/* Program output monitor */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {presentationOpen && (
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-          )}
-          <span style={{ color: presentationOpen ? 'var(--green)' : 'var(--text-muted)' }}>
-            {presentationOpen ? 'Program live' : 'Program (offline)'}
-          </span>
-        </div>
-        <div style={liveBox(presentationOpen, 'var(--green)')}>
-          {isBlackout ? (
-            <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>BLACKOUT</span>
-            </div>
-          ) : isClear ? (
-            <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>CLEAR</span>
-            </div>
-          ) : liveProgram && liveProgram.item ? (
-            <SlideRenderer slide={liveProgram} item={liveProgram.item} scale={0.28} />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1117' }}>
-              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>No output</span>
-            </div>
-          )}
-        </div>
-        {liveProgram && (
-          <div style={{ fontSize: 11, color: 'var(--green)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            ● {liveProgram.label} — {liveProgram.item?.title}
-          </div>
-        )}
-      </div>
-
-      {/* Available screens */}
-      {displays.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 260, flexShrink: 0 }}>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Screens
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {displayOutputs.map(({ display, output }) => {
-              const title = output ? `${output.title} (${output.role})` : display.label;
-              const slide = output ? resolveOutputSlide(output) : null;
-              const subtitle = output ? `Screen ${display.index + 1}` : `Screen ${display.index + 1} · no output`;
-              return (
-                <div key={display.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)', width: 260 }}>
-                  <div style={{ padding: '7px 10px', display: 'flex', alignItems: 'center', gap: 8, background: '#0f1218', minWidth: 0 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</div>
-                    </div>
-                    {display.isPrimary && <div style={{ fontSize: 10, color: 'var(--text-dim)', flexShrink: 0 }}>Primary</div>}
-                  </div>
-                  <div style={{ width: '100%', height: 140, position: 'relative', overflow: 'hidden' }}>
-                    {slide && slide.item ? (
-                      <SlideRenderer slide={slide} item={slide.item} scale={0.18} />
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-                        {output ? 'Waiting for content' : 'No output assigned'}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: 260, flexShrink: 0 }}>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          Role outputs
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {builtInRoles.map((roleMeta) => {
-            const slide = resolveRoleSlide(roleMeta.id);
+      {/* Output monitors — uniform 3-column grid so every screen lines up consistently */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, minmax(220px, 1fr))', gap: 12,
+        }}>
+          {/* Physical screens */}
+          {displayOutputs.map(({ display, output }) => {
+            const slide = output ? resolveOutputSlide(output) : null;
             return (
-              <div key={roleMeta.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#090b10', border: '1px solid var(--border)', width: 260 }}>
-                <div style={{ padding: '7px 10px', background: '#0f1218', minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{roleMeta.label}</div>
-                  <div style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {slide?.item?.title || 'No active content'}
-                  </div>
-                </div>
-                <div style={{ width: '100%', height: 140, position: 'relative', overflow: 'hidden' }}>
-                  {slide && slide.item ? (
-                    <SlideRenderer slide={slide} item={slide.item} scale={0.18} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>
-                      Waiting for role content
-                    </div>
-                  )}
-                </div>
-              </div>
+              <MonitorCard
+                key={display.id}
+                title={output ? output.title : display.label}
+                subtitle={output ? `${display.label}${display.isPrimary ? ' · Primary' : ''}` : `${display.label} · no output`}
+                accent="var(--cyan)"
+                live={!!output}
+              >
+                <MonitorBody
+                  slide={slide}
+                  isBlackout={isBlackout}
+                  isClear={isClear}
+                  emptyLabel={output ? 'Waiting for content' : 'No output assigned'}
+                />
+              </MonitorCard>
+            );
+          })}
+
+          {/* Every other open output, in the order it was created */}
+          {remainingOutputs.map((output) => {
+            const slide = resolveOutputSlide(output);
+            return (
+              <MonitorCard
+                key={output.id}
+                title={output.title}
+                subtitle={slide?.item?.title || 'No active content'}
+                accent={ROLE_TILE_COLORS[output.role] || 'var(--accent)'}
+                live={!!slide}
+              >
+                {output.role === 'confidence' ? (
+                  <ScaledConfidencePreview slide={slide} nextSlide={liveNextSlide} isBlackout={isBlackout} />
+                ) : (
+                  <MonitorBody slide={slide} isBlackout={isBlackout} isClear={isClear} emptyLabel="Waiting for content" />
+                )}
+              </MonitorCard>
             );
           })}
         </div>
-      </div>
 
-      {/* Stage output monitor */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        <div style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-          {stageOpen && (
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--purple)', display: 'inline-block', animation: 'pulse 1.5s infinite' }} />
-          )}
-          <span style={{ color: stageOpen ? 'var(--purple)' : 'var(--text-muted)' }}>
-            {stageOpen ? 'Stage live' : 'Stage (offline)'}
-            {stageMirrorProgram && <span style={{ marginLeft: 6, fontSize: 10, color: 'var(--text-dim)' }}>(mirrored)</span>}
-          </span>
-        </div>
-        <div style={liveBox(stageOpen, 'var(--purple)')}>
-          {isBlackout ? (
-            <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>BLACKOUT</span>
-            </div>
-          ) : isClear ? (
-            <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 12 }}>CLEAR</span>
-            </div>
-          ) : effectiveStage && effectiveStage.item ? (
-            <SlideRenderer slide={effectiveStage} item={effectiveStage.item} scale={0.28} />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0d1117' }}>
-              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12 }}>No output</span>
-            </div>
-          )}
-        </div>
-        {effectiveStage && (
-          <div style={{ fontSize: 11, color: 'var(--purple)', maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            ● {effectiveStage.label} — {effectiveStage.item?.title}
+        {/* Transport controls for a live local video background on Program */}
+        {liveVideoBg && !isBlackout && (
+          <div style={{ marginTop: 12, maxWidth: 320 }}>
+            <VideoControls liveVideo={liveVideoBg} sendVideoControl={sendVideoControl} />
           </div>
         )}
       </div>

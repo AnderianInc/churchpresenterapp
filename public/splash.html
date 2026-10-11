@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Church Presenter</title>
+    <style>
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif;
+      }
+      .wrap {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        -webkit-user-select: none;
+        user-select: none;
+        /* Let the user drag the frameless splash if needed */
+        -webkit-app-region: drag;
+      }
+      img {
+        width: 74%;
+        max-width: 560px;
+        height: auto;
+        -webkit-user-drag: none;
+      }
+      .bar {
+        margin-top: 8px;
+        width: 180px;
+        height: 4px;
+        border-radius: 999px;
+        background: #e6e8ec;
+        overflow: hidden;
+      }
+      .bar::after {
+        content: "";
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: #2f56d4; /* Church Presenter brand blue */
+        animation: slide 1.1s ease-in-out infinite;
+      }
+      @keyframes slide {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <img src="./splash-logo.png" alt="Church Presenter" />
+      <div class="bar"></div>
+    </div>
+  </body>
+</html>

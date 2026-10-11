@@ -157,6 +157,14 @@ IPC channels:
 
 ## Remaining Work
 
+### Current implementation checklist
+
+- [x] **Live-source state propagation** — the selected camera/stream source is now persisted and rebroadcast with output-state payloads so output windows can restore the active live source on open and refresh.
+- [x] **Canonical source model** — `normalizeLiveSource()` and `buildLiveSourceSlide()` now define the authoritative metadata contract for camera, Desktop capture, and stream sources.
+- [x] **Schedule-level media-source integration** — the selected live source is handled as a canonical media-source object and can be sent through the same live-source path used to route camera/stream content to outputs.
+- [x] **Social-stream decoupling** — standalone RTMP/social streaming remains available without requiring the dedicated stream window to be the output source-of-truth.
+- [x] **End-to-end validation** — the source routing and stream-output relay regressions were verified with the IPC and multi-output test suite.
+
 ### P0 — Identity & Branding ✅ Complete
 
 - [x] Rename app identity in `package.json`:

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
 import { bgToCss } from './BackgroundPicker';
+import CameraBackground from './CameraBackground';
 
 /**
  * Renders a single slide for preview thumbnails, live output, and stage views.
@@ -21,6 +22,10 @@ function SlideRenderer({
   iframeRef: externalIframeRef,
   videoLoop = true,
   videoBrightness,
+  // Opt a non-fullscreen caller (e.g. a small, bounded set of console monitor
+  // tiles) into a real live camera feed instead of the static name placeholder —
+  // used sparingly to avoid opening the camera once per thumbnail on screen.
+  allowLiveCamera = false,
 }) {
   // Per-slide background overrides item-level background
   const effectiveBg = slide?.background || item?.background;
@@ -46,6 +51,17 @@ function SlideRenderer({
   const [videoError, setVideoError] = useState(null);
   useEffect(() => { setVideoError(null); }, [videoSrc]);
 
+  // Internal video ref — merged with external if provided
+  const internalVideoRef = useRef(null);
+
+  // Auto-recovery: background videos can silently freeze (decoder stall, a
+  // dropped media:// stream) with no error event, which previously forced an app
+  // restart. A watchdog detects a frozen frame and transient errors, then reloads
+  // the element and resumes where it left off. Only truly fatal cases (unsupported
+  // codec, or repeated failed recoveries) surface the error overlay.
+  const recoverRef = useRef(null);
+  const fatalMsgRef = useRef('Video playback stalled repeatedly. Re-import the file or convert it to H.264 MP4 / VP9 WebM.');
+
   const handleVideoError = (e) => {
     const code = e.target?.error?.code;
     const messages = {
@@ -54,11 +70,72 @@ function SlideRenderer({
       3: 'Video could not be decoded — file may be corrupt.',
       4: 'Video format / codec not supported. Convert the file to H.264 MP4 or VP9 WebM and re-import.',
     };
-    setVideoError(messages[code] || 'Unknown video error.');
+    // Unsupported codec will never recover — show immediately.
+    if (code === 4) { setVideoError(messages[4]); return; }
+    // Transient errors (abort/network/decode): remember the message, then try to
+    // recover rather than giving up on the first blip.
+    fatalMsgRef.current = messages[code] || 'Video playback error.';
+    recoverRef.current?.('error');
   };
 
-  // Internal video ref — merged with external if provided
-  const internalVideoRef = useRef(null);
+  // Watchdog + recovery driver — active only while a video background is mounted.
+  useEffect(() => {
+    if (bgType !== 'video' || !videoSrc) return undefined;
+    const video = internalVideoRef.current;
+    if (!video) return undefined;
+
+    let disposed = false;
+    let attempts = 0;
+    let lastTime = -1;
+    let frozenTicks = 0;
+
+    const tryRecover = () => {
+      if (disposed || video.paused) return;
+      if (attempts >= 6) { setVideoError(fatalMsgRef.current); return; }
+      attempts += 1;
+      const resumeAt = video.currentTime || 0;
+      const onReady = () => {
+        video.removeEventListener('loadeddata', onReady);
+        try {
+          if (resumeAt > 0 && resumeAt < (video.duration || Infinity)) video.currentTime = resumeAt;
+        } catch (_) {}
+        if (!video.paused) video.play().catch(() => {});
+      };
+      try {
+        video.addEventListener('loadeddata', onReady);
+        video.load();
+        if (!video.paused) video.play().catch(() => {});
+      } catch (_) {}
+    };
+    recoverRef.current = tryRecover;
+
+    const onPlaying = () => { attempts = 0; frozenTicks = 0; setVideoError(null); };
+    const onStalled = () => { if (!video.paused) tryRecover(); };
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('stalled', onStalled);
+
+    const watchdog = setInterval(() => {
+      if (disposed) return;
+      // Only judge "frozen" when the element believes it is actively playing.
+      if (video.paused || video.ended || video.readyState < 2) { lastTime = video.currentTime; frozenTicks = 0; return; }
+      if (Math.abs(video.currentTime - lastTime) < 0.01) {
+        frozenTicks += 1;
+        if (frozenTicks >= 2) { frozenTicks = 0; tryRecover(); } // ~4s with no progress
+      } else {
+        frozenTicks = 0;
+        if (attempts > 0) attempts = 0; // real progress clears the recovery budget
+      }
+      lastTime = video.currentTime;
+    }, 2000);
+
+    return () => {
+      disposed = true;
+      recoverRef.current = null;
+      clearInterval(watchdog);
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('stalled', onStalled);
+    };
+  }, [bgType, videoSrc]);
   useEffect(() => {
     if (externalVideoRef) {
       if (typeof externalVideoRef === 'function') externalVideoRef(internalVideoRef.current);
@@ -68,6 +145,13 @@ function SlideRenderer({
   // video element is mounted so we re-sync whenever the background type changes too.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgType, externalVideoRef]);
+
+  useEffect(() => {
+    if (bgType !== 'video' || !internalVideoRef.current) return;
+    const video = internalVideoRef.current;
+    video.pause();
+    try { video.currentTime = 0; } catch (_) {}
+  }, [bgType, videoSrc]);
 
   // Internal iframe ref — merged with external if provided
   const internalIframeRef = useRef(null);
@@ -93,7 +177,11 @@ function SlideRenderer({
     position: 'relative',
   };
 
-  const dimLevel = videoBrightness ?? 0.45;
+  // Per-background brightness (stored on video backgrounds via the picker) takes
+  // precedence, then an explicit prop override, then the default dim level.
+  const dimLevel = effectiveBg?.brightness ?? videoBrightness ?? 0.45;
+  // Live camera defaults to full brightness (not the darker video dim default).
+  const cameraBrightness = effectiveBg?.brightness ?? 1;
 
   return (
     <div style={containerStyle}>
@@ -128,7 +216,6 @@ function SlideRenderer({
         <>
           <video
             ref={internalVideoRef}
-            autoPlay
             muted
             loop={shouldLoopVideo}
             playsInline
@@ -167,6 +254,27 @@ function SlideRenderer({
             </div>
           )}
         </>
+      )}
+
+      {/* Live camera background
+            fullscreen (real outputs) → live getUserMedia feed
+            otherwise (previews/thumbnails) → static placeholder so the operator
+            window never opens the camera dozens of times (loop prevention) */}
+      {bgType === 'camera' && (
+        (fullscreen || allowLiveCamera) ? (
+          <CameraBackground deviceId={effectiveBg.value} brightness={cameraBrightness} />
+        ) : (
+          <div style={{
+            position: 'absolute', inset: 0, background: '#0a0d14',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 6, color: 'rgba(255,255,255,0.5)',
+          }}>
+            <span style={{ fontSize: `${28 * scale + 10}px` }}>📷</span>
+            <span style={{ fontSize: `${11 * scale + 8}px`, fontFamily: 'Inter, sans-serif' }}>
+              {effectiveBg.name || 'Live Camera'}
+            </span>
+          </div>
+        )
       )}
 
       {/* YouTube background

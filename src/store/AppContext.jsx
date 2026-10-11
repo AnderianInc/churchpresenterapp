@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo, createContext, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { buildScriptureLowerThird } from '../utils/lowerThird';
 import { storage, migrateLegacyStorage, validateSongsArray, validateScheduleArray, validateSettings } from './persistence';
 import defaultSongs from '../data/defaultSongs';
 import { writeLiveState } from './liveStateSync';
@@ -7,6 +8,60 @@ import { writeLiveState } from './liveStateSync';
 // Single canonical channel name and payload wrapper used by sender AND all receivers
 export const BROADCAST_CHANNEL = 'cp_presentation';
 export const makeBroadcastMsg = (type, payload) => ({ type, payload });
+
+export function normalizeLiveSource(source = {}) {
+  return {
+    sourceType: source?.sourceType || 'camera',
+    sourceId: source?.sourceId ?? source?.cameraDeviceId ?? null,
+    label: source?.label || 'Camera',
+    cameraDeviceId: source?.cameraDeviceId ?? null,
+    captureSourceId: source?.captureSourceId ?? null,
+    ...source,
+  };
+}
+
+export function buildLiveSourceSlide(source) {
+  const liveSource = normalizeLiveSource(source);
+  const bgValue = liveSource.cameraDeviceId || liveSource.captureSourceId || liveSource.sourceId || 'live-source';
+
+  return {
+    id: `live-source-${liveSource.sourceType}-${liveSource.sourceId || Date.now()}`,
+    sourceType: liveSource.sourceType,
+    sourceId: liveSource.sourceId,
+    label: liveSource.label,
+    type: 'live-source',
+    item: {
+      title: liveSource.label,
+      background: {
+        type: liveSource.sourceType === 'stream' ? 'stream' : 'camera',
+        value: bgValue,
+        name: liveSource.label,
+      },
+    },
+    // No overlay text on the live feed itself — Bible lower-thirds / custom text
+    // are a separate layer added in the next phase.
+    lines: '',
+  };
+}
+
+export function buildLiveSourceScheduleItem(source = {}) {
+  const liveSource = normalizeLiveSource(source);
+  const slide = buildLiveSourceSlide(liveSource);
+  return {
+    id: `live-source-item-${liveSource.sourceType}-${liveSource.sourceId || Date.now()}`,
+    type: 'live-source',
+    title: liveSource.label || 'Live Source',
+    sourceType: liveSource.sourceType,
+    liveSource,
+    slides: [slide],
+    background: {
+      type: liveSource.sourceType === 'stream' ? 'stream' : 'camera',
+      value: liveSource.cameraDeviceId || liveSource.captureSourceId || liveSource.sourceId || 'live-source',
+      name: liveSource.label || 'Live Source',
+    },
+    author: liveSource.sourceType === 'stream' ? 'Live feed' : 'Camera',
+  };
+}
 
 const AppContext = createContext(null);
 
@@ -24,16 +79,28 @@ export function AppProvider({ children }) {
   const [stageMirrorProgram, setStageMirrorProgram] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [isBlackout, setIsBlackout] = useState(false);
-  const [isClear, setIsClear] = useState(false);
+  const [isClear, setIsClear] = useState(false);          // hide foreground (text)
+  const [hideBackground, setHideBackground] = useState(false); // hide screen background, keep text
   const [presentationOpen, setPresentationOpen] = useState(false);
   const [stageOpen, setStageOpen] = useState(false);
   const [streamOpen, setStreamOpen] = useState(false);
+  const [selectedLiveSource, setSelectedLiveSource] = useState({
+    sourceType: 'camera',
+    sourceId: null,
+    label: 'Camera',
+    cameraDeviceId: null,
+    captureSourceId: null,
+  });
   const [lowerThird, setLowerThirdState] = useState({ active: false, text: '', label: '', source: '' });
   const [outputWindows, setOutputWindows] = useState([]);
   const [liveOutputs, setLiveOutputs] = useState({});
   const [liveRoleSlides, setLiveRoleSlides] = useState({});
   const [displays, setDisplays] = useState([]);
   const outputWindowRefs = useRef({});
+  // Output windows closed via stopLive() are "soft closed" — kept in outputWindows
+  // (isOpen:false) for reuse instead of deleted. Ids queued here tell the
+  // onOutputWindowClosed listener to mark-closed rather than remove.
+  const softClosingIdsRef = useRef(new Set());
   const [activeView, setActiveView] = useState('schedule');
   const [loaded, setLoaded] = useState(false);
   const [saveStatus, setSaveStatus] = useState('saved'); // 'saved' | 'saving' | 'error'
@@ -203,10 +270,17 @@ export function AppProvider({ children }) {
       window.electronAPI.onStageClosed(() => setStageOpen(false)),
       window.electronAPI.onStreamClosed(() => setStreamOpen(false)),
       window.electronAPI.onOutputWindowClosed((id) => {
-        setOutputWindows(prev => prev.filter(w => w.id !== id));
+        if (softClosingIdsRef.current.has(id)) {
+          softClosingIdsRef.current.delete(id);
+          setOutputWindows(prev => prev.map(w => w.id === id ? { ...w, isOpen: false, mediaSourceId: null } : w));
+        } else {
+          setOutputWindows(prev => prev.filter(w => w.id !== id));
+        }
       }),
     ];
-    window.electronAPI.getOutputWindows().then(setOutputWindows).catch(() => {});
+    window.electronAPI.getOutputWindows()
+      .then(windows => setOutputWindows(windows.map(w => ({ ...w, isOpen: true }))))
+      .catch(() => {});
     window.electronAPI.getDisplays().then(setDisplays).catch(() => {});
     // Check FFmpeg availability for social streaming
     window.electronAPI.checkFfmpeg().then(r => setFfmpegAvailable(r?.available ?? false)).catch(() => setFfmpegAvailable(false));
@@ -220,6 +294,35 @@ export function AppProvider({ children }) {
       outputWindowRefs.current = {};
     };
   }, [isElectron]);
+
+  // Restore previously-created (but not currently open) outputs from settings once,
+  // so outputs survive an app restart or a soft-close instead of vanishing.
+  const restoredSavedOutputsRef = useRef(false);
+  useEffect(() => {
+    if (!loaded || restoredSavedOutputsRef.current) return;
+    restoredSavedOutputsRef.current = true;
+    const saved = settings.savedOutputs;
+    if (!Array.isArray(saved) || saved.length === 0) return;
+    setOutputWindows(prev => {
+      const liveIds = new Set(prev.map(w => w.id));
+      const closedOnes = saved
+        .filter(w => w && w.id && !liveIds.has(w.id))
+        .map(w => ({ ...w, isOpen: false }));
+      return [...prev, ...closedOnes];
+    });
+  }, [loaded, settings.savedOutputs]);
+
+  // Persist output metadata (not isOpen — that's runtime-only) whenever outputs
+  // are created, renamed, moved, or deleted, so they survive across restarts.
+  const outputsSignatureRef = useRef('');
+  useEffect(() => {
+    if (!loaded) return;
+    const minimal = outputWindows.map(({ id, role, displayIdx, title }) => ({ id, role, displayIdx, title }));
+    const sig = JSON.stringify(minimal);
+    if (sig === outputsSignatureRef.current) return;
+    outputsSignatureRef.current = sig;
+    saveSettings({ savedOutputs: minimal });
+  }, [outputWindows, loaded, saveSettings]);
 
   // Song CRUD
   const addSong = useCallback((song) => {
@@ -245,7 +348,14 @@ export function AppProvider({ children }) {
     saveSchedule(newSch);
     setActiveScheduleIdx(newSch.length - 1);
     setActiveSlideIdx(0);
+    return entry;
   }, [schedule, saveSchedule, pushScheduleHistory]);
+
+  const addLiveSourceToSchedule = useCallback((source) => {
+    const liveSource = normalizeLiveSource(source);
+    const item = buildLiveSourceScheduleItem(liveSource);
+    return addToSchedule(item);
+  }, [addToSchedule]);
 
   const removeFromSchedule = useCallback((scheduleId) => {
     const idx = schedule.findIndex(s => s.scheduleId === scheduleId);
@@ -310,6 +420,7 @@ export function AppProvider({ children }) {
     setIsLive(false);
     setIsBlackout(false);
     setIsClear(false);
+    setHideBackground(false);
     if (isElectron) {
       window.electronAPI.sendSlideProgram(null);
       window.electronAPI.sendSlideStage(null);
@@ -392,6 +503,7 @@ export function AppProvider({ children }) {
           stageMirror: stageMirrorProgram,
           isBlackout,
           isClear,
+          hideBackground,
           outputs: liveOutputs,
           roleSlides: liveRoleSlides,
           nextSlide: liveNextSlide,
@@ -403,7 +515,7 @@ export function AppProvider({ children }) {
   // liveOutputs/liveRoleSlides intentionally omitted — adding them would
   // tear down and recreate the BroadcastChannel on every live state change
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, liveNextSlide]);
+  }, [isElectron, isOutputView, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, hideBackground, liveNextSlide]);
 
   const broadcast = useCallback((type, payload) => {
     broadcastRef.current?.postMessage(makeBroadcastMsg(type, payload));
@@ -416,11 +528,13 @@ export function AppProvider({ children }) {
       stageMirror: stageMirrorProgram,
       isBlackout,
       isClear,
+      hideBackground,
       outputs: { ...liveOutputs, ...(overrides.outputs || {}) },
       roleSlides: { ...liveRoleSlides, ...(overrides.roleSlides || {}) },
+      selectedLiveSource: selectedLiveSource || overrides.selectedLiveSource || null,
       ...overrides,
     });
-  }, [liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, liveOutputs, liveRoleSlides]);
+  }, [liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, hideBackground, liveOutputs, liveRoleSlides, selectedLiveSource]);
 
   const sendOutputState = useCallback((overrideProgram, overrideStage) => {
     if (!isElectron) return;
@@ -441,17 +555,41 @@ export function AppProvider({ children }) {
       stageMirror: stageMirrorProgram,
       isBlackout,
       isClear,
+      hideBackground,
       outputs,
       roleSlides: liveRoleSlides,
       nextSlide: liveNextSlide,
+      selectedLiveSource,
     });
-  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, outputWindows, liveOutputs, liveRoleSlides, liveNextSlide]);
+  }, [isElectron, liveProgram, liveStage, stageMirrorProgram, isBlackout, isClear, hideBackground, outputWindows, liveOutputs, liveRoleSlides, liveNextSlide, selectedLiveSource]);
+
+  const pushLowerThird = useCallback((data) => {
+    setLowerThirdState(data);
+    if (isElectron) {
+      window.electronAPI.sendLowerThird(data);
+    } else {
+      broadcast('lower-third', data);
+    }
+  }, [isElectron, broadcast]);
+
+  const sendStreamConfig = useCallback((config) => {
+    const normalised = normalizeLiveSource(config);
+    setSelectedLiveSource((prev) => ({ ...prev, ...normalised }));
+    if (isElectron) {
+      window.electronAPI.sendStreamConfig(normalised);
+    } else {
+      broadcast('stream-config', normalised);
+    }
+  }, [isElectron, broadcast]);
 
   const goLiveProgram = useCallback((slide) => {
+    const scriptureLowerThird = buildScriptureLowerThird(slide);
+    if (scriptureLowerThird) pushLowerThird(scriptureLowerThird);
+
     setLiveProgram(slide);
-    setIsLive(true);
     setIsBlackout(false);
     setIsClear(false);
+    setHideBackground(false);
     const newStage = stageMirrorProgram ? slide : liveStage;
     if (stageMirrorProgram) setLiveStage(slide);
     const stageWithNext = { ...newStage, nextSlide: liveNextSlide };
@@ -470,13 +608,12 @@ export function AppProvider({ children }) {
       broadcast('slide-program', slide ? { ...slide, _sentAt: sentAt } : slide);
       broadcast('slide-stage', stageWithNext ? { ...stageWithNext, _sentAt: sentAt } : stageWithNext);
     }
-  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState, liveNextSlide]);
+  }, [isElectron, broadcast, stageMirrorProgram, liveStage, persistBrowserLive, sendOutputState, liveNextSlide, pushLowerThird]);
 
   /** Send a different slide to the stage output (ignored while stage mirrors program) */
   const goLiveStage = useCallback((slide) => {
     if (stageMirrorProgram) return;
     setLiveStage(slide);
-    setIsLive(true);
     if (isElectron) {
       window.electronAPI.sendSlideStage(slide);
       sendOutputState(undefined, slide);
@@ -487,15 +624,18 @@ export function AppProvider({ children }) {
   }, [isElectron, broadcast, stageMirrorProgram, persistBrowserLive, sendOutputState]);
 
   const goLiveOutput = useCallback((idOrRole, slide) => {
+    const scriptureLowerThird = buildScriptureLowerThird(slide);
+    if (scriptureLowerThird) pushLowerThird(scriptureLowerThird);
+
     const isOpenOutput = outputWindows.some((output) => output.id === idOrRole);
     if (isOpenOutput) {
       setLiveOutputs((prev) => ({ ...prev, [idOrRole]: slide }));
     } else {
       setLiveRoleSlides((prev) => ({ ...prev, [idOrRole]: slide }));
     }
-    setIsLive(true);
     setIsBlackout(false);
     setIsClear(false);
+    setHideBackground(false);
     if (isElectron) {
       sendOutputState();
     } else {
@@ -507,9 +647,12 @@ export function AppProvider({ children }) {
         broadcast('output-role-target', { role: idOrRole, slide });
       }
     }
-  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast]);
+  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast, pushLowerThird]);
 
   const goLiveAll = useCallback((slide) => {
+    const scriptureLowerThird = buildScriptureLowerThird(slide);
+    if (scriptureLowerThird) pushLowerThird(scriptureLowerThird);
+
     const outputs = outputWindows.reduce((acc, output) => ({
       ...acc,
       [output.id]: slide,
@@ -524,9 +667,9 @@ export function AppProvider({ children }) {
       background: slide,
       confidence: slide,
     }));
-    setIsLive(true);
     setIsBlackout(false);
     setIsClear(false);
+    setHideBackground(false);
 
     const stageWithNext = { ...slide, nextSlide: liveNextSlide };
     if (isElectron) {
@@ -547,9 +690,19 @@ export function AppProvider({ children }) {
       Object.keys(outputs).forEach((id) => broadcast('output-target', { id, slide }));
       ['announcement', 'background', 'confidence'].forEach((role) => broadcast('output-role-target', { role, slide }));
     }
-  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast, liveNextSlide]);
+  }, [isElectron, outputWindows, persistBrowserLive, sendOutputState, broadcast, liveNextSlide, pushLowerThird]);
+
+  const goLiveSource = useCallback((source) => {
+    const safeSource = normalizeLiveSource(source);
+    setSelectedLiveSource(safeSource);
+    sendStreamConfig(safeSource);
+    goLiveProgram(buildLiveSourceSlide(safeSource));
+  }, [sendStreamConfig, goLiveProgram]);
 
   const goLive = goLiveProgram;
+
+  /** Marks the console as explicitly "live" — only called from the toolbar Go Live action, never from routing sends */
+  const markLive = useCallback(() => setIsLive(true), []);
 
   const updateStageMirror = useCallback((mirror) => {
     setStageMirrorProgram(mirror);
@@ -587,6 +740,51 @@ export function AppProvider({ children }) {
     }
   }, [isBlackout, isElectron, broadcast, persistBrowserLive, sendOutputState]);
 
+  /**
+   * End the live program — blanks all outputs, clears the live indicator, and
+   * closes any open output windows. Entries stay in outputWindows (isOpen:false)
+   * so they can be reopened later; only deleting from Output Manager removes them.
+   */
+  const stopLive = useCallback(() => {
+    setIsLive(false);
+    setIsBlackout(true);
+    if (isElectron) {
+      outputWindows.forEach((w) => {
+        if (w.isOpen !== false) {
+          softClosingIdsRef.current.add(w.id);
+          window.electronAPI.closeOutputWindow(w.id);
+        }
+      });
+      window.electronAPI.sendBlackout(true);
+      sendOutputState();
+    } else {
+      Object.entries(outputWindowRefs.current).forEach(([id, win]) => {
+        win?.close?.();
+        delete outputWindowRefs.current[id];
+      });
+      setOutputWindows(prev => prev.map(w => (w.isOpen !== false ? { ...w, isOpen: false } : w)));
+      persistBrowserLive({ isBlackout: true });
+      broadcast('blackout', true);
+    }
+  }, [isElectron, outputWindows, broadcast, persistBrowserLive, sendOutputState]);
+
+  /** Reopen a previously closed (but still saved) output window */
+  const reopenOutputWindow = useCallback(async (id) => {
+    const w = outputWindows.find(x => x.id === id);
+    if (!w) return;
+    if (isElectron) {
+      const result = await window.electronAPI.openOutputWindow({ id: w.id, role: w.role, displayIndex: w.displayIdx, title: w.title });
+      // Reopening spawns a brand-new native window, so its capture source id changes too.
+      setOutputWindows(prev => prev.map(x => x.id === id ? { ...x, isOpen: true, mediaSourceId: result?.mediaSourceId || x.mediaSourceId } : x));
+    } else {
+      const win = window.open(`/output?role=${encodeURIComponent(w.role)}&id=${encodeURIComponent(id)}`, id, 'width=1280,height=720');
+      if (win) {
+        outputWindowRefs.current[id] = win;
+        setOutputWindows(prev => prev.map(x => x.id === id ? { ...x, isOpen: true } : x));
+      }
+    }
+  }, [isElectron, outputWindows]);
+
   const toggleClear = useCallback(() => {
     const next = !isClear;
     setIsClear(next);
@@ -598,6 +796,20 @@ export function AppProvider({ children }) {
       broadcast('clear', next);
     }
   }, [isClear, isElectron, broadcast, persistBrowserLive, sendOutputState]);
+
+  // Hide the screen background (keep the text/foreground). Rides on the output-state
+  // payload for Electron (the debounced re-send propagates the change) and a
+  // dedicated broadcast for browser outputs.
+  const toggleHideBackground = useCallback(() => {
+    const next = !hideBackground;
+    setHideBackground(next);
+    if (isElectron) {
+      sendOutputState();
+    } else {
+      persistBrowserLive({ hideBackground: next });
+      broadcast('hide-background', next);
+    }
+  }, [hideBackground, isElectron, broadcast, persistBrowserLive, sendOutputState]);
 
   const openPresentation = useCallback(async (displayIdx = 1) => {
     if (isElectron) {
@@ -644,22 +856,6 @@ export function AppProvider({ children }) {
     setStreamOpen(false);
   }, [isElectron]);
 
-  const pushLowerThird = useCallback((data) => {
-    setLowerThirdState(data);
-    if (isElectron) {
-      window.electronAPI.sendLowerThird(data);
-    } else {
-      broadcast('lower-third', data);
-    }
-  }, [isElectron, broadcast]);
-
-  const sendStreamConfig = useCallback((config) => {
-    if (isElectron) {
-      window.electronAPI.sendStreamConfig(config);
-    } else {
-      broadcast('stream-config', config);
-    }
-  }, [isElectron, broadcast]);
 
   const updateDisplayLabel = useCallback((displayIdx, label) => {
     const newLabels = { ...(settings.displayLabels || {}) };
@@ -685,11 +881,15 @@ export function AppProvider({ children }) {
 
   const createOutputWindow = useCallback(async ({ role, displayIdx = 1, title }) => {
     const id = uuidv4();
-    const windowData = { id, role, displayIdx, title: title || role };
+    const windowData = { id, role, displayIdx, title: title || role, isOpen: true };
     setOutputWindows(prev => [...prev, windowData]);
 
     if (isElectron) {
-      await window.electronAPI.openOutputWindow({ id, role, displayIndex: displayIdx, title: windowData.title });
+      const result = await window.electronAPI.openOutputWindow({ id, role, displayIndex: displayIdx, title: windowData.title });
+      if (result?.mediaSourceId) {
+        windowData.mediaSourceId = result.mediaSourceId;
+        setOutputWindows(prev => prev.map(w => w.id === id ? { ...w, mediaSourceId: result.mediaSourceId } : w));
+      }
       sendOutputState();
     } else {
       const win = window.open(`/output?role=${encodeURIComponent(role)}&id=${encodeURIComponent(id)}`, id, 'width=1280,height=720');
@@ -715,6 +915,16 @@ export function AppProvider({ children }) {
     await window.electronAPI.updateOutputWindowRole({ id, role, title: role });
   }, [isElectron]);
 
+  // Rename an output's user-facing title without changing its role/behaviour.
+  const renameOutputWindow = useCallback(async (id, rawTitle) => {
+    const w = outputWindows.find(x => x.id === id);
+    if (!w) return;
+    const title = (rawTitle || '').trim() || w.role;
+    setOutputWindows(prev => prev.map(x => x.id === id ? { ...x, title } : x));
+    if (isElectron) await window.electronAPI.updateOutputWindowRole({ id, role: w.role, title });
+  }, [isElectron, outputWindows]);
+
+  /** Permanently delete an output — closes its window (if open) and removes it from the saved list. */
   const closeOutputWindow = useCallback(async (id) => {
     setOutputWindows(prev => prev.filter(w => w.id !== id));
     setLiveOutputs(prev => {
@@ -730,6 +940,21 @@ export function AppProvider({ children }) {
         win.close();
         delete outputWindowRefs.current[id];
       }
+    }
+  }, [isElectron]);
+
+  /** Close an output's window but keep it saved in outputWindows (isOpen:false) for later reuse. */
+  const closeOutputWindowOnly = useCallback(async (id) => {
+    if (isElectron) {
+      softClosingIdsRef.current.add(id);
+      await window.electronAPI.closeOutputWindow(id);
+    } else {
+      const win = outputWindowRefs.current[id];
+      if (win) {
+        win.close();
+        delete outputWindowRefs.current[id];
+      }
+      setOutputWindows(prev => prev.map(w => w.id === id ? { ...w, isOpen: false } : w));
     }
   }, [isElectron]);
 
@@ -792,13 +1017,31 @@ export function AppProvider({ children }) {
 
   // Re-broadcast output state when window configuration or routing changes.
   // Debounced so rapid state transitions (e.g. schedule load) don't spam IPC.
+  // Only the operator (main) window may push output state — output/stream/stage
+  // windows mount the same AppProvider but with empty live state, so letting them
+  // run this would blank every other screen the moment one of them opens.
   const sendOutputStateDebounceRef = useRef(null);
   useEffect(() => {
-    if (!isElectron) return;
+    if (!isElectron || isOutputView) return;
     clearTimeout(sendOutputStateDebounceRef.current);
     sendOutputStateDebounceRef.current = setTimeout(() => sendOutputState(), 50);
     return () => clearTimeout(sendOutputStateDebounceRef.current);
-  }, [isElectron, sendOutputState]);
+  }, [isElectron, isOutputView, sendOutputState]);
+
+  // When a newly-opened output window requests the current state, the operator
+  // re-pushes everything so the new window populates immediately — without this,
+  // it would stay blank until the next slide change.
+  useEffect(() => {
+    if (!isElectron || isOutputView) return undefined;
+    return window.electronAPI?.onRequestOutputState?.(() => {
+      sendOutputState();
+      if (liveProgram) window.electronAPI.sendSlideProgram(liveProgram);
+      const stagePayload = stageMirrorProgram ? liveProgram : liveStage;
+      if (stagePayload) window.electronAPI.sendSlideStage({ ...stagePayload, nextSlide: liveNextSlide });
+      window.electronAPI.sendBlackout(isBlackout);
+      window.electronAPI.sendClear(isClear);
+    });
+  }, [isElectron, isOutputView, sendOutputState, liveProgram, liveStage, stageMirrorProgram, liveNextSlide, isBlackout, isClear]);
 
   return (
     <AppContext.Provider value={{
@@ -810,12 +1053,14 @@ export function AppProvider({ children }) {
       liveStage,
       liveOutputs,
       liveRoleSlides,
+      liveNextSlide,
       stageMirrorProgram,
       setStageMirrorProgram: updateStageMirror,
-      isLive, isBlackout, isClear,
+      isLive, isBlackout, isClear, hideBackground,
       presentationOpen, stageOpen,
       streamOpen, lowerThird,
-      displays, outputWindows, createOutputWindow, moveOutputWindow, updateOutputWindowRole, closeOutputWindow,
+      selectedLiveSource, setSelectedLiveSource,
+      displays, outputWindows, createOutputWindow, moveOutputWindow, updateOutputWindowRole, renameOutputWindow, closeOutputWindow, closeOutputWindowOnly, reopenOutputWindow,
       saveSettings, updateDisplayLabel, saveRoutingPreset, loadRoutingPreset, deleteRoutingPreset,
       ffmpegAvailable,
       settingsOpen, setSettingsOpen,
@@ -832,11 +1077,12 @@ export function AppProvider({ children }) {
       recoveryData, setRecoveryData, restoreRecovery,
       undoSchedule, redoSchedule,
       addSong, updateSong, deleteSong,
-      addToSchedule, removeFromSchedule, updateScheduleItem, reorderSchedule, clearSchedule,
+      addToSchedule, addLiveSourceToSchedule, removeFromSchedule, updateScheduleItem, reorderSchedule, clearSchedule,
       saveServiceOrder, loadServiceOrder, deleteSavedService,
-      goLive, goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, toggleBlackout, toggleClear,
+      goLive, goLiveSource, goLiveProgram, goLiveStage, goLiveOutput, goLiveAll, markLive, stopLive, toggleBlackout, toggleClear, toggleHideBackground,
       openPresentation, closePresentation, openStage, closeStage,
       openStream, closeStream, pushLowerThird, sendStreamConfig,
+      selectedLiveSource,
       sendYouTubeControl,
       sendVideoControl,
       nextSlide, prevSlide,

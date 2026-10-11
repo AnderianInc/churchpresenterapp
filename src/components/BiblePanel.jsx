@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '../store/AppContext';
+import { buildScriptureLowerThird } from '../utils/lowerThird';
 import { v4 as uuidv4 } from 'uuid';
 import {
   QUICK_REFERENCES,
@@ -330,7 +331,7 @@ function BibleFolderPicker({ bibleXmlDir, onSetBibleXmlDir }) {
 // ── Main BiblePanel ───────────────────────────────────────────────────────────
 
 export default function BiblePanel() {
-  const { addToSchedule, goLiveProgram, settings, saveSettings } = useApp();
+  const { addToSchedule, goLiveProgram, pushLowerThird, settings, saveSettings } = useApp();
 
   // ── Translation data ──────────────────────────────────────────────────────
   const [onlineVersions, setOnlineVersions] = useState([]);
@@ -816,6 +817,7 @@ export default function BiblePanel() {
       lines: `${verse.text}\n\n— ${verse.reference} (${verse.version || 'Bible'})`,
     };
     const item = scriptureItem(verse.reference, verse.reference, verse.version || 'Bible');
+    pushLowerThird(buildScriptureLowerThird({ ...slide, item }));
     goLiveProgram({ ...slide, item });
   };
 
@@ -831,6 +833,7 @@ export default function BiblePanel() {
       ].filter(Boolean).join('\n\n'),
     };
     const item = scriptureItem(`${ref} (${verA}/${verB})`, ref, `${verA}/${verB}`, 32);
+    pushLowerThird(buildScriptureLowerThird({ ...slide, item }));
     goLiveProgram({ ...slide, item });
   };
 

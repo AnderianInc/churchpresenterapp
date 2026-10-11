@@ -6,10 +6,9 @@ build/
 config.local.js
 .env
 
-# Build resources — icons not committed (see build-resources/README.md for generation instructions)
-build-resources/icon.icns
-build-resources/icon.ico
-build-resources/icon.png
+# Note: build-resources/icon.{icns,ico,png} ARE committed — they are the app's
+# brand icons and CI needs them at build time. Regenerate with
+# `node scripts/generate-icons.js` after changing the logo.
 
 # Electron builder cache
 .electron-builder-cache/
