@@ -180,17 +180,28 @@ export class StreamCompositor {
       // alongside chromeMediaSource:'desktop' video reliably, so it's acquired
       // separately below (microphone), independent of the video source.
       try {
-        this.camStream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: mediaSourceId,
+        // Try the modern constraint syntax first (more reliable)
+        try {
+          this.camStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: mediaSourceId,
+              },
             },
-          },
-        });
+          });
+        } catch (legacyErr) {
+          // Fallback to sourceId constraint syntax (older Electron versions)
+          this.camStream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              sourceId: mediaSourceId,
+            },
+          });
+        }
       } catch (err) {
-        throw new Error(`Desktop capture failed (mediaSourceId may be stale): ${err.message}`);
+        throw new Error(`Desktop capture failed (mediaSourceId may be stale or invalid): ${err.message}`);
       }
     } else {
       // Legacy fallback: a raw camera device as the video source.

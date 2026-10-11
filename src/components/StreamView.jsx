@@ -65,15 +65,28 @@ export default function StreamView() {
 
       try {
         setCaptureError('');
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              chromeMediaSourceId: mediaSourceId,
+        let stream;
+        try {
+          // Try modern constraint syntax first
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: mediaSourceId,
+              },
             },
-          },
-        });
+          });
+        } catch (legacyErr) {
+          // Fallback: try sourceId constraint (older Electron versions)
+          console.warn('[StreamView] Modern constraint failed, trying fallback:', legacyErr.message);
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              sourceId: mediaSourceId,
+            },
+          });
+        }
         if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
         streamRef.current = stream;
         if (videoRef.current) {
@@ -82,7 +95,7 @@ export default function StreamView() {
       } catch (err) {
         if (!active) return;
         console.error('[StreamView] Capture error:', err);
-        setCaptureError(err.message || 'Failed to capture that output.');
+        setCaptureError(err.message || 'Could not start video source. Ensure the output window is open.');
       }
     }
 
