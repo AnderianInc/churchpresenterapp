@@ -6,13 +6,15 @@ import { BROADCAST_CHANNEL } from '../store/AppContext';
  *
  * Designed to be screen-shared into Zoom, Teams, OBS, etc.
  * Receives:
- *  - Camera device ID via IPC/BroadcastChannel → starts getUserMedia
+ *  - An output window's mediaSourceId via IPC/BroadcastChannel → captures that
+ *    output's own rendered content (not a camera) via getUserMedia desktop capture
  *  - Lower-third overlay data → shows text bar at bottom
  *  - Blackout flag → full black overlay
  */
 export default function StreamView() {
-  const [cameraDeviceId, setCameraDeviceId] = useState(null);
-  const [cameraError, setCameraError] = useState('');
+  const [mediaSourceId, setMediaSourceId] = useState(null);
+  const [sourceLabel, setSourceLabel] = useState('');
+  const [captureError, setCaptureError] = useState('');
   const [lowerThird, setLowerThird] = useState({ active: false, text: '', label: '', source: '' });
   const [isBlackout, setIsBlackout] = useState(false);
   const videoRef = useRef(null);
@@ -21,11 +23,13 @@ export default function StreamView() {
 
   // ── IPC / BroadcastChannel listeners ───────────────────────────────────────
   useEffect(() => {
+    const applyConfig = (config) => {
+      setMediaSourceId(config?.mediaSourceId || null);
+      setSourceLabel(config?.label || '');
+    };
     if (isElectron) {
       const offs = [
-        window.electronAPI.onReceiveStreamConfig(({ cameraDeviceId: id }) => {
-          setCameraDeviceId(id || null);
-        }),
+        window.electronAPI.onReceiveStreamConfig(applyConfig),
         window.electronAPI.onReceiveLowerThird((data) => setLowerThird(data)),
         window.electronAPI.onReceiveBlackout((v) => setIsBlackout(v)),
       ];
@@ -34,7 +38,7 @@ export default function StreamView() {
       const channel = new BroadcastChannel(BROADCAST_CHANNEL);
       channel.onmessage = (e) => {
         const { type, payload } = e.data || {};
-        if (type === 'stream-config') setCameraDeviceId(payload?.cameraDeviceId || null);
+        if (type === 'stream-config') applyConfig(payload);
         if (type === 'lower-third') setLowerThird(payload);
         if (type === 'blackout') setIsBlackout(payload);
       };
@@ -44,51 +48,51 @@ export default function StreamView() {
     }
   }, [isElectron]);
 
-  // ── Camera capture ──────────────────────────────────────────────────────────
+  // ── Output-window capture ─────────────────────────────────────────────────
   useEffect(() => {
     let active = true;
 
-    async function startCamera() {
-      // Stop any existing stream first
+    async function startCapture() {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(t => t.stop());
         streamRef.current = null;
       }
-      if (!cameraDeviceId) return;
+      if (!mediaSourceId) return;
+      if (!isElectron) {
+        setCaptureError('Output capture is only available in the desktop app.');
+        return;
+      }
 
-try {
-  setCameraError('');
-  let stream;
-  try {
-    // First attempt: preferred device with ideal (not exact) constraints
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { deviceId: { ideal: cameraDeviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false,
-    });
-  } catch (firstErr) {
-    console.warn('[StreamView] Preferred camera failed, falling back to any camera:', firstErr.message);
-    // Fallback: any available camera
-    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-  }
-  if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
-  streamRef.current = stream;
-  if (videoRef.current) {
-    videoRef.current.srcObject = stream;
-  }
-} catch (err) {
-  if (!active) return;
-  console.error('[StreamView] Camera error:', err);
-  setCameraError(err.message || 'Failed to access camera.');
-}
+      try {
+        setCaptureError('');
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            mandatory: {
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: mediaSourceId,
+            },
+          },
+        });
+        if (!active) { stream.getTracks().forEach(t => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        if (!active) return;
+        console.error('[StreamView] Capture error:', err);
+        setCaptureError(err.message || 'Failed to capture that output.');
+      }
     }
 
-    startCamera();
+    startCapture();
     return () => {
       active = false;
       streamRef.current?.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     };
-  }, [cameraDeviceId]);
+  }, [mediaSourceId, isElectron]);
 
   const showLowerThird = lowerThird?.active && lowerThird?.text;
 
@@ -109,8 +113,8 @@ try {
         }} />
       )}
 
-      {/* ── Video feed ─────────────────────────────────────────────────────── */}
-      {cameraDeviceId && !cameraError && (
+      {/* ── Captured output feed ──────────────────────────────────────────── */}
+      {mediaSourceId && !captureError && (
         <video
           ref={videoRef}
           autoPlay
@@ -120,16 +124,21 @@ try {
         />
       )}
 
-      {/* ── No-camera placeholder ──────────────────────────────────────────── */}
-      {(!cameraDeviceId || cameraError) && (
+      {/* ── No-source placeholder ────────────────────────────────────────── */}
+      {(!mediaSourceId || captureError) && (
         <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.25)', userSelect: 'none' }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>📡</div>
           <div style={{ fontSize: 18, fontWeight: 500 }}>Stream View</div>
           <div style={{ fontSize: 12, marginTop: 8, color: 'rgba(255,255,255,0.15)', maxWidth: 340, lineHeight: 1.6 }}>
-            {cameraError
-              ? `Camera error: ${cameraError}`
+            {captureError
+              ? `Capture error: ${captureError}`
               : 'Select a video source in the Stream panel, then share this window in Zoom or OBS.'}
           </div>
+        </div>
+      )}
+      {mediaSourceId && sourceLabel && !captureError && (
+        <div style={{ position: 'absolute', top: 12, left: 12, fontSize: 11, color: 'rgba(255,255,255,0.35)', zIndex: 5 }}>
+          {sourceLabel}
         </div>
       )}
 

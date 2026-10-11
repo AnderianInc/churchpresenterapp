@@ -98,6 +98,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // ── Media file persistence ─────────────────────────────────────────────────
   copyMediaFile:     (srcPath) => ipcRenderer.invoke('copy-media-file', srcPath),
 
+  // ── Backup / restore, version & updates ──────────────────────────────────────
+  exportBackup:    ()  => ipcRenderer.invoke('export-backup'),
+  importBackup:    ()  => ipcRenderer.invoke('import-backup'),
+  getAppVersion:   ()  => ipcRenderer.invoke('get-app-version'),
+  checkForUpdates: ()  => ipcRenderer.invoke('check-for-updates'),
+  restartApp:      ()  => ipcRenderer.invoke('restart-app'),
+
   // ── Local recording ────────────────────────────────────────────────────────
   saveRecording:        ({ buffer, filename, convertToMp4 }) =>
     ipcRenderer.invoke('save-recording', { buffer, filename, convertToMp4 }),

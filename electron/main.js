@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, ipcMain, screen, dialog, desktopCapturer, shell, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const zlib = require('zlib');
 const { pathToFileURL } = require('url');
 const { execSync, spawn } = require('child_process');
 const { VALIDATORS } = require('./validators.js');
@@ -41,12 +42,22 @@ if (process.platform === 'win32') {
 
 // Data directory
 const dataDir = path.join(app.getPath('userData'), 'data');
+const mediaDir = path.join(app.getPath('userData'), 'media');
+const backupsDir = path.join(app.getPath('userData'), 'backups');
 
 const files = {
   songs: path.join(dataDir, 'songs.json'),
   schedules: path.join(dataDir, 'schedules.json'),
   settings: path.join(dataDir, 'settings.json'),
 };
+
+// Every app-data folder name this project has ever shipped under. Used to recover
+// user data after an upgrade that changed where userData resolves to (e.g. the
+// app.name change from "church-presenter" → "Church Presenter"). Order is
+// preference when two legacy dirs both hold data; mtime still wins per-file.
+const LEGACY_APP_DIR_NAMES = ['Church Presenter', 'church-presenter', 'easyworship-clone', 'com.church.churchpresenter'];
+const MIGRATION_MARKER = path.join(dataDir, '.migrated-v2');
+const VERSION_FILE = path.join(dataDir, '.last-version');
 
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
@@ -58,47 +69,161 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
-/**
- * One-time migration: copy JSON files from the legacy "easyworship-clone" userData
- * directory to the new "church-presenter" directory.
- * Safe to call on every startup — skips files that already exist at the new path.
- */
-function migrateLegacyDataDir() {
-  const oldDataDir = path.join(
-    path.dirname(app.getPath('userData')),
-    'easyworship-clone',
-    'data'
-  );
-  if (!fs.existsSync(oldDataDir)) return;
+function readJsonSafe(filePath) {
+  try { return JSON.parse(fs.readFileSync(filePath, 'utf-8')); } catch { return undefined; }
+}
 
-  const filesToMigrate = ['songs.json', 'schedules.json', 'settings.json'];
+/**
+ * Is a data file's content effectively "empty" / untouched defaults? Such a file
+ * means the current install has never held real user data, so it is safe to
+ * overwrite with recovered data from a previous install.
+ */
+function isDefaultOrEmpty(key, data) {
+  if (data == null) return true;
+  try {
+    if (key === 'songs') {
+      if (!Array.isArray(data)) return true;
+      return data.length === 0 || JSON.stringify(data) === JSON.stringify(defaultSongs);
+    }
+    if (key === 'schedules') return !Array.isArray(data) || data.length === 0;
+    if (key === 'settings') return JSON.stringify(data) === JSON.stringify(FILE_DEFAULTS.settings());
+  } catch { return false; }
+  return false;
+}
+
+/** All existing legacy data dirs (siblings of the current userData), newest-first. */
+function candidateDataDirs() {
+  const appData = path.dirname(app.getPath('userData'));
+  const currentName = path.basename(app.getPath('userData'));
+  return LEGACY_APP_DIR_NAMES
+    .filter(n => n !== currentName)
+    .map(n => path.join(appData, n, 'data'))
+    .filter(d => { try { return fs.existsSync(d); } catch { return false; } });
+}
+
+/**
+ * One-time, data-loss-proof migration from any previous install folder.
+ *
+ * Runs once (guarded by a marker). For each data file, if the CURRENT file is
+ * missing or still at defaults, it is replaced with the newest non-default copy
+ * found in any legacy folder. Real current data is never clobbered, and the
+ * (default) file being replaced is backed up first. Also recovers media files.
+ */
+function migrateLegacyData() {
+  if (fs.existsSync(MIGRATION_MARKER)) return;
+
+  const sources = candidateDataDirs();
   let migrated = 0;
-  for (const fileName of filesToMigrate) {
-    const src = path.join(oldDataDir, fileName);
-    const dest = path.join(dataDir, fileName);
-    if (fs.existsSync(src) && !fs.existsSync(dest)) {
+
+  if (sources.length > 0) {
+    for (const [key, destPath] of Object.entries(files)) {
+      const fileName = path.basename(destPath);
+      const destExists = fs.existsSync(destPath);
+      const destData = destExists ? readJsonSafe(destPath) : undefined;
+      if (destExists && !isDefaultOrEmpty(key, destData)) continue; // keep real current data
+
+      // Choose the newest legacy copy that actually holds data.
+      let best = null, bestMtime = -1;
+      for (const dir of sources) {
+        const src = path.join(dir, fileName);
+        if (!fs.existsSync(src)) continue;
+        if (isDefaultOrEmpty(key, readJsonSafe(src))) continue;
+        let mtime = 0;
+        try { mtime = fs.statSync(src).mtimeMs; } catch { /* ignore */ }
+        if (mtime > bestMtime) { best = src; bestMtime = mtime; }
+      }
+      if (!best) continue;
+
       try {
-        fs.copyFileSync(src, dest);
-        console.info(`[migration] Copied ${fileName} from legacy data directory`);
+        if (destExists) {
+          const bdir = path.join(dataDir, 'pre-migration-backup');
+          if (!fs.existsSync(bdir)) fs.mkdirSync(bdir, { recursive: true });
+          fs.copyFileSync(destPath, path.join(bdir, fileName));
+        }
+        fs.copyFileSync(best, destPath);
         migrated++;
+        logger.info('migration', `Recovered ${fileName} from a previous install`, { source: best });
       } catch (err) {
-        console.warn(`[migration] Could not copy ${fileName}:`, err.message);
+        logger.warn('migration', `Could not recover ${fileName}`, err.message);
       }
     }
+
+    // Recover media files missing from the current media dir.
+    try {
+      if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+      const appData = path.dirname(app.getPath('userData'));
+      const currentName = path.basename(app.getPath('userData'));
+      for (const n of LEGACY_APP_DIR_NAMES) {
+        if (n === currentName) continue;
+        const legacyMedia = path.join(appData, n, 'media');
+        if (!fs.existsSync(legacyMedia)) continue;
+        for (const f of fs.readdirSync(legacyMedia)) {
+          const src = path.join(legacyMedia, f);
+          const dest = path.join(mediaDir, f);
+          try {
+            if (fs.statSync(src).isFile() && !fs.existsSync(dest)) { fs.copyFileSync(src, dest); migrated++; }
+          } catch { /* skip this file */ }
+        }
+      }
+    } catch (err) {
+      logger.warn('migration', 'Media recovery failed', err.message);
+    }
   }
-  if (migrated > 0) {
-    console.info(`[migration] Migrated ${migrated} file(s) from easyworship-clone → church-presenter`);
+
+  try { fs.writeFileSync(MIGRATION_MARKER, new Date().toISOString()); } catch { /* ignore */ }
+  if (migrated > 0) logger.info('migration', `Recovered ${migrated} item(s) from a previous install`);
+}
+
+/**
+ * Snapshot the data files whenever the app version changes (first launch after an
+ * upgrade). Keeps the most recent MAX_VERSION_BACKUPS snapshots so a bad release
+ * can be rolled back by hand. Media is intentionally excluded (can be large).
+ */
+const MAX_VERSION_BACKUPS = 6;
+function backupOnVersionChange() {
+  let prev = null;
+  try { prev = fs.readFileSync(VERSION_FILE, 'utf-8').trim(); } catch { /* none */ }
+  const current = app.getVersion();
+  if (prev === current) return;
+
+  // Only back up if there is real data to protect (not a fresh install).
+  const hasData = Object.values(files).some(f => fs.existsSync(f));
+  if (prev && hasData) {
+    try {
+      if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const dir = path.join(backupsDir, `v${prev}-to-v${current}-${stamp}`);
+      fs.mkdirSync(dir, { recursive: true });
+      for (const f of Object.values(files)) {
+        if (fs.existsSync(f)) fs.copyFileSync(f, path.join(dir, path.basename(f)));
+      }
+      logger.info('backup', `Created pre-upgrade backup (${prev} → ${current})`, { dir });
+
+      // Prune old backups
+      const entries = fs.readdirSync(backupsDir)
+        .map(name => ({ name, full: path.join(backupsDir, name) }))
+        .filter(e => { try { return fs.statSync(e.full).isDirectory(); } catch { return false; } })
+        .sort((a, b) => fs.statSync(b.full).mtimeMs - fs.statSync(a.full).mtimeMs);
+      for (const stale of entries.slice(MAX_VERSION_BACKUPS)) {
+        try { fs.rmSync(stale.full, { recursive: true, force: true }); } catch { /* ignore */ }
+      }
+    } catch (err) {
+      logger.warn('backup', 'Pre-upgrade backup failed', err.message);
+    }
   }
+
+  try { fs.writeFileSync(VERSION_FILE, current); } catch { /* ignore */ }
 }
 
 function ensureDataDir() {
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-  migrateLegacyDataDir();
+  migrateLegacyData();
   Object.entries(files).forEach(([key, filePath]) => {
     if (!fs.existsSync(filePath)) {
       writeJsonFile(filePath, FILE_DEFAULTS[key]());
     }
   });
+  backupOnVersionChange();
 }
 
 let mainWindow = null;
@@ -345,12 +470,14 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
   const targetDisplay = displays[displayIndex] || displays[0];
   const { x, y, width, height } = targetDisplay.bounds;
 
+  const windowTitle = title || role;
+
   const outputWindow = new BrowserWindow({
     x, y, width, height,
     resizable: true,
     movable: true,
     frame: true,
-    title: '',
+    title: windowTitle,
     ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     backgroundColor: '#000000',
     webPreferences: {
@@ -360,6 +487,8 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
     },
   });
   outputWindow.setMenuBarVisibility(false);
+  // The React page's <title> would otherwise overwrite our chosen window title on load.
+  outputWindow.on('page-title-updated', (e) => e.preventDefault());
 
   const startUrl = isDev
     ? 'http://localhost:3000'
@@ -370,7 +499,11 @@ function createOutputWindow({ id, role, displayIndex = 1, title }) {
     : `#/output?role=${encodeURIComponent(role)}&id=${encodeURIComponent(id)}`;
 
   outputWindow.loadURL(startUrl + route);
-  outputWindows.set(id, { window: outputWindow, role, displayIndex, title: title || role });
+  // getMediaSourceId() lets the renderer capture THIS window's contents via
+  // getUserMedia({video: {mandatory: {chromeMediaSource: 'desktop', chromeMediaSourceId}}})
+  // — used so streaming can pick an output window as its video source instead of a camera.
+  const mediaSourceId = outputWindow.getMediaSourceId();
+  outputWindows.set(id, { window: outputWindow, role, displayIndex, title: windowTitle, mediaSourceId });
 
   outputWindow.on('closed', () => {
     outputWindows.delete(id);
@@ -388,7 +521,7 @@ function createStreamWindow(displayIndex = 0) {
     width: 1280,
     height: 720,
     frame: true,
-    title: '',
+    title: 'Stream View',
     ...(isMac ? { titleBarStyle: 'hidden' } : {}),
     backgroundColor: '#000000',
     webPreferences: {
@@ -398,6 +531,7 @@ function createStreamWindow(displayIndex = 0) {
     },
   });
   streamWindow.setMenuBarVisibility(false);
+  streamWindow.setTitle('Stream View');
 
   const startUrl = isDev
     ? 'http://localhost:3000/stream'
@@ -520,7 +654,8 @@ ipcMain.handle('close-stream', async () => {
 
 ipcMain.handle('open-output-window', async (_, payload) => {
   if (!outputWindows.has(payload.id)) createOutputWindow(payload);
-  return true;
+  const entry = outputWindows.get(payload.id);
+  return { mediaSourceId: entry?.mediaSourceId || null };
 });
 
 ipcMain.handle('close-output-window', async (_, id) => {
@@ -586,6 +721,7 @@ ipcMain.handle('get-output-windows', async () => {
     role: entry.role,
     displayIndex: entry.displayIndex,
     title: entry.title,
+    mediaSourceId: entry.mediaSourceId || null,
   }));
 });
 
@@ -665,10 +801,19 @@ ipcMain.on('request-output-state', () => {
   }
 });
 
-ipcMain.on('send-youtube-control', (_, payload) => {
+// Relay a media-control command to EVERY output surface — generic output windows
+// plus the dedicated program/stage windows — so playback controls work regardless
+// of which kind of output the video is showing on.
+function relayToAllOutputs(channel, payload) {
   for (const entry of outputWindows.values()) {
-    entry.window.webContents.send('receive-youtube-control', payload);
+    if (entry.window && !entry.window.isDestroyed()) entry.window.webContents.send(channel, payload);
   }
+  if (presentationWindow && !presentationWindow.isDestroyed()) presentationWindow.webContents.send(channel, payload);
+  if (stageWindow && !stageWindow.isDestroyed()) stageWindow.webContents.send(channel, payload);
+}
+
+ipcMain.on('send-youtube-control', (_, payload) => {
+  relayToAllOutputs('receive-youtube-control', payload);
 });
 
 // State relay: output window → main operator window
@@ -677,9 +822,7 @@ ipcMain.on('send-youtube-state', (_, payload) => {
 });
 
 ipcMain.on('send-video-control', (_, payload) => {
-  for (const entry of outputWindows.values()) {
-    entry.window.webContents.send('receive-video-control', payload);
-  }
+  relayToAllOutputs('receive-video-control', payload);
 });
 
 // State relay: output window → main operator window
@@ -694,6 +837,9 @@ ipcMain.on('send-lower-third', (_, data) => {
 
 ipcMain.on('send-stream-config', (_, config) => {
   if (streamWindow) streamWindow.webContents.send('receive-stream-config', config);
+  for (const entry of outputWindows.values()) {
+    if (entry.window && !entry.window.isDestroyed()) entry.window.webContents.send('receive-stream-config', config);
+  }
 });
 
 // IPC Handlers - RTMP / Social streaming
@@ -703,8 +849,12 @@ ipcMain.handle('check-ffmpeg', async () => {
 });
 
 ipcMain.handle('get-stream-sources', async () => {
-  const sources = await desktopCapturer.getSources({ types: ['window'] });
-  return sources.map(s => ({ id: s.id, name: s.name }));
+  const sources = await desktopCapturer.getSources({ types: ['window', 'screen'] });
+  return sources.map(s => ({
+    id: s.id,
+    name: s.name || (s.id.startsWith('screen:') ? 'Screen Capture' : 'Window Capture'),
+    type: s.id.startsWith('screen:') ? 'screen' : 'window',
+  }));
 });
 
 ipcMain.handle('set-rtmp-source', async (_, sourceId) => {
@@ -734,20 +884,27 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
       stopRtmpProcess(destId);
     }
 
+    // Input is a LIVE webm pipe from MediaRecorder — do NOT use -re (that throttles
+    // reading to native fps and backs up the pipe → ffmpeg exits with EIO/251).
+    // Generate PTS and read timestamps from the wall clock to tolerate the slightly
+    // irregular timing MediaRecorder produces.
     const args = [
-      '-re',
+      '-fflags', '+genpts',
+      '-use_wallclock_as_timestamps', '1',
       '-f', 'webm',
       '-i', 'pipe:0',
-      '-vcodec', 'libx264',
+      '-c:v', 'libx264',
       '-preset', 'ultrafast',
       '-tune', 'zerolatency',
+      '-profile:v', 'main',
+      '-pix_fmt', 'yuv420p',
       '-b:v', '2500k',
       '-maxrate', '2500k',
       '-bufsize', '5000k',
-      '-pix_fmt', 'yuv420p',
       '-g', '60',
       '-c:a', 'aac',
       '-b:a', '128k',
+      '-ar', '44100',
       '-f', 'flv',
       rtmpUrl,
     ];
@@ -758,9 +915,12 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
 
     rtmpProcesses.set(destId, proc);
     const startTime = Date.now();
+    let stderrTail = '';
 
     proc.stderr.on('data', (data) => {
       const output = data.toString();
+      // Keep the last ~2KB of ffmpeg log so we can explain a non-zero exit.
+      stderrTail = (stderrTail + output).slice(-2000);
       const bitrateMatch = output.match(/bitrate=\s*([\d.]+)kbits/);
       const bitrate = bitrateMatch ? parseFloat(bitrateMatch[1]) : null;
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
@@ -771,8 +931,13 @@ ipcMain.handle('start-rtmp', async (event, { destId, rtmpUrl }) => {
 
     proc.on('close', (code) => {
       rtmpProcesses.delete(destId);
+      if (code && code !== 0) {
+        logger.error('rtmp', `ffmpeg exited (code ${code})`, { tail: stderrTail.slice(-600) });
+      }
       if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('rtmp-status', { destId, type: 'closed', code });
+        // Pull a human-readable reason out of ffmpeg's log tail when it failed.
+        const reasonMatch = stderrTail.match(/(Connection refused|Operation not permitted|Server error|Input\/output error|Invalid data[^\n]*|No such file[^\n]*|Failed to [^\n]*|.+: not found)/i);
+        mainWindow.webContents.send('rtmp-status', { destId, type: 'closed', code, reason: reasonMatch ? reasonMatch[0] : null });
       }
     });
 
@@ -991,7 +1156,6 @@ ${transcript}`;
 // In the renderer, Electron's File objects expose a .path property.
 ipcMain.handle('copy-media-file', async (_, srcPath) => {
   if (!srcPath || typeof srcPath !== 'string') throw new Error('Invalid source path');
-  const mediaDir = path.join(app.getPath('userData'), 'media');
   if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
   const ext = path.extname(srcPath) || '.mp4';
   const destName = `${require('crypto').randomUUID()}${ext}`;
@@ -1000,6 +1164,178 @@ ipcMain.handle('copy-media-file', async (_, srcPath) => {
   // Use media:// scheme (registered above) so <video> gets proper byte-range
   // streaming support. pathToFileURL handles Windows backslash paths correctly.
   return pathToFileURL(destPath).href.replace(/^file:/, 'media:');
+});
+
+// ── Backup / Restore ─────────────────────────────────────────────────────────
+// A backup is a single gzip-compressed JSON file (.cpbackup) containing the three
+// data files plus (when not too large) the media folder, so a whole setup can be
+// moved to another machine or restored after a problem.
+
+const BACKUP_FORMAT = 'church-presenter-backup';
+const MAX_BACKUP_MEDIA_BYTES = 600 * 1024 * 1024; // skip media above this; too big to embed safely
+
+function dirSize(dir) {
+  let total = 0;
+  try {
+    for (const f of fs.readdirSync(dir)) {
+      try { const st = fs.statSync(path.join(dir, f)); if (st.isFile()) total += st.size; } catch { /* skip */ }
+    }
+  } catch { /* none */ }
+  return total;
+}
+
+ipcMain.handle('export-backup', async () => {
+  try {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Export Backup',
+      defaultPath: path.join(app.getPath('desktop'), `church-presenter-backup-${stamp}.cpbackup`),
+      filters: [{ name: 'Church Presenter Backup', extensions: ['cpbackup'] }],
+    });
+    if (canceled || !filePath) return { canceled: true };
+
+    const bundle = {
+      _format: BACKUP_FORMAT,
+      _version: 1,
+      appVersion: app.getVersion(),
+      exportedAt: new Date().toISOString(),
+      songs: readJsonSafe(files.songs) ?? FILE_DEFAULTS.songs(),
+      schedules: readJsonSafe(files.schedules) ?? FILE_DEFAULTS.schedules(),
+      settings: readJsonSafe(files.settings) ?? FILE_DEFAULTS.settings(),
+      media: [],
+    };
+
+    let mediaSkipped = false;
+    if (fs.existsSync(mediaDir) && dirSize(mediaDir) <= MAX_BACKUP_MEDIA_BYTES) {
+      for (const name of fs.readdirSync(mediaDir)) {
+        const full = path.join(mediaDir, name);
+        try {
+          if (fs.statSync(full).isFile()) bundle.media.push({ name, data: fs.readFileSync(full).toString('base64') });
+        } catch { /* skip file */ }
+      }
+    } else if (fs.existsSync(mediaDir) && dirSize(mediaDir) > 0) {
+      mediaSkipped = true;
+    }
+
+    const gz = zlib.gzipSync(Buffer.from(JSON.stringify(bundle)));
+    fs.writeFileSync(filePath, gz);
+    logger.info('backup', 'Exported backup', { path: filePath, mediaFiles: bundle.media.length, mediaSkipped });
+    return { ok: true, path: filePath, mediaFiles: bundle.media.length, mediaSkipped };
+  } catch (err) {
+    logger.error('backup', 'Export failed', err.message);
+    return { error: err.message };
+  }
+});
+
+ipcMain.handle('import-backup', async () => {
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Restore Backup',
+      properties: ['openFile'],
+      filters: [{ name: 'Church Presenter Backup', extensions: ['cpbackup'] }],
+    });
+    if (canceled || !filePaths?.[0]) return { canceled: true };
+
+    let bundle;
+    try {
+      bundle = JSON.parse(zlib.gunzipSync(fs.readFileSync(filePaths[0])).toString());
+    } catch {
+      return { error: 'This file is not a valid Church Presenter backup.' };
+    }
+    if (bundle?._format !== BACKUP_FORMAT) {
+      return { error: 'This file is not a valid Church Presenter backup.' };
+    }
+
+    // Safety: snapshot current data before overwriting it.
+    try {
+      if (!fs.existsSync(backupsDir)) fs.mkdirSync(backupsDir, { recursive: true });
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const safe = path.join(backupsDir, `pre-restore-${stamp}`);
+      fs.mkdirSync(safe, { recursive: true });
+      for (const f of Object.values(files)) {
+        if (fs.existsSync(f)) fs.copyFileSync(f, path.join(safe, path.basename(f)));
+      }
+    } catch (err) {
+      logger.warn('backup', 'Pre-restore snapshot failed', err.message);
+    }
+
+    if (bundle.songs !== undefined) writeJsonFile(files.songs, bundle.songs);
+    if (bundle.schedules !== undefined) writeJsonFile(files.schedules, bundle.schedules);
+    if (bundle.settings !== undefined) writeJsonFile(files.settings, bundle.settings);
+
+    let mediaRestored = 0;
+    if (Array.isArray(bundle.media) && bundle.media.length) {
+      if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+      for (const m of bundle.media) {
+        try {
+          if (m?.name && typeof m.data === 'string') {
+            fs.writeFileSync(path.join(mediaDir, m.name), Buffer.from(m.data, 'base64'));
+            mediaRestored++;
+          }
+        } catch { /* skip file */ }
+      }
+    }
+
+    logger.info('backup', 'Restored backup', { from: filePaths[0], mediaRestored });
+    return { ok: true, mediaRestored };
+  } catch (err) {
+    logger.error('backup', 'Restore failed', err.message);
+    return { error: err.message };
+  }
+});
+
+// ── Version + guided update check ──────────────────────────────────────────────
+
+ipcMain.handle('get-app-version', async () => app.getVersion());
+
+/** true when remote semver `a` is strictly newer than local `b` (prereleases rank below release). */
+function isNewerVersion(a, b) {
+  const parse = (v) => {
+    const [core, pre] = String(v).replace(/^v/, '').split('-');
+    const nums = core.split('.').map(n => parseInt(n, 10) || 0);
+    return { nums: [nums[0] || 0, nums[1] || 0, nums[2] || 0], pre: pre || '' };
+  };
+  const pa = parse(a), pb = parse(b);
+  for (let i = 0; i < 3; i++) {
+    if (pa.nums[i] > pb.nums[i]) return true;
+    if (pa.nums[i] < pb.nums[i]) return false;
+  }
+  // Same core version: a release (no prerelease tag) outranks a prerelease.
+  if (!pa.pre && pb.pre) return true;
+  if (pa.pre && !pb.pre) return false;
+  return pa.pre > pb.pre;
+}
+
+const GITHUB_RELEASES_API = 'https://api.github.com/repos/AnderianInc/churchpresenterapp/releases/latest';
+
+ipcMain.handle('check-for-updates', async () => {
+  const currentVersion = app.getVersion();
+  try {
+    const res = await net.fetch(GITHUB_RELEASES_API, {
+      headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'ChurchPresenter' },
+    });
+    if (!res.ok) {
+      // 404 is expected when the repo/releases are private or none published yet.
+      return { available: false, currentVersion, error: `GitHub returned ${res.status}` };
+    }
+    const data = await res.json();
+    const latestVersion = String(data.tag_name || '').replace(/^v/, '');
+    if (!latestVersion) return { available: false, currentVersion };
+    return {
+      available: isNewerVersion(latestVersion, currentVersion),
+      currentVersion,
+      latestVersion,
+      url: data.html_url || `https://github.com/AnderianInc/churchpresenterapp/releases/latest`,
+      notes: data.body || '',
+    };
+  } catch (err) {
+    return { available: false, currentVersion, error: err.message };
+  }
+});
+
+ipcMain.handle('restart-app', async () => {
+  app.relaunch();
+  app.exit(0);
 });
 
 // IPC - Save a local recording to disk via a native save dialog
