@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../store/AppContext';
 import { detectReferences } from '../utils/referenceDetector';
-
-const PLATFORM_COLORS = { facebook: '#1877F2', youtube: '#FF0000', instagram: '#E1306C', custom: '#888' };
-const PLATFORM_ICONS  = { facebook: '📘', youtube: '▶️', instagram: '📷', custom: '📡' };
 
 const MAX_TRANSCRIPT_CHARS = 4000;
 const AUTO_SUGGEST_WORDS   = 40;
@@ -392,7 +389,7 @@ export default function StreamPanel() {
     lowerThird, pushLowerThird, sendStreamConfig,
     currentItem, currentSlide,
     isBlackout, toggleBlackout,
-    settings, saveSettings, ffmpegAvailable, isElectron,
+    settings, saveSettings,
   } = useApp();
 
   const [previewStream, setPreviewStream] = useState(null);
@@ -402,16 +399,6 @@ export default function StreamPanel() {
   const [ltLabel, setLtLabel] = useState('');
   const [ltSource, setLtSource] = useState('');
   const previewRef = useRef(null);
-
-  // ── Social / RTMP streaming state ───────────────────────────────────────
-  const [isRtmpStreaming, setIsRtmpStreaming] = useState(false);
-  const [rtmpStatus, setRtmpStatus] = useState({});
-  const [rtmpError, setRtmpError] = useState('');
-  const recorderRef = useRef(null);
-  const captureStreamRef = useRef(null);
-  const rtmpDurationRef = useRef(null);
-  const [rtmpElapsed, setRtmpElapsed] = useState(0);
-  const destinations = useMemo(() => settings?.rtmpDestinations || [], [settings?.rtmpDestinations]);
 
   // ── Local recording state ────────────────────────────────────────────────
   const [isLocalRecording, setIsLocalRecording] = useState(false);
@@ -496,64 +483,6 @@ try {
   };
 
   useEffect(() => { if (!streamOpen) setActiveStreamDeviceId(null); }, [streamOpen]);
-
-  // ── RTMP status listener ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isElectron) return;
-    const handler = (data) => {
-      setRtmpStatus(prev => ({ ...prev, [data.destId]: data }));
-      if (data.type === 'error') setRtmpError(`Stream error: ${data.error}`);
-      if (data.type === 'closed' && data.code !== 0) setRtmpError(`FFmpeg exited (code ${data.code})`);
-    };
-    const off = window.electronAPI.onRtmpStatus(handler);
-    return off;
-  }, [isElectron]);
-
-  const startSocialStream = useCallback(async () => {
-    if (!isElectron) return;
-    setRtmpError('');
-    const activeDests = destinations.filter(d => d.enabled && d.streamKey.trim());
-    if (activeDests.length === 0) { setRtmpError('No destinations configured. Add a platform with a stream key.'); return; }
-    if (!streamOpen) { setRtmpError('Open the Stream Window first.'); return; }
-    try {
-      const sources = await window.electronAPI.getStreamSources();
-      const streamSrc = sources.find(s => s.name && s.name.includes('Stream View'));
-      if (!streamSrc) { setRtmpError('Stream window not found. Make sure it is open.'); return; }
-      await window.electronAPI.setRtmpSource(streamSrc.id);
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: { width: 1280, height: 720, frameRate: 30 }, audio: false });
-      captureStreamRef.current = stream;
-      for (const dest of activeDests) {
-        const result = await window.electronAPI.startRtmp({ destId: dest.id, rtmpUrl: dest.rtmpUrl + dest.streamKey });
-        if (result?.error) { setRtmpError(result.error === 'ffmpeg_not_found' ? 'FFmpeg not found. Install FFmpeg to enable streaming.' : result.error); return; }
-      }
-      const mimeType = bestWebmMimeType();
-      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
-      recorderRef.current = recorder;
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) e.data.arrayBuffer().then(buf => {
-          const chunk = new Uint8Array(buf);
-          for (const dest of activeDests) window.electronAPI.sendRtmpChunk(dest.id, chunk);
-        });
-      };
-      recorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); captureStreamRef.current = null; };
-      recorder.start(500);
-      setIsRtmpStreaming(true); setRtmpElapsed(0);
-      rtmpDurationRef.current = setInterval(() => setRtmpElapsed(s => s + 1), 1000);
-    } catch (err) { setRtmpError(err.message || 'Failed to start streaming.'); }
-  }, [isElectron, destinations, streamOpen]);
-
-  const stopSocialStream = useCallback(async (destId) => {
-    if (!isElectron) return;
-    if (destId) {
-      await window.electronAPI.stopRtmp(destId);
-    } else {
-      if (recorderRef.current) { try { recorderRef.current.stop(); } catch {} recorderRef.current = null; }
-      if (captureStreamRef.current) { captureStreamRef.current.getTracks().forEach(t => t.stop()); captureStreamRef.current = null; }
-      clearInterval(rtmpDurationRef.current);
-      await window.electronAPI.stopRtmp();
-      setIsRtmpStreaming(false); setRtmpStatus({}); setRtmpElapsed(0);
-    }
-  }, [isElectron]);
 
   // ── Local recording ──────────────────────────────────────────────────────
   const fmtDur = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
@@ -844,78 +773,13 @@ try {
         </div>
 
         {/* ── Stream controls ──────────────────────────────────────────── */}
-        <div style={{ padding: '10px 12px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '10px 12px' }}>
           <div style={sectionLabel}>Stream Controls</div>
           <button onClick={toggleBlackout} style={{ ...ghostBtn, width: '100%', background: isBlackout ? '#222' : 'transparent', color: isBlackout ? '#fff' : 'var(--text-muted)', border: isBlackout ? '1px solid #555' : '1px solid var(--border)' }}>
             ⬛ {isBlackout ? 'Remove Blackout' : 'Blackout Stream'}
           </button>
           <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 6, lineHeight: 1.5 }}>Blackout hides all content on the stream window instantly.</div>
         </div>
-
-        {/* ── Social Media Streaming (RTMP) ─────────────────────────────── */}
-        {isElectron && (
-          <div style={{ padding: '10px 12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <div style={sectionLabel}>Social Streaming</div>
-              {isRtmpStreaming && (
-                <span style={{ fontSize: 9, color: 'var(--green)', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 3, padding: '1px 6px', fontWeight: 700 }}>
-                  ● {Math.floor(rtmpElapsed / 60)}:{String(rtmpElapsed % 60).padStart(2, '0')}
-                </span>
-              )}
-            </div>
-
-            {ffmpegAvailable === false && (
-              <div style={{ fontSize: 10, color: 'var(--orange)', marginBottom: 8, padding: '5px 8px', background: 'rgba(249,115,22,0.08)', borderRadius: 5, border: '1px solid rgba(249,115,22,0.2)' }}>
-                ⚠ FFmpeg not found — configure in ⚙ Settings → Social Media
-              </div>
-            )}
-            {rtmpError && (
-              <div style={{ fontSize: 10, color: 'var(--red)', marginBottom: 8, padding: '5px 8px', background: 'rgba(239,68,68,0.08)', borderRadius: 5, border: '1px solid rgba(239,68,68,0.2)' }}>{rtmpError}</div>
-            )}
-
-            {destinations.length === 0 ? (
-              <div style={{ fontSize: 11, color: 'var(--text-dim)', lineHeight: 1.5, marginBottom: 8 }}>
-                No streaming destinations configured.<br />
-                Go to <strong style={{ color: 'var(--text-muted)' }}>⚙ Settings → Social Media</strong> to add Facebook, YouTube, or a custom RTMP endpoint.
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 10 }}>
-                {destinations.filter(d => d.enabled).map(dest => {
-                  const color = PLATFORM_COLORS[dest.platform] || '#888';
-                  const icon = PLATFORM_ICONS[dest.platform] || '📡';
-                  const status = rtmpStatus[dest.id];
-                  const isLive = isRtmpStreaming && (status?.type === 'progress' || !status);
-                  return (
-                    <div key={dest.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6, background: isLive ? color + '18' : 'rgba(255,255,255,0.03)', border: `1px solid ${isLive ? color + '55' : 'var(--border)'}` }}>
-                      <span style={{ fontSize: 13 }}>{icon}</span>
-                      <span style={{ flex: 1, fontSize: 11, color: 'var(--text)' }}>{dest.name}</span>
-                      {isLive && status?.bitrate > 0 && <span style={{ fontSize: 9, color, fontWeight: 700 }}>{Math.round(status.bitrate)}k</span>}
-                      {isLive && <span style={{ fontSize: 9, color: 'var(--green)', fontWeight: 700 }}>LIVE</span>}
-                    </div>
-                  );
-                })}
-                {destinations.filter(d => !d.enabled).length > 0 && (
-                  <div style={{ fontSize: 10, color: 'var(--text-dim)' }}>{destinations.filter(d => !d.enabled).length} destination(s) disabled — enable in ⚙ Settings → Social Media</div>
-                )}
-              </div>
-            )}
-
-            {destinations.length > 0 && (
-              isRtmpStreaming ? (
-                <button onClick={() => stopSocialStream()} style={{ ...primaryBtn, width: '100%', background: 'var(--red)' }}>⏹ Stop Social Streaming</button>
-              ) : (
-                <button onClick={startSocialStream}
-                  disabled={ffmpegAvailable === false || !streamOpen || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0}
-                  style={{ ...primaryBtn, width: '100%', background: 'linear-gradient(135deg, #1877F2 0%, #FF0000 50%, #E1306C 100%)', opacity: (ffmpegAvailable === false || !streamOpen || destinations.filter(d => d.enabled && d.streamKey?.trim()).length === 0) ? 0.45 : 1 }}
-                  title={!streamOpen ? 'Open the Stream Window first' : ''}
-                >▶ Go Live — Social</button>
-              )
-            )}
-            {destinations.length > 0 && !streamOpen && !isRtmpStreaming && (
-              <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 5 }}>Open the Stream Window first.</div>
-            )}
-          </div>
-        )}
       </div>
 
       <style>{`

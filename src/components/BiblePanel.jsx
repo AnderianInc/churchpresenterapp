@@ -331,6 +331,7 @@ function BibleFolderPicker({ bibleXmlDir, onSetBibleXmlDir }) {
 
 export default function BiblePanel() {
   const { addToSchedule, goLiveProgram, settings, saveSettings } = useApp();
+  const scriptureFontSize = settings?.scriptureFontSize ?? 38;
 
   // ── Translation data ──────────────────────────────────────────────────────
   const [onlineVersions, setOnlineVersions] = useState([]);
@@ -775,7 +776,7 @@ export default function BiblePanel() {
         lines: `${v.text}\n\n— ${v.reference} (${v.version || 'Bible'})`,
       })),
       background: { type: 'color', value: '#0a1a0f' },
-      textColor: '#ffffff', fontSize: 38, fontFamily: 'Georgia',
+      textColor: '#ffffff', fontSize: scriptureFontSize, fontFamily: 'Georgia',
     });
   };
 
@@ -796,13 +797,13 @@ export default function BiblePanel() {
         ].filter(Boolean).join('\n\n'),
       }],
       background: { type: 'color', value: '#0a1a0f' },
-      textColor: '#ffffff', fontSize: 32, fontFamily: 'Georgia',
+      textColor: '#ffffff', fontSize: scriptureFontSize - 6, fontFamily: 'Georgia',
     });
   };
 
   // Build the styling item every scripture slide shares so live output
   // renders with the same look-and-feel as a scheduled scripture.
-  const scriptureItem = (title, ref, ver, fontSize = 38) => ({
+  const scriptureItem = (title, ref, ver, fontSize = scriptureFontSize) => ({
     type: 'scripture', title, reference: ref, version: ver,
     background: { type: 'color', value: '#0a1a0f' },
     textColor: '#ffffff', fontSize, fontFamily: 'Georgia',
