@@ -21,6 +21,8 @@
  *   send-stream-config  → stream only             (receive-stream-config)
  */
 
+import { pickPreferredStreamSource } from '../utils/streamCapture';
+
 // ── Mirror of ipcMain.on relay handlers ───────────────────────────────────────
 //
 // Each function accepts a `windows` bag and the IPC payload, and returns an
@@ -74,6 +76,9 @@ function relayLowerThird(windows, data) {
 function relayStreamConfig(windows, config) {
   const calls = [];
   if (windows.streamWindow) calls.push({ target: 'stream', channel: 'receive-stream-config', payload: config });
+  for (const id of Object.keys(windows.outputWindows || {})) {
+    calls.push({ target: id, channel: 'receive-stream-config', payload: config });
+  }
   return calls;
 }
 
@@ -104,6 +109,21 @@ const noWindows = {
 };
 
 const slide = { id: 's1', lines: 'Amazing grace', item: { title: 'Amazing Grace' } };
+
+describe('pickPreferredStreamSource', () => {
+  it('prefers the Stream View window when it is available', () => {
+    const sources = [
+      { id: 'screen:0', name: 'Screen 1', type: 'screen' },
+      { id: 'window:2', name: 'Stream View', type: 'window' },
+    ];
+    expect(pickPreferredStreamSource(sources)).toEqual(sources[1]);
+  });
+
+  it('falls back to any screen capture when the stream window is absent', () => {
+    const screenSource = { id: 'screen:0', name: 'Screen 1', type: 'screen' };
+    expect(pickPreferredStreamSource([{ id: 'window:1', name: 'OBS', type: 'window' }, screenSource])).toEqual(screenSource);
+  });
+});
 
 // ── send-slide-program ─────────────────────────────────────────────────────────
 
@@ -253,13 +273,16 @@ describe('send-lower-third relay', () => {
 describe('send-stream-config relay', () => {
   const config = { sourceId: 'window:1234', label: 'OBS Virtual Camera' };
 
-  it('sends receive-stream-config to stream window only', () => {
+  it('sends receive-stream-config to the stream window and every open output window', () => {
     const calls = relayStreamConfig(allOpen, config);
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toEqual({ target: 'stream', channel: 'receive-stream-config', payload: config });
+    const targets = calls.map(c => c.target);
+    expect(targets).toContain('stream');
+    expect(targets).toContain('out-1');
+    expect(targets).toContain('out-2');
+    expect(calls).toHaveLength(3);
   });
 
-  it('sends nothing when stream window is not open', () => {
+  it('sends nothing when stream window is not open and there are no output windows', () => {
     expect(relayStreamConfig(presentationOnly, config)).toHaveLength(0);
   });
 });

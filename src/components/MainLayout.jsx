@@ -18,14 +18,6 @@ import SongEditorModal from './SongEditorModal';
 import { shouldShowTimersWindow } from '../utils/timerWindowVisibility';
 import { getFloatingWindowBodyStyle } from '../utils/floatingWindowState';
 
-function fmtTime(sec) {
-  const s = Math.floor(sec % 60);
-  const m = Math.floor(sec / 60) % 60;
-  const h = Math.floor(sec / 3600);
-  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  return `${m}:${String(s).padStart(2,'0')}`;
-}
-
 // ── Draggable / resizable floating window shell ───────────────────────────────
 function FloatingWindow({ title, icon, onClose, children, initialW = 360, initialH }) {
   const defaultH = initialH ?? Math.min(700, window.innerHeight - 70);
@@ -341,184 +333,6 @@ function YouTubeController({ liveYt, sendYouTubeControl, setActiveView }) {
   );
 }
 
-// ── Floating video background playback controller ─────────────────────────────
-
-function VideoController({ liveVideo, sendVideoControl, setActiveView }) {
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true); // video autoPlays on mount
-  const [volume, setVolume] = useState(80);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [dismissed, setDismissed] = useState(false);
-  const isSeekingRef = useRef(false);
-  const lastActionRef = useRef(0);
-  const prevValueRef = useRef(null);
-
-  // Auto-show and reset state when a new video goes live
-  useEffect(() => {
-    if (liveVideo?.value && liveVideo.value !== prevValueRef.current) {
-      prevValueRef.current = liveVideo.value;
-      setIsMuted(true);
-      setIsPlaying(true);
-      setVolume(80);
-      setCurrentTime(0);
-      setDuration(0);
-      lastActionRef.current = 0;
-      setDismissed(false);
-    }
-  }, [liveVideo]);
-
-  // Subscribe to video-state relay from output window
-  useEffect(() => {
-    const handleState = (payload) => {
-      if (!shouldAcceptYtState(lastActionRef.current, Date.now())) return;
-      if (payload.isMuted !== undefined) setIsMuted(payload.isMuted);
-      if (payload.isPlaying !== undefined) setIsPlaying(payload.isPlaying);
-      if (payload.volume !== undefined && payload.volume >= 0) setVolume(payload.volume);
-      if (!isSeekingRef.current) {
-        if (payload.currentTime !== undefined) setCurrentTime(payload.currentTime);
-        if (payload.duration !== undefined && payload.duration > 0) setDuration(payload.duration);
-      }
-    };
-
-    let ch;
-    if (typeof BroadcastChannel !== 'undefined') {
-      ch = new BroadcastChannel(BROADCAST_CHANNEL);
-      ch.onmessage = (e) => {
-        const { type, payload } = e.data || {};
-        if (type === 'video-state') handleState(payload);
-      };
-    }
-    let offVideo;
-    if (window.electronAPI?.onReceiveVideoState) {
-      offVideo = window.electronAPI.onReceiveVideoState(handleState);
-    }
-    return () => {
-      ch?.close();
-      offVideo?.();
-    };
-  }, []);
-
-  if (!liveVideo || dismissed) return null;
-
-  const sliderTrackStyle = {
-    flex: 1, height: 4, borderRadius: 2,
-    background: `linear-gradient(to right, #4f8ef7 ${volume}%, rgba(255,255,255,0.15) ${volume}%)`,
-    cursor: 'pointer', outline: 'none', appearance: 'none',
-    WebkitAppearance: 'none',
-  };
-
-  const ctrlBtn = (active) => ({
-    flex: 1, padding: '5px 0', borderRadius: 5,
-    background: active ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.07)',
-    border: active ? '1px solid rgba(79,142,247,0.4)' : '1px solid rgba(255,255,255,0.12)',
-    color: active ? '#4f8ef7' : 'var(--text)',
-    cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font)',
-  });
-
-  return (
-    <FloatingWindow
-      title={liveVideo.name || 'Video Background'}
-      icon="🎬"
-      onClose={() => setDismissed(true)}
-      initialW={300}
-      initialH={220}
-    >
-      <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-        {/* Live badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 9, fontWeight: 700, color: '#ef4444', letterSpacing: '1px' }}>● LIVE</span>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {liveVideo.name || 'Video Background'}
-          </span>
-        </div>
-
-        {/* Play / Pause + Mute row */}
-        <div style={{ display: 'flex', gap: 5 }}>
-          <button
-            onClick={() => {
-              const next = !isPlaying;
-              lastActionRef.current = Date.now();
-              setIsPlaying(next);
-              sendVideoControl(next ? 'play' : 'pause', []);
-            }}
-            style={ctrlBtn(isPlaying)}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-          >{isPlaying ? '⏸ Pause' : '▶ Play'}</button>
-
-          <button
-            onClick={() => {
-              const next = !isMuted;
-              lastActionRef.current = Date.now();
-              setIsMuted(next);
-              sendVideoControl(next ? 'mute' : 'unmute', []);
-            }}
-            style={{ ...ctrlBtn(false), flex: 'none', padding: '5px 12px' }}
-            title={isMuted ? 'Unmute' : 'Mute'}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '0.8'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-          >{isMuted ? '🔇' : '🔊'}</button>
-        </div>
-
-        {/* Seek slider */}
-        {duration > 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44, flexShrink: 0 }}>
-              {fmtTime(currentTime)}
-            </span>
-            <input
-              type="range" min={0} max={duration} step={0.5}
-              value={currentTime}
-              style={{
-                ...sliderTrackStyle,
-                background: `linear-gradient(to right, #4f8ef7 ${(currentTime / duration) * 100}%, rgba(255,255,255,0.15) ${(currentTime / duration) * 100}%)`,
-              }}
-              onMouseDown={() => { isSeekingRef.current = true; }}
-              onMouseUp={(e) => {
-                const t = Number(e.target.value);
-                isSeekingRef.current = false;
-                setCurrentTime(t);
-                lastActionRef.current = Date.now();
-                sendVideoControl('seek', [t]);
-              }}
-              onChange={(e) => setCurrentTime(Number(e.target.value))}
-            />
-            <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44, flexShrink: 0, textAlign: 'right' }}>
-              {fmtTime(duration)}
-            </span>
-          </div>
-        )}
-
-        {/* Volume slider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', width: 44 }}>Vol {volume}</span>
-          <input
-            type="range" min={0} max={100} value={volume}
-            style={sliderTrackStyle}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              lastActionRef.current = Date.now();
-              setVolume(v);
-              sendVideoControl('setVolume', [v]);
-              if (v > 0 && isMuted) { setIsMuted(false); sendVideoControl('unmute', []); }
-            }}
-          />
-        </div>
-
-        {/* Open in Media link */}
-        <button
-          onClick={() => setActiveView('media')}
-          style={{
-            background: 'transparent', border: 'none', color: 'var(--text-dim)',
-            fontSize: 10, cursor: 'pointer', textAlign: 'left', padding: 0,
-            fontFamily: 'var(--font)', textDecoration: 'underline',
-          }}
-        >Open in Media &amp; Backgrounds</button>
-      </div>
-    </FloatingWindow>
-  );
-}
 
 const styles = {
   app: {
@@ -533,8 +347,65 @@ const styles = {
   },
 };
 
+// Non-intrusive "update available" banner. Checks GitHub releases once on mount
+// (desktop only) and stays hidden unless a newer version exists and hasn't been
+// dismissed. Guided-manual flow: it links to the download page — no auto-install.
+function UpdateBanner() {
+  const [info, setInfo] = useState(null);
+
+  useEffect(() => {
+    if (!window.electronAPI?.checkForUpdates) return;
+    let active = true;
+    window.electronAPI.checkForUpdates().then(r => {
+      if (!active || !r?.available) return;
+      if (localStorage.getItem('cp_dismissed_update') === r.latestVersion) return;
+      setInfo(r);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  if (!info) return null;
+
+  const dismiss = () => { try { localStorage.setItem('cp_dismissed_update', info.latestVersion); } catch {} setInfo(null); };
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '7px 14px', background: 'rgba(79,142,247,0.14)',
+      borderBottom: '1px solid rgba(79,142,247,0.35)', fontFamily: 'var(--font)',
+    }}>
+      <span style={{ fontSize: 15 }}>⬆</span>
+      <span style={{ flex: 1, fontSize: 12, color: 'var(--text)' }}>
+        <strong>Church Presenter {info.latestVersion}</strong> is available (you have {info.currentVersion}).
+        Your songs &amp; settings are kept when you update.
+      </span>
+      <button
+        onClick={() => window.electronAPI.openExternalLink(info.url)}
+        style={{ background: 'var(--accent)', border: 'none', borderRadius: 5, color: '#fff', padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font)' }}
+      >Download</button>
+      <button
+        onClick={dismiss}
+        style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', fontSize: 14, cursor: 'pointer', padding: '0 4px' }}
+        title="Dismiss"
+      >✕</button>
+    </div>
+  );
+}
+
 export default function MainLayout() {
-  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, sendYouTubeControl, sendVideoControl } = useApp();
+  const { activeView, setActiveView, loaded, nextSlide, prevSlide, goLive, currentSlide, currentItem, toggleBlackout, toggleClear, settingsOpen, setSettingsOpen, undoSchedule, redoSchedule, recoveryData, setRecoveryData, restoreRecovery, liveProgram, liveOutputs, liveRoleSlides, sendYouTubeControl } = useApp();
+
+  // YouTube is "live" if ANY output — program or an individual output/role send —
+  // currently carries a youtube background, not just the program output.
+  const liveYt = (() => {
+    const candidates = [liveProgram, ...Object.values(liveOutputs || {}), ...Object.values(liveRoleSlides || {})];
+    for (const slide of candidates) {
+      const bg = slide?.item?.background?.type === 'youtube' ? slide.item.background
+        : (slide?.background?.type === 'youtube' ? slide.background : null);
+      if (bg) return bg;
+    }
+    return null;
+  })();
   const [songEditorOpen, setSongEditorOpen] = useState(false);
   const [editingSong, setEditingSong] = useState(null);
   const [editingScheduleId, setEditingScheduleId] = useState(null);
@@ -583,6 +454,7 @@ export default function MainLayout() {
 
   return (
     <div style={styles.app}>
+      <UpdateBanner />
       <Toolbar onNewSong={openNewSong} onOpenSettings={openSettings} onToggleTimers={openTimersWindow} />
       <div style={styles.main}>
         <SchedulePanel onEditSong={openEditSong} />
@@ -640,17 +512,8 @@ export default function MainLayout() {
       {/* Floating YouTube controller — only when YouTube is live and not already on media tab */}
       {activeView !== 'media' && (
         <YouTubeController
-          liveYt={liveProgram?.item?.background?.type === 'youtube' ? liveProgram.item.background : null}
+          liveYt={liveYt}
           sendYouTubeControl={sendYouTubeControl}
-          setActiveView={setActiveView}
-        />
-      )}
-
-      {/* Floating video controller — only when a video background is live and not on media tab */}
-      {activeView !== 'media' && (
-        <VideoController
-          liveVideo={liveProgram?.item?.background?.type === 'video' ? liveProgram.item.background : null}
-          sendVideoControl={sendVideoControl}
           setActiveView={setActiveView}
         />
       )}

@@ -10,10 +10,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Ver
 
 ### Added
 - Video backgrounds can now be selected from Media & Backgrounds as MP4/MOV/WebM files, with an optional loop toggle for ambient or timed visuals.
+- **Streaming from output windows** — Stream Window and Social Media Streaming (RTMP) now use your existing output windows (Program, Confidence, Stage, Announcement, etc.) as video sources via Electron's desktop capture, instead of direct camera input. This lets you stream what's actually on screen with full graphics, timers, and stage cues intact.
 
 ### Changed
+- **Stream Panel UI overhaul** — removed direct camera device selection; added independent **Stream Source** dropdowns for both screen-share (Stream Window) and RTMP social streaming. Operators can now screen-share one output to Zoom while simultaneously RTMP-streaming a different output to YouTube/Facebook.
 - Timers now open in a floating, non-blocking window so operators can keep working while a countdown or stopwatch remains visible.
 - macOS release packaging now targets Apple Silicon only for future builds.
+
+### Removed
+- **Preferred Camera setting** — no longer used; streaming now defaults to the first open output and lets the operator pick others from a dropdown in the Stream panel.
 
 ---
 

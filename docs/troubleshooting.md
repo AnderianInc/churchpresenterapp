@@ -153,13 +153,24 @@ In Electron mode, songs write to `songs.json`. If there's a file permission erro
 
 ## Streaming
 
-### Camera not appearing in Stream panel
+### Stream Source dropdown is empty
 
-**Check (macOS):** System Settings → Privacy & Security → Camera → make sure Church Presenter is enabled.
+**Cause:** No output windows are currently open. The stream feature uses your existing output windows (Program, Confidence, Stage, etc.) as video sources.
 
-**Check (Windows):** Settings → Privacy & Security → Camera → Camera access → On.
+**Fix:**
+1. Open **📺 Outputs** in the toolbar
+2. Create or open an output window (e.g., Program, Confidence, Announcement)
+3. Go back to the **📡 Stream** tab — the **Stream Source** dropdown should now list the open output(s)
 
-**Check (all):** Is the camera connected and recognized by the OS? Test in another app (FaceTime, Camera, etc.) first.
+### Stream Window shows "No outputs open" message
+
+**Cause:** Same as above — you must have at least one output window open before streaming.
+
+**Fix:**
+1. Open **📺 Outputs**
+2. Select a role (Program, Confidence, Stage, Announcement, etc.) and target display
+3. Click **＋ Open** to launch that output window
+4. Return to **📡 Stream** and select it from the **Stream Source** dropdown
 
 ### "FFmpeg not found" warning
 
@@ -179,20 +190,23 @@ sudo apt install ffmpeg
 
 After installing, restart Church Presenter.
 
-### RTMP stream starts but immediately disconnects
+### RTMP stream starts but immediately stops with "Invalid data" or I/O error
 
-**Check:**
-1. Is your stream key correct? Copy it directly from the platform's live dashboard
-2. Is your internet connection stable? RTMP requires ~3–6 Mbps upload
-3. Is the stream window open? RTMP captures the stream window — it must be open before going live
-4. Check the terminal output for FFmpeg error messages
+**Common causes & checks:**
+1. Is your stream key correct and **not expired**? Copy it directly from the platform's live dashboard — keys expire when a live event ends
+2. Is your internet connection stable? RTMP requires ~3–6 Mbps upload. Check your upload speed at `speedtest.net`
+3. Is the selected **Stream Source output window open and alive**? If you close or minimize the output, streaming will fail. Keep it visible
+4. Check the browser console (F12) and terminal for specific error messages from FFmpeg
+
+**If using YouTube Live:** stream keys are per-event. Once a live event ends (or you click "End Live" in YouTube), the key becomes invalid. Generate a new key for the next live event.
 
 ### Stream window not appearing in Zoom/Teams window picker
 
 The stream window title is "Stream View — Church Presenter". If it's not listed:
 1. Make sure the stream window is open (click **Open Stream Window** in the Stream panel)
-2. In Zoom, use **Share Screen → Window** (not Desktop)
-3. If it still doesn't appear, try screen-sharing your entire screen instead
+2. Make sure you have selected a **Stream Source** output and clicked **Send Output to Stream Window**
+3. In Zoom, use **Share Screen → Window** (not Desktop)
+4. If it still doesn't appear, try screen-sharing your entire screen instead
 
 ---
 

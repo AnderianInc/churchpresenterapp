@@ -242,7 +242,7 @@ export default function StreamView() {
         )}
 
         <div style={{
-          fontSize: lowerThird.fontSize ?? 28, color: '#ffffff', fontFamily: 'Georgia, serif',
+          fontSize: 28, color: '#ffffff', fontFamily: 'Georgia, serif',
           lineHeight: 1.5, textShadow: '0 2px 8px rgba(0,0,0,0.95)',
           maxWidth: '80%',
         }}>

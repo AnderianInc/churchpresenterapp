@@ -290,17 +290,52 @@ const HELLOAO_BOOK_IDS = {
  * @param {string} bookName   canonical name, e.g. "John"
  * @param {number} chapterNum  e.g. 3
  */
+function extractHelloaoVerseText(value) {
+  if (typeof value === 'string') return value.trim();
+  if (Array.isArray(value)) {
+    const parts = value.map(item => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') {
+        if (typeof item.text === 'string') return item.text;
+        if (Array.isArray(item.content)) return extractHelloaoVerseText(item.content);
+        if (typeof item.content === 'string') return item.content;
+      }
+      return '';
+    });
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+  if (value && typeof value === 'object') {
+    if (typeof value.text === 'string') return value.text.trim();
+    if (Array.isArray(value.content)) return extractHelloaoVerseText(value.content);
+    if (typeof value.content === 'string') return value.content.trim();
+  }
+  return '';
+}
+
 export async function fetchHelloaoChapter(versionId, bookName, chapterNum) {
   const bookId = HELLOAO_BOOK_IDS[bookName] || bookName.toUpperCase().replace(/\s+/g, '');
   const url = `${HELLOAO_BASE}/${versionId}/${bookId}/${chapterNum}.json`;
   const r = await fetch(url);
   if (!r.ok) throw new Error(`${bookName} ${chapterNum} not found in ${versionId}`);
   const data = await r.json();
-  const verses = data.verses || data.chapter?.verses || [];
-  return verses.map(v => ({
-    reference: `${bookName} ${chapterNum}:${v.number || v.verseNumber || v.verse}`,
-    text: (v.text || v.content || '').trim(),
-  })).filter(v => v.text);
+
+  const entries = Array.isArray(data?.verses)
+    ? data.verses
+    : Array.isArray(data?.chapter?.content)
+      ? data.chapter.content
+      : [];
+
+  return entries
+    .map(v => {
+      const verseNumber = v?.number ?? v?.verseNumber ?? v?.verse ?? null;
+      const text = extractHelloaoVerseText(v?.text ?? v?.content ?? v);
+      if (!verseNumber || !text) return null;
+      return {
+        reference: `${bookName} ${chapterNum}:${verseNumber}`,
+        text,
+      };
+    })
+    .filter(Boolean);
 }
 
 /**

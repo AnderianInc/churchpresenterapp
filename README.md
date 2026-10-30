@@ -265,25 +265,31 @@ Save the current set of output windows as a named preset ("Sunday Morning", "Eve
 
 ---
 
-## Streaming (OBS / Zoom)
+## Streaming (OBS / Zoom / Screen-Share)
 
-The **📡 Stream** tab opens the streaming control panel:
+The **📡 Stream** tab opens the streaming control panel with two main sections:
 
-1. **Open Stream Window** — launches a 1280×720 stream output window
-2. **Select a video source** — the panel lists all video inputs (webcams, capture cards, OBS Virtual Camera). Click a device to preview it, then click **Send to Stream** to push it to the stream window
-3. **Screen share in Zoom** — in Zoom, use screen share and select the "Stream View — Church Presenter" window
-4. **Lower-third overlay** — type a label, main text, and source line, then click **Send Lower-Third** to display an animated text bar at the bottom of the stream. Click **Clear** to remove it
-5. **Quick lower-third** — if a Bible verse or announcement is selected in the schedule, click **Send as Lower-Third** to push it directly without retyping
+### Stream Window (for screen-sharing)
 
-### OBS Virtual Camera workflow
-
-1. In OBS, add your scenes as usual, then click **Start Virtual Camera**
-2. In Church Presenter, open the **Stream** tab and click **Allow Camera Access**
-3. Select **OBS Virtual Camera** from the device list — the panel shows a live preview
-4. Click **Send to Stream** to push the OBS feed to the stream window
-5. Add a **Window Capture** source in OBS pointed at the stream window, or screen-share the stream window directly in Zoom/Teams
+1. **Create output windows** — first, open output windows in the Output Manager (Program, Confidence Monitor, Stage, Announcement, etc.) on your desired displays
+2. **Open Stream Window** — launches a 1280×720 stream output window on your main display
+3. **Select a video source** — the **Video Source** dropdown lists all currently open output windows. Pick which output's content you want to screen-share (e.g., "Main Output (presentation)", "Confidence (confidence)")
+4. **Send Output to Stream Window** — this pipes the selected output's rendered content to the stream window
+5. **Screen share in Zoom** — in Zoom, use screen share and select the "Stream View — Church Presenter" window
+6. **Lower-third overlay** — type a label, main text, and source line, then click **Send Lower-Third** to display an animated text bar at the bottom of the stream. Click **Clear** to remove it
+7. **Quick lower-third** — if a Bible verse or announcement is selected in the schedule, click **Send as Lower-Third** to push it directly without retyping
 
 The stream window also receives the **Blackout** control from the toolbar.
+
+### Multi-output workflow example
+
+- Create a **Program** output on your main projector
+- Create a **Confidence Monitor** output on your side-stage display
+- Open the **Stream Window** for screen-sharing
+- Send the **Program** output to the Stream Window → Zoom sees the slides
+- Meanwhile, send the **Confidence** output to YouTube Live for RTMP streaming (see below) → production feed with timers and stage cues
+
+This decoupling lets you screen-share one output while RTMP-streaming a different one to independent audiences.
 
 ---
 
@@ -344,13 +350,14 @@ winget install ffmpeg
 If FFmpeg is not found, Church Presenter shows installation instructions and disables the Go Live button. The stream window can still be screen-shared to OBS as a fallback.
 
 ### Setup
-1. Click **＋ Add Platform** and select your streaming platform (Facebook, YouTube, Instagram, or Custom RTMP)
-2. Click the destination to expand it and paste your **stream key** from the platform's live dashboard
-3. Enable or disable individual destinations using the checkbox
-4. Open the **Stream Window** (required — it is the source that gets streamed)
-5. Click **▶ Go Live — Social**
+1. **Create output windows** — first, open output windows in the Output Manager (Program, Confidence, Announcement, etc.) on your desired displays
+2. Click **＋ Add Platform** and select your streaming platform (Facebook, YouTube, Instagram, or Custom RTMP)
+3. Click the destination to expand it and paste your **stream key** from the platform's live dashboard
+4. Enable or disable individual destinations using the checkbox
+5. In the **Stream Source** dropdown, pick which output window to stream (e.g., "Main Output (presentation)", "Confidence (confidence)")
+6. Click **▶ Go Live — Social**
 
-Multiple platforms can be enabled simultaneously — all active destinations receive the same encoded stream.
+Multiple platforms can be enabled simultaneously — all active destinations receive the same encoded stream. The **Stream Source** can be any open output window, and is independent of the screen-shared Stream Window above.
 
 ### Stream health
 While live, each destination shows:
@@ -492,11 +499,13 @@ For a comprehensive list of issues and solutions, see the [Troubleshooting Guide
 | YouVersion "No translations found" | Verify API key is valid; online search requires Electron |
 | FFmpeg not found | `brew install ffmpeg` (macOS) or `winget install Gyan.FFmpeg` (Windows) |
 
-**Stream panel shows no camera devices** — click **Allow Camera Access** to trigger the OS permission dialog. On macOS, camera permission must be granted to the app in System Settings → Privacy & Security → Camera.
+**Stream Source dropdown is empty** — create and open output windows first. Open **📺 Outputs**, create a Program/Confidence/Stage/Announcement output, then return to the **📡 Stream** tab and select it from the **Stream Source** dropdown.
 
-**OBS Virtual Camera not visible** — make sure OBS is running and **Start Virtual Camera** has been clicked in OBS before opening the Stream panel. Click **Refresh** in the device list after starting OBS.
+**Stream Window shows "No outputs open"** — same fix as above — you need at least one output window open before streaming works.
 
-**Lower-third not appearing** — the stream window must be open (click **Open Stream Window** first) and the source must be active before the lower-third overlay renders.
+**RTMP stream starts but stops with "Invalid data" error** — verify your stream key is current (YouTube keys expire when the live event ends). Check your upload speed (need ~3–6 Mbps) and ensure the selected output window is visible/not minimized. Check the browser console for ffmpeg errors.
+
+**Lower-third not appearing** — the stream window must be open (click **Open Stream Window** first) and you must have selected a Stream Source and clicked **Send Output to Stream Window** before the lower-third overlay renders.
 
 **Sermon Assistant mic does not start / "Microphone access denied"** — on macOS, grant microphone permission to Electron in System Settings → Privacy & Security → Microphone. On Windows, check Settings → Privacy → Microphone.
 

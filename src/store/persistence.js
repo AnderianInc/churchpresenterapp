@@ -80,7 +80,7 @@ export function validateScheduleArray(raw) {
 }
 
 // Text sizes (px) for the non-song text types. Per-item fontSize still overrides these where it exists.
-export const TEXT_SIZE_DEFAULTS = { stageAnnouncementFontSize: 30, lowerThirdFontSize: 28, scriptureFontSize: 38 };
+export const TEXT_SIZE_DEFAULTS = { stageAnnouncementFontSize: 30, scriptureFontSize: 38 };
 
 export function validateSettings(raw) {
   const defaults = { ...TEXT_SIZE_DEFAULTS, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' };

@@ -12,15 +12,15 @@ const btn = (extra = {}) => ({
 
 export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
   const {
-    isBlackout, isClear,
-    toggleBlackout, toggleClear,
-    stageOpen, outputWindows,
-    openStage, closeStage,
+    isBlackout, isClear, hideBackground,
+    toggleBlackout, toggleClear, toggleHideBackground,
+    outputWindows,
     activeView, setActiveView,
     settingsOpen, setSettingsOpen,
     saveStatus,
     goLive, currentSlide, currentItem,
     createOutputWindow, displays,
+    isLive, markLive, stopLive,
   } = useApp();
 
   const [clock, setClock] = useState('');
@@ -52,9 +52,23 @@ export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
     }
 
     goLive(slide);
+    markLive();
   };
 
   const canGoLive = !!(currentSlide && currentItem);
+  const handleGoLiveClick = () => {
+    if (isLive) {
+      const openOutputs = outputWindows.filter(w => w.isOpen !== false);
+      const names = openOutputs.map(w => w.title || w.role).join(', ');
+      const warning = openOutputs.length
+        ? `End Live will close ${openOutputs.length} open output window${openOutputs.length === 1 ? '' : 's'} (${names}) and blank all screens.\n\nThey'll stay saved in Output Manager and can be reopened later — only deleting them there removes them for good.`
+        : 'End Live will blank all screens.';
+      if (!window.confirm(warning)) return;
+      stopLive();
+    } else {
+      handleGoLive();
+    }
+  };
 
   const tabStyle = (view) => ({
     ...btn(),
@@ -109,6 +123,18 @@ export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, WebkitAppRegion: 'no-drag' }}>
         <SaveIndicator />
 
+        {isLive && (
+          <span style={{
+            display: 'flex', alignItems: 'center', gap: 5,
+            background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
+            color: '#ef4444', fontSize: 10, fontWeight: 700, letterSpacing: '0.5px',
+            padding: '3px 8px', borderRadius: 'var(--radius)',
+          }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444' }} />
+            LIVE
+          </span>
+        )}
+
         {/* Keyboard shortcut hint */}
         <span style={{ fontSize: 10, color: 'var(--text-dim)', marginRight: 4 }}>
           Space=Next · B=Blackout · Enter=Live
@@ -126,7 +152,7 @@ export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
           onMouseLeave={e => !isBlackout && (e.currentTarget.style.background = 'transparent')}
         >⬛ Blackout</button>
 
-        <button onClick={toggleClear} title="Clear (C)"
+        <button onClick={toggleClear} title="Hide text / foreground (C)"
           style={{
             ...btn(), color: isClear ? 'var(--orange)' : 'var(--text-muted)',
             background: isClear ? 'rgba(249,115,22,0.1)' : 'transparent',
@@ -134,19 +160,19 @@ export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
           }}
           onMouseEnter={e => !isClear && (e.currentTarget.style.background = 'var(--bg-hover)')}
           onMouseLeave={e => !isClear && (e.currentTarget.style.background = 'transparent')}
-        >✕ Clear</button>
+        >✕ Hide Text</button>
+
+        <button onClick={toggleHideBackground} title="Hide screen background (keep text)"
+          style={{
+            ...btn(), color: hideBackground ? 'var(--cyan)' : 'var(--text-muted)',
+            background: hideBackground ? 'rgba(6,182,212,0.12)' : 'transparent',
+            border: hideBackground ? '1px solid rgba(6,182,212,0.35)' : '1px solid transparent',
+          }}
+          onMouseEnter={e => !hideBackground && (e.currentTarget.style.background = 'var(--bg-hover)')}
+          onMouseLeave={e => !hideBackground && (e.currentTarget.style.background = 'transparent')}
+        >🎬 Hide BG</button>
 
         <div style={{ width: 1, height: 22, background: 'var(--border)', margin: '0 4px' }} />
-
-        <button onClick={stageOpen ? closeStage : openStage} title="Stage Display"
-          style={{
-            ...btn(),
-            color: stageOpen ? 'var(--purple)' : 'var(--text-muted)',
-            background: stageOpen ? 'rgba(168,85,247,0.1)' : 'transparent',
-          }}
-          onMouseEnter={e => !stageOpen && (e.currentTarget.style.background = 'var(--bg-hover)')}
-          onMouseLeave={e => !stageOpen && (e.currentTarget.style.background = 'transparent')}
-        >🖥️ Stage</button>
 
         <button
           onClick={() => onOpenSettings ? onOpenSettings('keys') : setSettingsOpen(v => !v)}
@@ -189,25 +215,25 @@ export default function Toolbar({ onNewSong, onOpenSettings, onToggleTimers }) {
           📺 {outputWindows.length > 0 ? `Outputs (${outputWindows.length})` : 'Outputs'}
         </button>
 
-        {/* Go Live — pushes current slide to all configured output windows */}
+        {/* Go Live — pushes current slide to all configured output windows. Toggles to End Live while live. */}
         <button
-          onClick={handleGoLive}
-          disabled={!canGoLive}
-          title={canGoLive ? 'Go Live (Enter)' : 'Select a slide first'}
+          onClick={handleGoLiveClick}
+          disabled={!isLive && !canGoLive}
+          title={isLive ? 'End Live — blank all outputs' : (canGoLive ? 'Go Live (Enter)' : 'Select a slide first')}
           style={{
-            background: 'var(--accent)',
+            background: isLive ? 'var(--red, #ef4444)' : 'var(--accent)',
             border: 'none', color: '#fff',
             padding: '6px 16px',
-            cursor: canGoLive ? 'pointer' : 'default',
+            cursor: (isLive || canGoLive) ? 'pointer' : 'default',
             fontSize: 12, fontWeight: 600,
             fontFamily: 'var(--font)',
             borderRadius: 'var(--radius)',
-            opacity: canGoLive ? 1 : 0.45,
-            transition: 'opacity 0.15s',
+            opacity: (isLive || canGoLive) ? 1 : 0.45,
+            transition: 'opacity 0.15s, background 0.15s',
           }}
-          onMouseEnter={e => { if (canGoLive) e.currentTarget.style.opacity = '0.85'; }}
-          onMouseLeave={e => { if (canGoLive) e.currentTarget.style.opacity = '1'; }}
-        >▶ Go Live</button>
+          onMouseEnter={e => { if (isLive || canGoLive) e.currentTarget.style.opacity = '0.85'; }}
+          onMouseLeave={e => { if (isLive || canGoLive) e.currentTarget.style.opacity = '1'; }}
+        >{isLive ? '■ End Live' : '▶ Go Live'}</button>
 
         <span style={{ fontSize: 11, color: 'var(--text-dim)', marginLeft: 6 }}>{clock}</span>
       </div>

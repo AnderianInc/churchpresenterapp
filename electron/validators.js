@@ -89,7 +89,7 @@ function validateScheduleArray(raw) {
 }
 
 function validateSettings(raw) {
-  const defaults = { stageAnnouncementFontSize: 30, lowerThirdFontSize: 28, scriptureFontSize: 38, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' };
+  const defaults = { stageAnnouncementFontSize: 30, scriptureFontSize: 38, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' };
   if (!raw || typeof raw !== 'object') return defaults;
   return { ...defaults, ...raw };
 }

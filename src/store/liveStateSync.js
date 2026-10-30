@@ -6,7 +6,9 @@ const defaultLiveState = {
   stageMirror: true,
   isBlackout: false,
   isClear: false,
+  hideBackground: false,
   outputs: {},
+  selectedLiveSource: null,
 };
 
 /** Migrate older single-slide payload to program+stage */
@@ -19,6 +21,7 @@ function normalizeStored(parsed) {
       stageMirror: parsed.stageMirror !== false,
       isBlackout: !!parsed.isBlackout,
       isClear: !!parsed.isClear,
+      hideBackground: !!parsed.hideBackground,
       outputs: parsed.outputs || {},
     };
   }
@@ -51,7 +54,9 @@ export function writeLiveState(state) {
       stageMirror: state?.stageMirror !== false,
       isBlackout: !!state?.isBlackout,
       isClear: !!state?.isClear,
+      hideBackground: !!state?.hideBackground,
       outputs: typeof state?.outputs === 'object' && state.outputs !== null ? state.outputs : {},
+      selectedLiveSource: state?.selectedLiveSource ?? null,
     }));
   } catch {
     // Ignore quota/security errors; BroadcastChannel still handles live updates.
