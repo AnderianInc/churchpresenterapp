@@ -63,10 +63,20 @@ export default function FadeSlide({ slide, item, videoRef }) {
     const sameVideo = videoSrcOf(prev.slide) && videoSrcOf(prev.slide) === videoSrcOf(slide);
     const doFade = enabled && !sameVideo;
 
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
+
+    // Same background video continues: keep the current top key so its <video> is NOT
+    // remounted (a new key remounts SlideRenderer and restarts the video). Only the
+    // text/refs change.
+    if (sameVideo) {
+      setUnder(null);
+      setFading(false);
+      setTop(t => ({ ...t, slide, item }));
+      return;
+    }
+
     keyRef.current += 1;
     const nextTop = { key: keyRef.current, slide, item };
-
-    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
 
     if (!doFade) {
       setUnder(null);
