@@ -66,15 +66,20 @@ export default function TimerPanel() {
   // so they populate immediately instead of waiting for the next change.
   const timersRef = useRef(timers);
   const lastSentRef = useRef(lastSent);
+  const { settings, saveSettings } = useApp();
+  const announcementSize = settings?.stageAnnouncementFontSize ?? 30;
+  // Ref so the re-broadcast below always sends the current size, not the one from mount
+  const announcementSizeRef = useRef(announcementSize);
   useEffect(() => { timersRef.current = timers; }, [timers]);
   useEffect(() => { lastSentRef.current = lastSent; }, [lastSent]);
+  useEffect(() => { announcementSizeRef.current = announcementSize; }, [announcementSize]);
   useEffect(() => {
     if (typeof BroadcastChannel === 'undefined') return undefined;
     const ch = new BroadcastChannel(BROADCAST_CHANNEL);
     ch.onmessage = (e) => {
       if (e.data?.type !== 'timer-state-request') return;
       broadcastTimers(timersRef.current);
-      if (lastSentRef.current) broadcastAnnouncement(lastSentRef.current);
+      if (lastSentRef.current) broadcastAnnouncement(lastSentRef.current, announcementSizeRef.current);
     };
     return () => ch.close();
   }, []);
@@ -93,8 +98,6 @@ export default function TimerPanel() {
 
   const removeTimer = useCallback((id) => setTimers(prev => prev.filter(t => t.id !== id)), []);
 
-  const { settings, saveSettings } = useApp();
-  const announcementSize = settings?.stageAnnouncementFontSize ?? 30;
   const [sizeDraft, setSizeDraft] = useState(announcementSize);
   useEffect(() => { setSizeDraft(announcementSize); }, [announcementSize]);
 

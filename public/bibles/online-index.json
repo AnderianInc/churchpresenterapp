@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-09T04:32:53.910Z",
-  "count": 1256,
+  "generatedAt": "2026-11-01T02:18:36.599Z",
+  "count": 1504,
   "translations": [
     {
       "id": "AAB",
@@ -73,6 +73,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=hin2017",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hin2017"
+    },
+    {
+      "id": "aab_wft",
+      "name": "Arum Bible Translation",
+      "language": "aab",
+      "languageCode": "aab",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b0bf598f0ff4424b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "aai_wbt",
@@ -165,6 +174,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=acfNT"
     },
     {
+      "id": "ach_abr",
+      "name": "Acoli Bible Revision",
+      "language": "ach",
+      "languageCode": "ach",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/1618808970a5a3ca",
+      "licenseUrl": "https://app.library.bible/content/1618808970a5a3ca"
+    },
+    {
       "id": "acr_ibs",
       "name": "I 'utz laj tzij re i dios",
       "language": "acr",
@@ -201,6 +219,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=acuNT"
     },
     {
+      "id": "ada_bib",
+      "name": "Open Dangme Living New Testament & Psalms",
+      "language": "ada",
+      "languageCode": "ada",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fcdb7801a656e5aa",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "ade_seed",
+      "name": "Adele Old Testament",
+      "language": "ade",
+      "languageCode": "ade",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/85509607cf13bf35",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "adt_bsa",
       "name": "Adnyamathanha Christmas Story",
       "language": "adt",
@@ -219,6 +255,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=adz"
     },
     {
+      "id": "aeb_ubs",
+      "name": "العهد الجديد بالدارجة التونسية 2022",
+      "language": "aeb",
+      "languageCode": "aeb",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=aeb",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=aeb"
+    },
+    {
+      "id": "aeb_wbt",
+      "name": "العهد الجديد بالدارجة التونسية 2022",
+      "language": "aeb",
+      "languageCode": "aeb",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=aeu",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=aeu"
+    },
+    {
       "id": "aer_wbt",
       "name": "Angkentye Mwerre",
       "language": "aer",
@@ -235,6 +289,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=aey",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=aey"
+    },
+    {
+      "id": "afo_wft",
+      "name": "Eloyi Translation Project",
+      "language": "afo",
+      "languageCode": "afo",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9bdcb02a06f659e3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "agd_wbt",
@@ -336,6 +399,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=akeNT"
     },
     {
+      "id": "akp_seed",
+      "name": "Siwu Old Testament",
+      "language": "akp",
+      "languageCode": "akp",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/86f4bd306e059174",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "ala_wft",
+      "name": "OKOYI PEPE",
+      "language": "ala",
+      "languageCode": "ala",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5762b83c586abca6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "alp_wbt",
       "name": "Janji beluke",
       "language": "alp",
@@ -397,6 +478,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=amh",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=amh"
+    },
+    {
+      "id": "amk_seed",
+      "name": "Alkitab Bahasa Ambai",
+      "language": "amk",
+      "languageCode": "amk",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b563032f29185b6c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "amk_wbt",
@@ -480,6 +570,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=amx"
     },
     {
+      "id": "and_seed",
+      "name": "Alkitab Bahasa Ansus",
+      "language": "and",
+      "languageCode": "and",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/1b4e5659392e48f5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "anh_pbt",
       "name": "MAK Yakŋ Ohɨrand Ya Imbɨr Makɨv Mpamar",
       "language": "anh",
@@ -487,6 +586,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=anh",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=anh"
+    },
+    {
+      "id": "anl_wft",
+      "name": "N’hra Kly Har Anu Ca",
+      "language": "anl",
+      "languageCode": "anl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/37f4f9e1f7daf031",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "anv_wbt",
@@ -624,6 +732,33 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=apz"
     },
     {
+      "id": "aqk_lis",
+      "name": "Aninka NT Portion",
+      "language": "aqk",
+      "languageCode": "aqk",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=aqk",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=aqk"
+    },
+    {
+      "id": "arb_gna",
+      "name": "الترجمة العربية المشتركة",
+      "language": "arb",
+      "languageCode": "arb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fd5704b4b8ddef79",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "arb_tma",
+      "name": "المعنى الصحيح لإنجيل المسيح",
+      "language": "arb",
+      "languageCode": "arb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/16c2ae6602e699ce",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "arb_vdv",
       "name": "الكتاب المقدس باللغة العربية، فان دايك",
       "language": "arb",
@@ -667,6 +802,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=arp",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=arp"
+    },
+    {
+      "id": "asg_tsc",
+      "name": "Cishingini Agwara Kambari [asg]",
+      "language": "asg",
+      "languageCode": "asg",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=asg",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=asg"
     },
     {
       "id": "asj_wbt",
@@ -748,6 +892,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=aucNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=aucNT"
+    },
+    {
+      "id": "auh_wft",
+      "name": "Aushi Bible Translation Project",
+      "language": "auh",
+      "languageCode": "auh",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b0707a0d2654dbe7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "aui_wbt",
@@ -863,8 +1016,17 @@
       "language": "bbr",
       "languageCode": "bbr",
       "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=bbr",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bbr"
+      "website": "https://ebible.org/Scriptures/details.php?id=bbr2013",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bbr2013"
+    },
+    {
+      "id": "bcf_png",
+      "name": "Tareka Buka",
+      "language": "bcf",
+      "languageCode": "bcf",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=bcf",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bcf"
     },
     {
       "id": "bch_png",
@@ -883,6 +1045,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=bco",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bco"
+    },
+    {
+      "id": "bcv_wft",
+      "name": "Bandawa Language Project",
+      "language": "bcv",
+      "languageCode": "bcv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/368c053e8213085b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "bdd_png",
@@ -919,6 +1090,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=bef",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bef"
+    },
+    {
+      "id": "bej_seed",
+      "name": "Ugalad Ugayi",
+      "language": "bej",
+      "languageCode": "bej",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/752fe0f7dfba7b5f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "bel_jfc",
@@ -1074,6 +1254,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bhu"
     },
     {
+      "id": "bhw_seed",
+      "name": "Alkitab Bahasa Biak",
+      "language": "bhw",
+      "languageCode": "bhw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d1e0722ecb83f757",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "big_tbl",
       "name": "Anotogi Ngago Wik Yisu Kilisiyegi Langaira",
       "language": "big",
@@ -1090,6 +1279,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=big2013",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=big2013"
+    },
+    {
+      "id": "bis_obb",
+      "name": "Open Bislama Bible Revised",
+      "language": "bis",
+      "languageCode": "bis",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2aca753d2a653970",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "biv_seed",
+      "name": "Birifor Bible",
+      "language": "biv",
+      "languageCode": "biv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2a3b1da6f79ca791",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "bjk_wbt",
@@ -1209,6 +1416,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=blzNT"
     },
     {
+      "id": "bma_wft",
+      "name": "Lamma Bible Translation Project",
+      "language": "bma",
+      "languageCode": "bma",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6fec21b499f7e625",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "bmh_wbt",
       "name": "Uwait nugau Ze Naliu",
       "language": "bmh",
@@ -1254,6 +1470,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bnp"
     },
     {
+      "id": "bnx_seed",
+      "name": "Bangubangu Traduction",
+      "language": "bnx",
+      "languageCode": "bnx",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b7e561862b06e055",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "boa_tbl",
       "name": "Píívyéébé ihjyu: jetsocríjyodítyú cáátúnuháámɨ",
       "language": "boa",
@@ -1297,6 +1522,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=bon",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bon"
+    },
+    {
+      "id": "bou_twf",
+      "name": "Bondei Bible Version",
+      "language": "bou",
+      "languageCode": "bou",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=bou",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bou"
     },
     {
       "id": "box_wyi",
@@ -1362,6 +1596,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=breBRG"
     },
     {
+      "id": "brx_seed",
+      "name": "Mech NT",
+      "language": "brx",
+      "languageCode": "brx",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4e52604fbda8b59f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "bsj_doo",
       "name": "Bangwinji",
       "language": "bsj",
@@ -1416,6 +1659,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bswl"
     },
     {
+      "id": "buj_twf",
+      "name": "Basa-Gurmana",
+      "language": "buj",
+      "languageCode": "buj",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=buj",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=buj"
+    },
+    {
       "id": "buk_lbt",
       "name": "Anötö ndê Yom Lêŋsêm Wakuc",
       "language": "buk",
@@ -1443,6 +1695,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bvd"
     },
     {
+      "id": "bvm_wbt",
+      "name": "Ŋwɔʼnə-Məŋkaa-Fefe",
+      "language": "bvm",
+      "languageCode": "bvm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/c2ebd3039718be0c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "bvr_wbt",
       "name": "Nyanyapa Arrku Gun-nika Gun-molamola Janguny: Minypa Jesus Christ Guna-ganyja Arrburrwa Gun-geka Rum",
       "language": "bvr",
@@ -1450,6 +1711,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=bvr",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bvr"
+    },
+    {
+      "id": "bvw_sco",
+      "name": "Boga New Testament Portion",
+      "language": "bvw",
+      "languageCode": "bvw",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=bvw",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bvw"
+    },
+    {
+      "id": "bwc_twf",
+      "name": "Bwile Bible Translation",
+      "language": "bwc",
+      "languageCode": "bwc",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=bwc",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bwc"
+    },
+    {
+      "id": "bwd_wbt",
+      "name": "Yaubada Yana Veyavo Anawai Evaguna",
+      "language": "bwd",
+      "languageCode": "bwd",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=bwd",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bwd"
     },
     {
       "id": "bwo_twf",
@@ -1468,6 +1756,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=bxh",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bxh"
+    },
+    {
+      "id": "byi_seed",
+      "name": "Buyu Traduction",
+      "language": "byi",
+      "languageCode": "byi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/36036564e34219be",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "byr_png",
@@ -1524,6 +1821,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=bzj"
     },
     {
+      "id": "bzq_seed",
+      "name": "Bhasa Buli",
+      "language": "bzq",
+      "languageCode": "bzq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ee5e0031df270ea8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "caa_wbt",
       "name": "Uyojroner e Dios xeꞌ Tzꞌijbꞌabꞌir Tama e Onian Tiempo",
       "language": "caa",
@@ -1540,6 +1846,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cabNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cabNT"
+    },
+    {
+      "id": "cab_sblg",
+      "name": "Sandu Bürütu Lau Garifuna",
+      "language": "cab",
+      "languageCode": "cab",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f187d7f7786a7cd1",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "cab_wbt",
+      "name": "Karif",
+      "language": "cab",
+      "languageCode": "cab",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fa53fbc157a012a1",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "cac_wbt",
@@ -1641,6 +1965,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=capNT"
     },
     {
+      "id": "car_wbt",
+      "name": "Asery Tamusi karetary",
+      "language": "car",
+      "languageCode": "car",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=car",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/3.0/"
+    },
+    {
       "id": "cav_wbt",
       "name": "Yusuja Quisarati",
       "language": "cav",
@@ -1684,6 +2017,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cbk",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cbk"
+    },
+    {
+      "id": "cbn_ea",
+      "name": "พระวรสาร",
+      "language": "cbn",
+      "languageCode": "cbn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f0220ebecdb44f42",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "cbn_luk",
+      "name": "The Book of Luke in Nyah Kur Language",
+      "language": "cbn",
+      "languageCode": "cbn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3da3a852c14d4138",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "cbr_seed",
+      "name": "Nuevo Testamento Kakataibo",
+      "language": "cbr",
+      "languageCode": "cbr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/148192fa800f97cf",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "cbr_wbt",
@@ -1776,6 +2136,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cekak"
     },
     {
+      "id": "cen_seed",
+      "name": "Ibaas Bible",
+      "language": "cen",
+      "languageCode": "cen",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a03e635eb23e5487",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ces_bib",
       "name": "Biblica® Open Slovo na cestu",
       "language": "ces",
@@ -1783,6 +2152,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ceslb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ceslb"
+    },
+    {
+      "id": "ces_bible",
+      "name": "Bible, překlad 21. století",
+      "language": "ces",
+      "languageCode": "ces",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ba5b3158dfe11f82",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "ces_bkr",
@@ -1801,6 +2179,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cesnkb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cesnkb"
+    },
+    {
+      "id": "cfm_twf",
+      "name": "Thukam Thar Lente Ṭon",
+      "language": "cfm",
+      "languageCode": "cfm",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=cfm",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cfm"
     },
     {
       "id": "cgc_wbt",
@@ -1893,6 +2280,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ckb"
     },
     {
+      "id": "ckb_bib_obol",
+      "name": "Biblica® Open Sorani Kurdish Book of Life",
+      "language": "ckb",
+      "languageCode": "ckb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/423ecf6820032fd9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "cle_tbl",
       "name": "Ja̱³la³ fáh⁴dxa⁴²dxú⁴ hi³mɨɨ³² chiáh² Ñúh³a² Jesucristo; Salmos",
       "language": "cle",
@@ -1900,6 +2296,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cleNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cleNT"
+    },
+    {
+      "id": "cll_seed",
+      "name": "Chala New Testiment",
+      "language": "cll",
+      "languageCode": "cll",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9201f7fea75332cd",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "clu_wbt",
@@ -1938,6 +2343,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cmncbt"
     },
     {
+      "id": "cmn_csbs",
+      "name": "中文标准译本",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://gbi.llc/initiatives/chinese-standard-bible",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "cmn_csbt",
+      "name": "中文標準譯本",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://gbi.llc/initiatives/chinese-standard-bible",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "cmn_cu1",
       "name": "新标点和合本",
       "language": "cmn",
@@ -1956,6 +2379,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cmn-cu89t"
     },
     {
+      "id": "cmn_cuvmps",
+      "name": "现代标点和合本",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/8bd9480f3faae51b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/)/"
+    },
+    {
+      "id": "cmn_cuvmpt",
+      "name": "現代標點和和本",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fdf9d1a8b61ae062",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/)/"
+    },
+    {
       "id": "cmn_feb",
       "name": "免费的易读圣经 Free Easy-to-read Bible",
       "language": "cmn",
@@ -1963,6 +2404,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cmnfeb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cmnfeb"
+    },
+    {
+      "id": "cmn_swcb",
+      "name": "世界中文圣经",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=cmnswcb",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cmnswcb"
     },
     {
       "id": "cni_wbt",
@@ -2100,6 +2550,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cpy"
     },
     {
+      "id": "crj_rnt",
+      "name": "Chishemanituu Utayimuwin Kaa Uskaach Testament",
+      "language": "crj",
+      "languageCode": "crj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5ee655ce82d17011",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "crn_wbt",
       "name": "Ɨ niuucari tɨ jejcua, tɨ ajta jɨme'en ra'axa a'ɨjna ɨ tavastara'a, ɨ Cɨriistu'u tɨ ji'i Jesús tɨ̀ tu'irájtuaa",
       "language": "crn",
@@ -2109,6 +2568,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=crnNT"
     },
     {
+      "id": "crw_crlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Chơ Ro",
+      "language": "crw",
+      "languageCode": "crw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0303570f15afd95e",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "crx_wbt",
       "name": "Yak'usda Ooghuni",
       "language": "crx",
@@ -2116,6 +2584,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=crxNTpo",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=crxNTpo"
+    },
+    {
+      "id": "csj_wft",
+      "name": "Tyamthi Tha Hiatuii Belaw",
+      "language": "csj",
+      "languageCode": "csj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f206b4f144281784",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "cso_tbl",
@@ -2190,6 +2667,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ctuBl"
     },
     {
+      "id": "cua_clt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Cor",
+      "language": "cua",
+      "languageCode": "cua",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/37a1dc7a54269bd3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "cub_wbt",
       "name": "Majepacʉ jʉ̃menijicʉi yávaiye mamaene coyʉitucubo",
       "language": "cub",
@@ -2206,6 +2692,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cucNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cucNT"
+    },
+    {
+      "id": "cug_wbt",
+      "name": "Kiŋwakti ki Nyɔ Miŋkaiŋ Mifiaŋ",
+      "language": "cug",
+      "languageCode": "cug",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=cug",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cug"
     },
     {
       "id": "cui_wbt",
@@ -2262,6 +2757,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cwe"
     },
     {
+      "id": "cwe_wft",
+      "name": "Lagano da Sambi kwa Wanhu Wose",
+      "language": "cwe",
+      "languageCode": "cwe",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/33e024fcc7010565",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "cya_wbt",
       "name": "El Nuevo Testamento",
       "language": "cya",
@@ -2269,6 +2773,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cya",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cya"
+    },
+    {
+      "id": "czt_zb",
+      "name": "Zotung Bible",
+      "language": "czt",
+      "languageCode": "czt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/1a340f5ae072b2f4",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
     },
     {
       "id": "daa_wyi",
@@ -2316,6 +2829,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dao"
     },
     {
+      "id": "dde_wbt",
+      "name": "Doondo Bible",
+      "language": "dde",
+      "languageCode": "dde",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6324c54f3396d23d",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ded_wbt",
       "name": "Yoac kekehagocac Dzadzahac gboria nga Mitiyegec",
       "language": "ded",
@@ -2323,6 +2845,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ded",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ded"
+    },
+    {
+      "id": "deu_btd",
+      "name": "Byzantinischer Text Deutsch. Die Evangelien übersetzt aus dem griechischen Text des Ökumenischen Patriarchats von Konstantinopel (1904/1912)",
+      "language": "deu",
+      "languageCode": "deu",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/084e0647896dc166",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
     },
     {
       "id": "deu_elbbk",
@@ -2407,12 +2938,21 @@
     },
     {
       "id": "dhg_duw",
-      "name": "Dhuwa Dhaŋu'mi Mäk+",
+      "name": "Dhuwa-Dhaŋu'mi Mark+",
       "language": "dhg",
       "languageCode": "dhg",
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=dhgduwadha",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dhgduwadha"
+    },
+    {
+      "id": "dhg_wbt",
+      "name": "Wangurri Scripture",
+      "language": "dhg",
+      "languageCode": "dhg",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=dhg",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dhg"
     },
     {
       "id": "dhn_twf",
@@ -2452,7 +2992,7 @@
     },
     {
       "id": "djj_wbt",
-      "name": "Ndjébbana Bible Portions",
+      "name": "Ndjebbana Bible Portions",
       "language": "djj",
       "languageCode": "djj",
       "countryCode": "",
@@ -2505,6 +3045,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dob"
     },
     {
+      "id": "doe_wft",
+      "name": "Chidowe",
+      "language": "doe",
+      "languageCode": "doe",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/722b2e672e82b9d0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "dop_sim",
       "name": "PIIPILI ƖSƆ TƆM TAKƎLAƔA",
       "language": "dop",
@@ -2523,6 +3072,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dov"
     },
     {
+      "id": "drs_wft",
+      "name": "Woyyichchaa Maxaafa",
+      "language": "drs",
+      "languageCode": "drs",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2b894378475c6aea",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "dso_twf",
       "name": "ସତିଅର୍‌ ବାଟ୍‌",
       "language": "dso",
@@ -2530,6 +3088,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=dso",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dso"
+    },
+    {
+      "id": "duq_pbt",
+      "name": "Terjemahan Bahasa Dusun Malang",
+      "language": "duq",
+      "languageCode": "duq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7b28235d5b2bb584",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)/"
     },
     {
       "id": "dwr_ent",
@@ -2559,8 +3126,17 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=dwrNT"
     },
     {
+      "id": "dwr_wfte",
+      "name": "ጌሻ ማጻፋ",
+      "language": "dwr",
+      "languageCode": "dwr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/812ecd29a9e60fdc",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "dwu_liv",
-      "name": "Luke",
+      "name": "Liyagawumirr Luke",
       "language": "dwu",
       "languageCode": "dwu",
       "countryCode": "",
@@ -2587,7 +3163,7 @@
     },
     {
       "id": "dwy_bsa",
-      "name": "Djesuwalaŋuwuy latjuꞌ dhäwuꞌ Markkuŋu wukirriwuy",
+      "name": "Dhuwaya Scripture",
       "language": "dwy",
       "languageCode": "dwy",
       "countryCode": "",
@@ -2602,6 +3178,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ebk",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ebk"
+    },
+    {
+      "id": "efi_bib",
+      "name": "Open Efik Living New Testament",
+      "language": "efi",
+      "languageCode": "efi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6284aebbb6092d93",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "egm_wft",
+      "name": "Benamanga",
+      "language": "egm",
+      "languageCode": "egm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0d83530b6a897308",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "eka_lis",
+      "name": "Ekajuk Scriptures Bible Portions",
+      "language": "eka",
+      "languageCode": "eka",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=eka",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=eka"
     },
     {
       "id": "ekk_bib",
@@ -2748,6 +3351,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=engDRA"
     },
     {
+      "id": "eng_e2t",
+      "name": "Easy to Translate English Jonah",
+      "language": "eng",
+      "languageCode": "eng",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=enge2t",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=enge2t"
+    },
+    {
       "id": "eng_emtv",
       "name": "English Majority Text Version",
       "language": "eng",
@@ -2820,6 +3432,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=eng-kjv2006"
     },
     {
+      "id": "eng_leb",
+      "name": "Lexham English Bible",
+      "language": "eng",
+      "languageCode": "eng",
+      "countryCode": "",
+      "website": "https://www.logos.com/product/37521/lexham-english-bible",
+      "licenseUrl": "https://web.archive.org/web/20250803060528/https://lexhampress.com/LEB-License"
+    },
+    {
       "id": "eng_lee",
       "name": "Isaac Leeser Tanakh",
       "language": "eng",
@@ -2874,6 +3495,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=engnet"
     },
     {
+      "id": "eng_nmv",
+      "name": "New Messianic Version",
+      "language": "eng",
+      "languageCode": "eng",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3af5dfde2d749c50",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "eng_nna",
       "name": "Nyangumarta English Bible",
       "language": "eng",
@@ -2917,15 +3547,6 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=engourb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=engourb"
-    },
-    {
-      "id": "eng_pev",
-      "name": "Plain English Version",
-      "language": "eng",
-      "languageCode": "eng",
-      "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=engPEV",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=engPEV"
     },
     {
       "id": "eng_rv5",
@@ -3342,6 +3963,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=gaze"
     },
     {
+      "id": "gaz_oocs",
+      "name": "Katabbiiwwan Qulqulluu, Turjumaana Ammayyaa Banamaa",
+      "language": "gaz",
+      "languageCode": "gaz",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4d4cf8432222fef3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "gbi_seed",
+      "name": "Galela Bible",
+      "language": "gbi",
+      "languageCode": "gbi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3eb670b750df39f7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "gbl_bey",
       "name": "ગામીત નોવો કરાર",
       "language": "gbl",
@@ -3349,6 +3988,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=gbl",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=gbl"
+    },
+    {
+      "id": "gbr_bib",
+      "name": "Open Gbagyi Nyizeyenya Baibwulu: Shekwoyi Ɓədagbma",
+      "language": "gbr",
+      "languageCode": "gbr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a877a4afb69e0f39",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "gdf_tsc",
@@ -3424,7 +4072,7 @@
     },
     {
       "id": "gge_wbt",
-      "name": "Gurrgoni Selections",
+      "name": "Gurrgoni Scripture",
       "language": "gge",
       "languageCode": "gge",
       "countryCode": "",
@@ -3594,6 +4242,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=gok"
     },
     {
+      "id": "gqa_seed",
+      "name": "Ga'anda",
+      "language": "gqa",
+      "languageCode": "gqa",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/53bf73869c120464",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "grc_bre",
       "name": "μετάφραση των εβδομήκοντα",
       "language": "grc",
@@ -3648,6 +4305,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=grcsbl"
     },
     {
+      "id": "grc_sr",
+      "name": "Statistical Restoration Greek New Testament",
+      "language": "grc",
+      "languageCode": "grc",
+      "countryCode": "",
+      "website": "https://github.com/Center-for-New-Testament-Restoration/SR",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
       "id": "grc_srg",
       "name": "Η Καινή Διαθήκη",
       "language": "grc",
@@ -3675,6 +4341,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=grc-tisch"
     },
     {
+      "id": "gso_seed",
+      "name": "Gbaya-Bianda OT Portions",
+      "language": "gso",
+      "languageCode": "gso",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fb5274db3c584977",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "gub_wbt",
       "name": "Tupàn ze'eg",
       "language": "gub",
@@ -3685,7 +4360,7 @@
     },
     {
       "id": "gue_wbt",
-      "name": "Ruth + selections",
+      "name": "Gurindji Scripture",
       "language": "gue",
       "languageCode": "gue",
       "countryCode": "",
@@ -3694,7 +4369,7 @@
     },
     {
       "id": "guf_wbt",
-      "name": "Selections",
+      "name": "Gupapuyngu Scripture",
       "language": "guf",
       "languageCode": "guf",
       "countryCode": "",
@@ -3718,6 +4393,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=guiNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=guiNT"
+    },
+    {
+      "id": "guj_bib",
+      "name": "ગુજરાતી સમકાલીન સ્વતંત્ર બાઇબલ",
+      "language": "guj",
+      "languageCode": "guj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3f8bb02b7da6818d",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "guj_irv",
@@ -3775,7 +4459,7 @@
     },
     {
       "id": "gup_kwb",
-      "name": "Kuninjku Gospel Selections",
+      "name": "Kuninjku Selections",
       "language": "gup",
       "languageCode": "gup",
       "countryCode": "",
@@ -3784,7 +4468,7 @@
     },
     {
       "id": "gup_may",
-      "name": "Mayali Selections",
+      "name": "Mayali (Jabiru) Scripture",
       "language": "gup",
       "languageCode": "gup",
       "countryCode": "",
@@ -3844,6 +4528,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=gwiNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=gwiNT"
+    },
+    {
+      "id": "gwn_wft",
+      "name": "Gwandara Bible",
+      "language": "gwn",
+      "languageCode": "gwn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/14c608286b5b94d2",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "gyl_twf",
@@ -3936,6 +4629,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=haw1868"
     },
     {
+      "id": "hbo_sr",
+      "name": "Solid Rock Hebrew Old Testament",
+      "language": "hbo",
+      "languageCode": "hbo",
+      "countryCode": "",
+      "website": "https://github.com/jjmccollum/solid-rock-hb",
+      "licenseUrl": "https://github.com/jjmccollum/solid-rock-hb"
+    },
+    {
       "id": "hbo_wlc",
       "name": "כתבי הקודש",
       "language": "hbo",
@@ -4026,6 +4728,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hincv"
     },
     {
+      "id": "hin_hlt",
+      "name": "हिंदी लिटरल टेक्स्ट",
+      "language": "hin",
+      "languageCode": "hin",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/75f4ad3bc1126c8f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "hin_hsb",
+      "name": "Hindi Standard Bible",
+      "language": "hin",
+      "languageCode": "hin",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/38fa4be736b9bab9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "hix_wbt",
       "name": "Khoryenkom Karyehtanà",
       "language": "hix",
@@ -4033,6 +4753,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=hixNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hixNT"
+    },
+    {
+      "id": "hke_seed",
+      "name": "Hunde Nouveau Testament",
+      "language": "hke",
+      "languageCode": "hke",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/727956c4e33a60cc",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "hla_png",
@@ -4098,6 +4827,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hnsNT"
     },
     {
+      "id": "hoo_wft",
+      "name": "Holoholo Bible Translation",
+      "language": "hoo",
+      "languageCode": "hoo",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2fb0a3820c83cd7b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "hop_wbt",
       "name": "God Lavayiyat Aṅ Puhuvasiwni",
       "language": "hop",
@@ -4125,15 +4863,6 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hoy"
     },
     {
-      "id": "hre_bth",
-      "name": "Hset Hadròeh",
-      "language": "hre",
-      "languageCode": "hre",
-      "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=hrebt",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hrebt"
-    },
-    {
       "id": "hru_bcs",
       "name": "Aka (Hrusso) Bible",
       "language": "hru",
@@ -4150,6 +4879,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=hrvbib",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hrvbib"
+    },
+    {
+      "id": "hrv_hrsdc",
+      "name": "Hrvatski prijevod  - Šarić sa deuterokanoskim knjigama",
+      "language": "hrv",
+      "languageCode": "hrv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/237997b8dab43975",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/)/"
     },
     {
       "id": "hrv_iva",
@@ -4269,6 +5007,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ian"
     },
     {
+      "id": "ibb_bib",
+      "name": "Adisana Ñwed AbasiKe Ikọ Ibibio Ayio Mfịn",
+      "language": "ibb",
+      "languageCode": "ibb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/825826284e6a73a9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ibd_wbt",
       "name": "Iwaidja Selections",
       "language": "ibd",
@@ -4377,6 +5124,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=indayt"
     },
     {
+      "id": "ind_bib",
+      "name": "Kitab Kehidupan Perjanjian Baru",
+      "language": "ind",
+      "languageCode": "ind",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/75bcbe01601faaf6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ind_obo",
       "name": "Alkitab Terjemahan Sederhana Indonesia, Edisi Ketiga",
       "language": "ind",
@@ -4384,6 +5140,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ind",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ind"
+    },
+    {
+      "id": "ind_tsi",
+      "name": "Alkitab Terjemahan Sederhana Indonesia, Edisi Ketiga",
+      "language": "ind",
+      "languageCode": "ind",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2dd568eeff29fb3c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "ino_tbl",
@@ -4422,6 +5187,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ipi"
     },
     {
+      "id": "isl_316",
+      "name": "316-biblían",
+      "language": "isl",
+      "languageCode": "isl",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=isl316",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=isl316"
+    },
+    {
       "id": "isl_bib",
       "name": "Biblica® Opna Lifandi Orð Nýja testamentið og Sálmarnir™",
       "language": "isl",
@@ -4438,6 +5212,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=isn",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=isn"
+    },
+    {
+      "id": "isn_wft",
+      "name": "Isanzu Bible",
+      "language": "isn",
+      "languageCode": "isn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a61fa9a81f3a5fa3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "ita_dio",
@@ -4468,12 +5251,12 @@
     },
     {
       "id": "ixl_wbt",
-      "name": "U ak' Testamento tu kuyob'al",
+      "name": "Viakʼla txumbʼal u tioxh",
       "language": "ixl",
       "languageCode": "ixl",
       "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=ixlNNT",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ixlNNT"
+      "website": "https://ebible.org/Scriptures/details.php?id=ixlCNT",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ixlCNT"
     },
     {
       "id": "iyx_wbt",
@@ -4521,6 +5304,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jay"
     },
     {
+      "id": "jbn_igj",
+      "name": "Injiyl g Jerbi",
+      "language": "jbn",
+      "languageCode": "jbn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/974217bce6f90cd0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "jbn_igsj",
+      "name": "Injiyl g Silha Jbali",
+      "language": "jbn",
+      "languageCode": "jbn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/bb320a2d7c40eb03",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "jic_wbt",
       "name": "Dios Tjevele Jupj 'Üsüs La Qjuisiji Jesucristo Mpes",
       "language": "jic",
@@ -4537,6 +5338,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=jid",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jid"
+    },
+    {
+      "id": "jid_wft",
+      "name": "Buu New Testament",
+      "language": "jid",
+      "languageCode": "jid",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d40cc04c3b0dc53a",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "jiv_aie",
@@ -4575,6 +5385,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jnjl"
     },
     {
+      "id": "jpn_kou",
+      "name": "口語訳",
+      "language": "jpn",
+      "languageCode": "jpn",
+      "countryCode": "",
+      "website": "https://github.com/seven1m/open-bibles/blob/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml",
+      "licenseUrl": "https://github.com/seven1m/open-bibles/blob/3ca49fb73163f42297a32b7b1b1c40cf3dafd84b/jpn-kougo.osis.xml"
+    },
+    {
       "id": "jpn_loc",
       "name": "新改訳新約聖書(1965年版)",
       "language": "jpn",
@@ -4582,6 +5401,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=jpn1965",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jpn1965"
+    },
+    {
+      "id": "jpn_meb",
+      "name": "フリーダム・バイブル",
+      "language": "jpn",
+      "languageCode": "jpn",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=jpnm",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jpnm"
+    },
+    {
+      "id": "jub_wft",
+      "name": "Wanu Bible",
+      "language": "jub",
+      "languageCode": "jub",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/1558d698ae360214",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "jum_pbt",
@@ -4609,6 +5446,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=jvnNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jvnNT"
+    },
+    {
+      "id": "kad_seed",
+      "name": "Eda New Testament",
+      "language": "kad",
+      "languageCode": "kad",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9120556332133a19",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "kan_irv",
@@ -4645,6 +5491,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=kaqNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kaqNT"
+    },
+    {
+      "id": "kas_erv",
+      "name": "Nastaliq",
+      "language": "kas",
+      "languageCode": "kas",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/49939a95e1ed4852",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "kbc_wbt",
@@ -4692,6 +5547,42 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kca"
     },
     {
+      "id": "kcc_wft",
+      "name": "Lubila Bible",
+      "language": "kcc",
+      "languageCode": "kcc",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4c25f604f821c039",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "kck_wft",
+      "name": "Kalanga Translation",
+      "language": "kck",
+      "languageCode": "kck",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/462d6dedcd43919a",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "kcu_wft",
+      "name": "Kami Bible",
+      "language": "kcu",
+      "languageCode": "kcu",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9d171080402a5103",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "kcv_wft",
+      "name": "Kete Bible",
+      "language": "kcv",
+      "languageCode": "kcv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7523ec44cf296cc2",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kdc_014",
       "name": "Lagano da Sambi kwa Wanhu Wose",
       "language": "kdc",
@@ -4717,6 +5608,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=kde",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kde"
+    },
+    {
+      "id": "kde_wft",
+      "name": "Lilailano Lyahambi Lya Nnungu Kwa Vanu Vammalele",
+      "language": "kde",
+      "languageCode": "kde",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/c11c93a0b8a04496",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "kdl_ldt",
@@ -4755,6 +5655,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kenNT"
     },
     {
+      "id": "keu_wbt",
+      "name": "Dieparətənəŋwɛŋrə mə Mose la kəfwɛɛsəsəŋkə",
+      "language": "keu",
+      "languageCode": "keu",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/570c25ed23823d3c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kew_png",
       "name": "Gotena Epe Agaa",
       "language": "kew",
@@ -4789,6 +5698,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=kfw",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kfw"
+    },
+    {
+      "id": "kfx_osj",
+      "name": "कुलवी औउटर सिराजी बाइबिल",
+      "language": "kfx",
+      "languageCode": "kfx",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4761dfda0fe61278",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "kgf_gbt",
@@ -4863,6 +5781,33 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kik"
     },
     {
+      "id": "kin_ruf",
+      "name": "Rufumbira New Testament",
+      "language": "kin",
+      "languageCode": "kin",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/66a0abb518ddb682",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "id": "kip_wft",
+      "name": "छार बाचा",
+      "language": "kip",
+      "languageCode": "kip",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7419936309e4d0c7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "kiv_wft",
+      "name": "Kimbu New Testament",
+      "language": "kiv",
+      "languageCode": "kiv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cdf3d9b91be5502e",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kiw_wbt",
       "name": "Pai meai Ruka-ro iꞌati emerai-ka",
       "language": "kiw",
@@ -4890,6 +5835,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kjeNT"
     },
     {
+      "id": "kjl_wft",
+      "name": "सा:रौ बाचा",
+      "language": "kjl",
+      "languageCode": "kjl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/07333533b2c19da9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kjn_wbt",
       "name": "Kunjen Mark Portions",
       "language": "kjn",
@@ -4908,6 +5862,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kjs"
     },
     {
+      "id": "kjt_ea",
+      "name": "Tun",
+      "language": "kjt",
+      "languageCode": "kjt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0138eaa063aa48be",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "kjt_luk",
+      "name": "The Book of Luke in Karen Pwo Phrae",
+      "language": "kjt",
+      "languageCode": "kjt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f08327ba377d4419",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "kkc_wbt",
       "name": "Godeeyo To Tekepo",
       "language": "kkc",
@@ -4915,6 +5887,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=kkc",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kkc"
+    },
+    {
+      "id": "kkh_ea",
+      "name": "พระวรสาร",
+      "language": "kkh",
+      "languageCode": "kkh",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a7da0d8879364373",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "kkh_luk",
+      "name": "The Book of Luke in Tai Khune Language",
+      "language": "kkh",
+      "languageCode": "kkh",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/8de2021a59f64955",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "kkl_wbt",
@@ -5106,6 +6096,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kpjNT"
     },
     {
+      "id": "kpm_trlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng T'rin",
+      "language": "kpm",
+      "languageCode": "kpm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f28b01ce6eb50aff",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kpr_tbl",
       "name": "God Da Geka Seka",
       "language": "kpr",
@@ -5187,6 +6186,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=krh"
     },
     {
+      "id": "krx_wbt",
+      "name": "Kuloonaay",
+      "language": "krx",
+      "languageCode": "krx",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5606d5e01cb7fec1",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "ksb_wft",
+      "name": "Kishambaa",
+      "language": "ksb",
+      "languageCode": "ksb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/832180b6425143f2",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ksd_png",
       "name": "A BUK TABU A MAULANA KUNUBU ma A KALAMANA KUNUBU",
       "language": "ksd",
@@ -5250,6 +6267,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kud2014"
     },
     {
+      "id": "kue_kbt",
+      "name": "Kuman Bible",
+      "language": "kue",
+      "languageCode": "kue",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/59843d5bcf10c9b7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "kue_png",
       "name": "YESUS KAMO WAKAI",
       "language": "kue",
@@ -5257,6 +6283,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=kue",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kue"
+    },
+    {
+      "id": "kuf_ktlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Katu",
+      "language": "kuf",
+      "languageCode": "kuf",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/15a813fef7fefb05",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "kup_tbl",
@@ -5331,6 +6366,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kwj"
     },
     {
+      "id": "kwo_wbt",
+      "name": "Oofulilu Na",
+      "language": "kwo",
+      "languageCode": "kwo",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=kwo",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kwo"
+    },
+    {
+      "id": "kxv_jb",
+      "name": "Jathapu Bible",
+      "language": "kxv",
+      "languageCode": "kxv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d044be931cd316d0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "kxv_wft",
       "name": "ପୁଃନି ମେ଼ରା",
       "language": "kxv",
@@ -5403,6 +6456,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=kze"
     },
     {
+      "id": "kzq_wft",
+      "name": "दयान बचन",
+      "language": "kzq",
+      "languageCode": "kzq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0621d8e081d356b2",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "lac_tbl",
       "name": "Lacandon",
       "language": "lac",
@@ -5421,6 +6483,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=lag"
     },
     {
+      "id": "lao_bib",
+      "name": "Biblica® Open ພຣະຄຳພີລາວສະບັບສະໄໝໃໝ່",
+      "language": "lao",
+      "languageCode": "lao",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/eab9312f9f16b3a2",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "lat_clv",
       "name": "Bibbia Vulgata Clementina na 1598",
       "language": "lat",
@@ -5431,7 +6502,7 @@
     },
     {
       "id": "lbb_wbt",
-      "name": "Label Buk Baibel",
+      "name": "A Wakak a Warwara ane God",
       "language": "lbb",
       "languageCode": "lbb",
       "countryCode": "",
@@ -5473,6 +6544,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ldb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ldb"
+    },
+    {
+      "id": "ldk_wft",
+      "name": "Munga Bible",
+      "language": "ldk",
+      "languageCode": "ldk",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/abc557f289f8b13f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "leu_png",
@@ -5565,6 +6645,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=lit"
     },
     {
+      "id": "liy_seed",
+      "name": "Banda-Linda New Testament",
+      "language": "liy",
+      "languageCode": "liy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7c1bcb0f6c35eea8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "llg_ubb",
       "name": "Rote Lole Alkitab",
       "language": "llg",
@@ -5574,6 +6663,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=llg"
     },
     {
+      "id": "lnb_wft",
+      "name": "Mbalanhu Bible",
+      "language": "lnb",
+      "languageCode": "lnb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9869eca4456fe651",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "lng_wbt",
       "name": "Larrakia Christmas Story",
       "language": "lng",
@@ -5581,6 +6679,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=lrg",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=lrg"
+    },
+    {
+      "id": "lol_seed",
+      "name": "Lokonda Bible",
+      "language": "lol",
+      "languageCode": "lol",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cf984f1e31b35fbb",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "lth_wbt",
@@ -5599,6 +6706,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=lug",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=lug"
+    },
+    {
+      "id": "luj_wft",
+      "name": "Kuba Bible",
+      "language": "luj",
+      "languageCode": "luj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/dfceee8f9bf63cb8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "luo_bib",
@@ -5635,6 +6751,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=maaNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=maaNT"
+    },
+    {
+      "id": "mag_erv",
+      "name": "devanagari",
+      "language": "mag",
+      "languageCode": "mag",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/884acb88d7c24cb9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mai_erv",
+      "name": "devanagari",
+      "language": "mai",
+      "languageCode": "mai",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2acb82c33dca4c67",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "maj_btt",
@@ -5680,6 +6814,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mamC",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mamC"
+    },
+    {
+      "id": "mam_ost",
+      "name": "Biblia Mam Ostuncalco 1999",
+      "language": "mam",
+      "languageCode": "mam",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/aea9d9099feb3a24",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "mam_sbg",
@@ -5979,6 +7122,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mfm"
     },
     {
+      "id": "mfn_ma",
+      "name": "Mbembe Adun",
+      "language": "mfn",
+      "languageCode": "mfn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/e434d17646502707",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mfn_seed",
+      "name": "Mbembe Osopong",
+      "language": "mfn",
+      "languageCode": "mfn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/89c3f9396b94bd6c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mfo_lis",
       "name": "Mbembe Okohm",
       "language": "mfo",
@@ -6060,6 +7221,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mgw"
     },
     {
+      "id": "mgy_wft",
+      "name": "Mbunga",
+      "language": "mgy",
+      "languageCode": "mgy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6f6cca05a7913c93",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mhd_wft",
+      "name": "Mbugu",
+      "language": "mhd",
+      "languageCode": "mhd",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/610d3dc78ced0749",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mhl_png",
       "name": "YEESUS OPOR ELIWA",
       "language": "mhl",
@@ -6067,6 +7246,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mhl",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mhl"
+    },
+    {
+      "id": "mho_seed",
+      "name": "Kwamashi",
+      "language": "mho",
+      "languageCode": "mho",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/8b5e14e94663b743",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mho_wft",
+      "name": "Mashi Bible",
+      "language": "mho",
+      "languageCode": "mho",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5ff44a72e11c04e4",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mhr_mmu",
+      "name": "Библий",
+      "language": "mhr",
+      "languageCode": "mhr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4e3157a8bfe13f05",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "mib_wbt",
@@ -6168,6 +7374,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mjcNT"
     },
     {
+      "id": "mji_dadt",
+      "name": "Kinh Thánh Tiếng Dao Áo Dài",
+      "language": "mji",
+      "languageCode": "mji",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4031cf477b55913c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mkj_mok",
       "name": "Mokilese Bible",
       "language": "mkj",
@@ -6184,6 +7399,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mkl",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mkl"
+    },
+    {
+      "id": "mkm_ea",
+      "name": "หนังสือมาระโกในภาษา",
+      "language": "mkm",
+      "languageCode": "mkm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d55400a06fce43d1",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
     },
     {
       "id": "mkn_ubb",
@@ -6240,6 +7464,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mlp"
     },
     {
+      "id": "mlv_seed",
+      "name": "Motlap New Testament",
+      "language": "mlv",
+      "languageCode": "mlv",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ae2bad925cc7f490",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mmo_wbt",
       "name": "Mangga Buang New Testament",
       "language": "mmo",
@@ -6265,6 +7498,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mna",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mna"
+    },
+    {
+      "id": "mng_mlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Mnông R'lâm",
+      "language": "mng",
+      "languageCode": "mng",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/72b5c125a759a2b1",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "mni_twf",
@@ -6366,6 +7608,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mpx"
     },
     {
+      "id": "mpz_ea",
+      "name": "Mark in Mpi Language",
+      "language": "mpz",
+      "languageCode": "mpz",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/83eed385a0c942bf",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "mpz_luk",
+      "name": "The Book of Luke in Mpi Language",
+      "language": "mpz",
+      "languageCode": "mpz",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/1f90dc59bfba4465",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "mqb_wbt",
       "name": "Mbuko: Aɓan 'am wiya awan",
       "language": "mqb",
@@ -6382,6 +7642,51 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mqjNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mqjNT"
+    },
+    {
+      "id": "mqo_seed",
+      "name": "Bahasa Modole",
+      "language": "mqo",
+      "languageCode": "mqo",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ae339e50fa03308c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mra_mrk",
+      "name": "อัครสาส์นของมาระโก - Mark in Mlabri Language",
+      "language": "mra",
+      "languageCode": "mra",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5434f2fb118d459d",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "mri_2012",
+      "name": "Paipera Tapu 2012",
+      "language": "mri",
+      "languageCode": "mri",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=mri2012",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mri2012"
+    },
+    {
+      "id": "mri_bsn",
+      "name": "Te Kawenata Hou",
+      "language": "mri",
+      "languageCode": "mri",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=mri",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mri"
+    },
+    {
+      "id": "mro_seed",
+      "name": "MRU",
+      "language": "mro",
+      "languageCode": "mro",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/255f89c075825051",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "msb_wbt",
@@ -6456,6 +7761,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mtoNT"
     },
     {
+      "id": "mtq_mglt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Mường (Thanh Hóa)",
+      "language": "mtq",
+      "languageCode": "mtq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/720ec4d225a8c360",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "mty_seed",
+      "name": "Nabt New Testament",
+      "language": "mty",
+      "languageCode": "mty",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/16dfe2deb3a3b523",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mux_tbl",
       "name": "PULU YILI-NGA UNG KONALE",
       "language": "mux",
@@ -6492,6 +7815,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mvn"
     },
     {
+      "id": "mvz_wft",
+      "name": "ገደር ጉዳ",
+      "language": "mvz",
+      "languageCode": "mvz",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/75e2ac9e5cbac605",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mwc_wbt",
       "name": "God Wonana Kaoaobaisiyena",
       "language": "mwc",
@@ -6511,7 +7843,7 @@
     },
     {
       "id": "mwf_2018",
-      "name": "Murrinhpatha Bible",
+      "name": "Murrinhpatha Scripture",
       "language": "mwf",
       "languageCode": "mwf",
       "countryCode": "",
@@ -6526,6 +7858,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mwp",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mwp"
+    },
+    {
+      "id": "mwt_ea",
+      "name": "Mark in Moken Language",
+      "language": "mwt",
+      "languageCode": "mwt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/c963c874103249a8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "mwt_luk",
+      "name": "The Book of Luke in Moken Language",
+      "language": "mwt",
+      "languageCode": "mwt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/86fc02e206994549",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "mxb_mvr",
@@ -6571,6 +7921,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=mxtNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mxtNT"
+    },
+    {
+      "id": "mya_bib",
+      "name": "Biblica® Open ခေတ်သစ်မြန်မာ သမ္မာကျမ်း",
+      "language": "mya",
+      "languageCode": "mya",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/c2a589603854f059",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "mya_jvb",
@@ -6636,6 +7995,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=mzq"
     },
     {
+      "id": "mzr_wbt",
+      "name": "Yové Koĩni Vana",
+      "language": "mzr",
+      "languageCode": "mzr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/be9e00b72104e120",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "mzz_wbt",
       "name": "Maiadomu Malika",
       "language": "mzz",
@@ -6699,6 +8067,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nas"
     },
     {
+      "id": "nat_wft",
+      "name": "Hungwarhea Bible",
+      "language": "nat",
+      "languageCode": "nat",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/c02ad8716a654b74",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "nay_afa",
       "name": "Tungarar Jehobald YARILDEWALLIN",
       "language": "nay",
@@ -6715,6 +8092,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nbq",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nbq"
+    },
+    {
+      "id": "nbr_wft",
+      "name": "Numana Bible",
+      "language": "nbr",
+      "languageCode": "nbr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/407084a0914e0576",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "nca_wbt",
@@ -6825,6 +8211,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ndj"
     },
     {
+      "id": "neh_wft",
+      "name": "Khaneng Bible",
+      "language": "neh",
+      "languageCode": "neh",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f00af371133781d0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "nfa_ubb",
       "name": "Dhao Alkitab",
       "language": "nfa",
@@ -6832,6 +8227,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nfa",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nfa"
+    },
+    {
+      "id": "ngc_bod",
+      "name": "Bodjenga",
+      "language": "ngc",
+      "languageCode": "ngc",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b2663aa9a01800c8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "ngc_bon",
+      "name": "Bondjale",
+      "language": "ngc",
+      "languageCode": "ngc",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cbb746306ebec1b9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "ngc_seed",
+      "name": "Miwera",
+      "language": "ngc",
+      "languageCode": "ngc",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/13f88ca7fd81bc47",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "ngp_twf",
@@ -6850,6 +8272,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nguNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nguNT"
+    },
+    {
+      "id": "ngz_wbt",
+      "name": "Ngungwel Bible",
+      "language": "ngz",
+      "languageCode": "ngz",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3840a1950e7b8532",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "nhe_tbl",
@@ -7032,6 +8463,33 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nlg"
     },
     {
+      "id": "nlx_wft",
+      "name": "खेरलो वचन",
+      "language": "nlx",
+      "languageCode": "nlx",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/604771cc77d9136d",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nme_nz",
+      "name": "Northern Zeme Bible",
+      "language": "nme",
+      "languageCode": "nme",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/067bdfb7336cd686",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nmq_wft",
+      "name": "Nambya Bible",
+      "language": "nmq",
+      "languageCode": "nmq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0c37c62c77b133cf",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "nmw_swb",
       "name": "Metiu ge Efeso",
       "language": "nmw",
@@ -7039,6 +8497,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nmws",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nmws"
+    },
+    {
+      "id": "nmx_png",
+      "name": "Mer Si Yesuenemén A Yesuene Waitogh Árfene Wafroghyammén Lukém Efaroméng",
+      "language": "nmx",
+      "languageCode": "nmx",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=nmx",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nmx"
     },
     {
       "id": "nna_wbt",
@@ -7084,6 +8551,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=noblb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=noblb"
+    },
+    {
+      "id": "noi_wft",
+      "name": "Noiri Bible",
+      "language": "noi",
+      "languageCode": "noi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6cbf4027f9a13b9c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "nop_ntt",
@@ -7167,6 +8643,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nss"
     },
     {
+      "id": "nst_wft",
+      "name": "Koran Tamrunx Chuyo Naga",
+      "language": "nst",
+      "languageCode": "nst",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0370374733847b92",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ntj_bsa",
       "name": "Mama Kuurrku Wangka",
       "language": "ntj",
@@ -7176,6 +8661,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ntj"
     },
     {
+      "id": "nto_seed",
+      "name": "Lontomba",
+      "language": "nto",
+      "languageCode": "nto",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/43f30f4ecd1c3672",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "ntp_tbl",
       "name": "Diuusi ñiooquidʌ utuducami oodamicʌdʌ",
       "language": "ntp",
@@ -7183,6 +8677,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ntpNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ntpNT"
+    },
+    {
+      "id": "ntr_seed",
+      "name": "Ntrubo Old Testament",
+      "language": "ntr",
+      "languageCode": "ntr",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/78c171300a42ca75",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "ntu_wbt",
@@ -7201,6 +8704,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nuq",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nuq"
+    },
+    {
+      "id": "nut_nnlt",
+      "name": "Nung (Lang Son) Bible Literal Text",
+      "language": "nut",
+      "languageCode": "nut",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/be25ae8bde6049e6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "nuy_bsa",
@@ -7248,6 +8760,60 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nya"
     },
     {
+      "id": "nya_wft",
+      "name": "Nyanja",
+      "language": "nya",
+      "languageCode": "nya",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5f84a5b042979396",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nyb_seed",
+      "name": "Nyagbo Old Testament",
+      "language": "nyb",
+      "languageCode": "nyb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/8106f4bd10cb55b6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nyj_seed",
+      "name": "TRADUCTION BILBE EN KINYANGA",
+      "language": "nyj",
+      "languageCode": "nyj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/893af4a20423e17f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nyl_ea",
+      "name": "หนังสือมาระโกในภาษา",
+      "language": "nyl",
+      "languageCode": "nyl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/32c58b151b3c467f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "nym_pbt",
+      "name": "Bibliya Ki'nyamwezi",
+      "language": "nym",
+      "languageCode": "nym",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a92f442307b6f8fa",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)/"
+    },
+    {
+      "id": "nyn_bsu",
+      "name": "Baibuli Erikwera",
+      "language": "nyn",
+      "languageCode": "nyn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9bf4c154bb6029f7",
+      "licenseUrl": "https://app.library.bible/content/9bf4c154bb6029f7"
+    },
+    {
       "id": "nys_bsa",
       "name": "Noongar Bible",
       "language": "nys",
@@ -7255,6 +8821,42 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=nys",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=nys"
+    },
+    {
+      "id": "nyw_ea",
+      "name": "พระวรสาร",
+      "language": "nyw",
+      "languageCode": "nyw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/8b0087e5dba74931",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "nyw_luk",
+      "name": "The Book of Luke in Nyaw Language",
+      "language": "nyw",
+      "languageCode": "nyw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ecd0a3dde38341f3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "nyy_wft",
+      "name": "Sukwa Bible",
+      "language": "nyy",
+      "languageCode": "nyy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f068be8956596966",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "nzi_bib",
+      "name": "Open Nzema Word of Life",
+      "language": "nzi",
+      "languageCode": "nzi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/31a1ef009fde5625",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "obo_wbt",
@@ -7293,6 +8895,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=omb"
     },
     {
+      "id": "oml_seed",
+      "name": "Ombo Traduction",
+      "language": "oml",
+      "languageCode": "oml",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f47e8253b1763e7b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "omw_aat",
       "name": "Aatasara Ioni + Maaki",
       "language": "omw",
@@ -7329,6 +8940,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ong"
     },
     {
+      "id": "onn_wbt",
+      "name": "Gedene Sulu Nafulu Ewe",
+      "language": "onn",
+      "languageCode": "onn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ac1e3523ca85be1f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "ons_png",
       "name": "Waom Yesu Wane Sigi Maep Don",
       "language": "ons",
@@ -7354,6 +8974,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=opm",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=opm"
+    },
+    {
+      "id": "ory_bib",
+      "name": "Biblica® ମୁକ୍ତ ଭାବେ ଉପଲବ୍ଧ ଓଡିଆ ସମସାମୟିକ ବାଇବଲ",
+      "language": "ory",
+      "languageCode": "ory",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/97b51048ae7f2ec9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "ory_irv",
@@ -7437,6 +9066,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=pabNT"
     },
     {
+      "id": "pac_pclt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Pa-cô",
+      "language": "pac",
+      "languageCode": "pac",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/e11352a2ec185af7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "pad_wbt",
       "name": "Deus Athi Kapapirani Hida",
       "language": "pad",
@@ -7453,6 +9091,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=pahNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=pahNT"
+    },
+    {
+      "id": "pan_bib",
+      "name": "ਪੰਜਾਬੀ ਮੌਜੂਦਾ ਤਰਜਮਾ",
+      "language": "pan",
+      "languageCode": "pan",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/38de522697cd8943",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "pan_irv",
@@ -7480,6 +9127,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=pdo",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=pdo"
+    },
+    {
+      "id": "pdt_dkb",
+      "name": "De Kjennichs Bibel",
+      "language": "pdt",
+      "languageCode": "pdt",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/ba493b2d93531334",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
     },
     {
       "id": "peg_twf",
@@ -7563,6 +9219,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=pjt"
     },
     {
+      "id": "plj_tsc",
+      "name": "Zul",
+      "language": "plj",
+      "languageCode": "plj",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=plj",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=plj"
+    },
+    {
       "id": "pll_twf",
       "name": "The New Testament in Shwe Palaung",
       "language": "pll",
@@ -7615,6 +9280,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=pohNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=pohNT"
+    },
+    {
+      "id": "poh_pok",
+      "name": "Santo Laj Huuj (Bíblia Poqomchí )",
+      "language": "poh",
+      "languageCode": "poh",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/695aa4b9f902778f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "poi_wbt",
@@ -7995,15 +9669,6 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=qxoNT"
     },
     {
-      "id": "rai_tbl",
-      "name": "BUK TAABU MATAKIN + TURPAAINA",
-      "language": "rai",
-      "languageCode": "rai",
-      "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=rai",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rai"
-    },
-    {
       "id": "reg_ulb",
       "name": "Kara Bible",
       "language": "reg",
@@ -8020,6 +9685,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rei",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rei"
+    },
+    {
+      "id": "rgs_rlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Rắc-lây",
+      "language": "rgs",
+      "languageCode": "rgs",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d703d3283f8af40e",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "rgu_ubb",
@@ -8049,6 +9723,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rhg"
     },
     {
+      "id": "rhg_wft_rst",
+      "name": "Rohingya New Testament in Hanifi Script",
+      "language": "rhg",
+      "languageCode": "rhg",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/87faca8b51c22590",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "rif_ati",
       "name": "أَذْلِيسْ إِقدّْسنْ",
       "language": "rif",
@@ -8056,6 +9739,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rifa",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rifa"
+    },
+    {
+      "id": "rif_awa",
+      "name": "ثمازيغث ن أرّيف",
+      "language": "rif",
+      "languageCode": "rif",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/bb4d869847d96eff",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0)/"
     },
     {
       "id": "rif_lti",
@@ -8074,6 +9766,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rift",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rift"
+    },
+    {
+      "id": "rif_wbt",
+      "name": "Ṯamaziɣṯ n Arrif",
+      "language": "rif",
+      "languageCode": "rif",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/d75b2f45002bf377",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0)/"
     },
     {
       "id": "rkb_wbt",
@@ -8095,7 +9796,7 @@
     },
     {
       "id": "rmb_wbt",
-      "name": "Rembarrnga Christmas Story",
+      "name": "Rembarrnga Scripture",
       "language": "rmb",
       "languageCode": "rmb",
       "countryCode": "",
@@ -8130,6 +9831,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rmna"
     },
     {
+      "id": "rmn_mar",
+      "name": "Makedonsko Arli Romani Biblija",
+      "language": "rmn",
+      "languageCode": "rmn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a9b597227452d7c7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "rmn_pbt",
       "name": "Библия опэр крымски романи чиб",
       "language": "rmn",
@@ -8155,6 +9865,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rmyChergash",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rmyChergash"
+    },
+    {
+      "id": "rmy_cher",
+      "name": "Biblija pe romani Čergarsko čhib",
+      "language": "rmy",
+      "languageCode": "rmy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/65b675fa952d5d27",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "rmy_gur",
@@ -8191,6 +9910,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rmyvlakh",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rmyvlakh"
+    },
+    {
+      "id": "rmy_wft",
+      "name": "E Devleso Lafi ko Gurbetsko dijalekt",
+      "language": "rmy",
+      "languageCode": "rmy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/494329fa9b8f2892",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
     },
     {
       "id": "ron_924",
@@ -8292,6 +10020,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rug"
     },
     {
+      "id": "run_bib",
+      "name": "Open Kirundi Contemporary Bible",
+      "language": "run",
+      "languageCode": "run",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/916af8770096015e",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "rup_twf",
       "name": "Biblija tu limba Rrãmãnã",
       "language": "rup",
@@ -8299,6 +10036,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=rup",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rup"
+    },
+    {
+      "id": "rus_fbd",
+      "name": "Библия свободы",
+      "language": "rus",
+      "languageCode": "rus",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=rusfb",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=rusfb"
     },
     {
       "id": "rus_syn",
@@ -8335,6 +10081,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sabNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sabNT"
+    },
+    {
+      "id": "saj_seed",
+      "name": "Sahu Bible",
+      "language": "saj",
+      "languageCode": "saj",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a789a28ecfb26531",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "san_asm",
@@ -8535,6 +10290,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sanvel"
     },
     {
+      "id": "sat_wft",
+      "name": "इसोराक्‌ दुला़ड़ आड़ाङ",
+      "language": "sat",
+      "languageCode": "sat",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6d9dded1b30ec72f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "sav_wbt",
       "name": "Saafi-Saafi",
       "language": "sav",
@@ -8542,6 +10306,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sav",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sav"
+    },
+    {
+      "id": "sax_pbt",
+      "name": "Matiu men u dal êr na Juskon Temtô",
+      "language": "sax",
+      "languageCode": "sax",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/0f63f6f842ebe8e7",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)/"
     },
     {
       "id": "sbe_wbt",
@@ -8560,6 +10333,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sbk",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sbk"
+    },
+    {
+      "id": "sbm_wft",
+      "name": "Sagala",
+      "language": "sbm",
+      "languageCode": "sbm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b36e557361a3f422",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "sbs_doo",
@@ -8616,6 +10398,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=seyNT"
     },
     {
+      "id": "sfw_snt",
+      "name": "Sehwi New Testament",
+      "language": "sfw",
+      "languageCode": "sfw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/45e1a975c600d8ea",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "sgb_wbt",
       "name": "Ya habi ni apo namalyari: Bayon tsipan - Ayta Mag-antsi",
       "language": "sgb",
@@ -8652,6 +10443,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=shpNTpo"
     },
     {
+      "id": "shq_wft",
+      "name": "Sala Bible",
+      "language": "shq",
+      "languageCode": "shq",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/4d2c3a150a4278c9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "shr_buk",
       "name": "BIBLIYA NTAGATIFU OMU MASHI",
       "language": "shr",
@@ -8686,6 +10486,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sjaNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sjaNT"
+    },
+    {
+      "id": "skb_luke",
+      "name": "พระธรรมลูกาในภาษาเซก",
+      "language": "skb",
+      "languageCode": "skb",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7b11450055b3405a",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
     },
     {
       "id": "sle_wft",
@@ -8733,6 +10542,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sna"
     },
     {
+      "id": "sna_wft",
+      "name": "KoreKore Bible",
+      "language": "sna",
+      "languageCode": "sna",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7e47cd934792d014",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "snc_png",
       "name": "GINITAḠO VARIḠUNA",
       "language": "snc",
@@ -8769,6 +10587,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=snp-lambau"
     },
     {
+      "id": "snw_seed",
+      "name": "Selee Old Testament",
+      "language": "snw",
+      "languageCode": "snw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6b5691c19d7261b4",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "snx_wbt",
       "name": "Xotei ido Sam Mak ana Inggrengalox",
       "language": "snx",
@@ -8785,6 +10612,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sny",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sny"
+    },
+    {
+      "id": "soa_ea",
+      "name": "Mark in Lao Song Language",
+      "language": "soa",
+      "languageCode": "soa",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3d5619d4bbd244a9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "soa_luk",
+      "name": "The Book of Luke in Lao Song Language",
+      "language": "soa",
+      "languageCode": "soa",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/e906234b4d6b45a9",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "sod_seed",
+      "name": "Songola Traduction",
+      "language": "sod",
+      "languageCode": "sod",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2d8c7ee0fda46b5c",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "som_sim",
@@ -8815,12 +10669,21 @@
     },
     {
       "id": "spa_bes",
-      "name": "La Biblia en Español Sencillo",
+      "name": "La Biblia en Español Sencillo 2026",
       "language": "spa",
       "languageCode": "spa",
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=spabes",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=spabes"
+    },
+    {
+      "id": "spa_bll",
+      "name": "Santa Biblia libre Latinoamericano",
+      "language": "spa",
+      "languageCode": "spa",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=spabll",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=spabll"
     },
     {
       "id": "spa_blm",
@@ -8931,6 +10794,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=spyNT"
     },
     {
+      "id": "sqa_wft",
+      "name": "Ushama Bible",
+      "language": "sqa",
+      "languageCode": "sqa",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cec4d5bce6c08fc6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "sri_wbt",
       "name": "Marĩpʉya Kerere Wereri Turi",
       "language": "sri",
@@ -8960,6 +10832,24 @@
     {
       "id": "srp_865",
       "name": "Sveta Biblija",
+      "language": "srp",
+      "languageCode": "srp",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=srp1865",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=srp1865"
+    },
+    {
+      "id": "srp_dkc",
+      "name": "Свето писмо или Библија Превод Даничић-Караџић",
+      "language": "srp",
+      "languageCode": "srp",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=srp1868",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=srp1868"
+    },
+    {
+      "id": "srp_dkl",
+      "name": "Sveto Pismo ili Biblija",
       "language": "srp",
       "languageCode": "srp",
       "countryCode": "",
@@ -9102,6 +10992,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=swef"
     },
     {
+      "id": "swe_srb",
+      "name": "Svenska Reformationsbibeln",
+      "language": "swe",
+      "languageCode": "swe",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a69b45ff594fc632",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "swe_stb",
+      "name": "Svenska Standardbibeln NT",
+      "language": "swe",
+      "languageCode": "swe",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/32b8d9ca45df48b6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "swe_svk",
       "name": "Svenska Kärnbibeln - en expanderad översättning",
       "language": "swe",
@@ -9163,6 +11071,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sxbNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sxbNT"
+    },
+    {
+      "id": "szw_seed",
+      "name": "Perjanjian Baru Bahasa Sawai",
+      "language": "szw",
+      "languageCode": "szw",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5130dfe848263b6b",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "tac_wbt",
@@ -9264,6 +11181,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tbg"
     },
     {
+      "id": "tbi_pbt",
+      "name": "Kor é Tela",
+      "language": "tbi",
+      "languageCode": "tbi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a230cccfbf4362be",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/](https://creativecommons.org/licenses/by-sa/4.0/)/"
+    },
+    {
       "id": "tbl_wbt",
       "name": "Udél dwata: gna kesfasad ne lomi kesfasad",
       "language": "tbl",
@@ -9291,6 +11217,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tbx"
     },
     {
+      "id": "tby_seed",
+      "name": "Bahasa Tabaru",
+      "language": "tby",
+      "languageCode": "tby",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7604fe791478d847",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "tbz_sim",
       "name": "Bibiri Kuyie Nnɑ́ɑǹtì Pɑ́tíri",
       "language": "tbz",
@@ -9307,6 +11242,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=tcaNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tcaNT"
+    },
+    {
+      "id": "tcf_wbt",
+      "name": "Me̱ꞌpha̱a̱ Mañúwi̱ín",
+      "language": "tcf",
+      "languageCode": "tcf",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7168751f91082b62",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "tcn_twf",
@@ -9426,6 +11370,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tgk"
     },
     {
+      "id": "tgl_bib",
+      "name": "Ang Salita ng Diyos",
+      "language": "tgl",
+      "languageCode": "tgl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/797c5bee4849d8b3",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "tgl_ulb",
       "name": "banal na Bibliya",
       "language": "tgl",
@@ -9453,6 +11406,33 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tgp"
     },
     {
+      "id": "tha_bib",
+      "name": "พระคริสตธรรมคัมภีร์ไทย ฉบับอมตธรรมร่วมสมัยแบบเปิด",
+      "language": "tha",
+      "languageCode": "tha",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/2ce937c12ac62906",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "tha_com",
+      "name": "พระคริสตธรรมคัมภีร์ ฉบับไทยสามัญแบบเปิด",
+      "language": "tha",
+      "languageCode": "tha",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/a62f327aa0179709",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "tha_fbe",
+      "name": "พระคัมภีร์แห่งเสรีภาพ",
+      "language": "tha",
+      "languageCode": "tha",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=thafb",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=thafb"
+    },
+    {
       "id": "tha_kjv",
       "name": "พระคัมภีร์ภาษาไทยฉบับ KJV",
       "language": "tha",
@@ -9462,6 +11442,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=thaKJV"
     },
     {
+      "id": "tha_spv",
+      "name": "ไทยกลาง",
+      "language": "tha",
+      "languageCode": "tha",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/e23c17cc6358413f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "thd_ahh",
       "name": "Kuuk Thayorre Bible Portions",
       "language": "thd",
@@ -9469,6 +11458,33 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=thd",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=thd"
+    },
+    {
+      "id": "thl_dvgnt",
+      "name": "देउखरिया थारु",
+      "language": "thl",
+      "languageCode": "thl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3db2519064179783",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "thm_ea",
+      "name": "พระวรสาร",
+      "language": "thm",
+      "languageCode": "thm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/633d3de81c4f45ba",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "thm_luk",
+      "name": "The Book of Luke in Aheu Language",
+      "language": "thm",
+      "languageCode": "thm",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f39eca6764bc4083",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "thr_twf",
@@ -9489,6 +11505,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tif"
     },
     {
+      "id": "tig_mdw",
+      "name": "Meadowlands Bible",
+      "language": "tig",
+      "languageCode": "tig",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/9497b5e348514f38",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
       "id": "tim_tbl",
       "name": "Yusugât Pat Âlep Den",
       "language": "tim",
@@ -9499,7 +11524,7 @@
     },
     {
       "id": "tiw_mwb",
-      "name": "Tiwi Selections",
+      "name": "New Tiwi Scripture",
       "language": "tiw",
       "languageCode": "tiw",
       "countryCode": "",
@@ -9508,7 +11533,7 @@
     },
     {
       "id": "tiw_wbt",
-      "name": "Tiwi Bible",
+      "name": "Old Tiwi Scripture",
       "language": "tiw",
       "languageCode": "tiw",
       "countryCode": "",
@@ -9523,6 +11548,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=tiy",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tiy"
+    },
+    {
+      "id": "tjl_mark",
+      "name": "ကျမ်းစောင့်မာကု",
+      "language": "tjl",
+      "languageCode": "tjl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/7792a4a28d3449d6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "tke_wbt",
@@ -9642,6 +11676,33 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tof"
     },
     {
+      "id": "tog_seed",
+      "name": "Toka-Leya Bible",
+      "language": "tog",
+      "languageCode": "tog",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/99e41087ffe75f60",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "toi_seed",
+      "name": "Shanjo NT",
+      "language": "toi",
+      "languageCode": "toi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/575ac4c648c22c94",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
+      "id": "toi_wft",
+      "name": "Tonga Bible",
+      "language": "toi",
+      "languageCode": "toi",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/48780d641fe81e97",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "toj_wbt",
       "name": "Ja yajcʼachil testamento sbaj ja cajualtic Jesucristo",
       "language": "toj",
@@ -9741,6 +11802,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=trcNT"
     },
     {
+      "id": "tsa_wbt",
+      "name": "Tsaangi",
+      "language": "tsa",
+      "languageCode": "tsa",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/6e65462278162711",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "tsn_bib",
       "name": "Biblica® Open Lefoko: La Botshelo Kgolagano e Ntsha",
       "language": "tsn",
@@ -9793,6 +11863,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=tte",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tte"
+    },
+    {
+      "id": "ttl_wft",
+      "name": "Totela Bible",
+      "language": "ttl",
+      "languageCode": "ttl",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/35e166db93839af0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "tuc_oov",
@@ -9901,6 +11980,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=twiasante",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=twiasante"
+    },
+    {
+      "id": "txo_seed",
+      "name": "Toto Bible",
+      "language": "txo",
+      "languageCode": "txo",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3b30f21af95962d0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "txq_ubb",
@@ -10124,8 +12212,8 @@
       "language": "ulk",
       "languageCode": "ulk",
       "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=ulk1902",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ulk1902"
+      "website": "https://ebible.org/Scriptures/details.php?id=ulk",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ulk"
     },
     {
       "id": "unx_twf",
@@ -10207,6 +12295,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=urdoucv",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=urdoucv"
+    },
+    {
+      "id": "uri_sil",
+      "name": "Kla Weten A Maur Wailen Lam",
+      "language": "uri",
+      "languageCode": "uri",
+      "countryCode": "",
+      "website": "https://ebible.org/Scriptures/details.php?id=urim",
+      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=urim"
     },
     {
       "id": "uri_wbt",
@@ -10299,6 +12396,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=vaa"
     },
     {
+      "id": "ver_seed",
+      "name": "Kobo Bible",
+      "language": "ver",
+      "languageCode": "ver",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/10a6e50e9f90b6ef",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "vgr_wft",
       "name": "పవిత్ర్ బైబిల్‍",
       "language": "vgr",
@@ -10335,6 +12441,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=vieovcb"
     },
     {
+      "id": "vie_vlt",
+      "name": "Bản Dịch Kinh Thánh Tiếng Việt 2020",
+      "language": "vie",
+      "languageCode": "vie",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/fb8f4f9df2187e84",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
+    },
+    {
       "id": "viv_wbt",
       "name": "YAUBADA BONANA VEYAO IVAGUNA Bona Iduna",
       "language": "viv",
@@ -10351,6 +12466,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=vmyNT",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=vmyNT"
+    },
+    {
+      "id": "wad_seed",
+      "name": "Alkitab Bahasa Wondama",
+      "language": "wad",
+      "languageCode": "wad",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/5b0bff9e590bf4a6",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "waj_wbt",
@@ -10480,7 +12604,7 @@
     },
     {
       "id": "wlg_wbt",
-      "name": "Kunbarlang Christmas Story and Part of Acts 1",
+      "name": "Kunbarlang Scripture",
       "language": "wlg",
       "languageCode": "wlg",
       "countryCode": "",
@@ -10549,6 +12673,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=wolmbs",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=wolmbs"
+    },
+    {
+      "id": "wol_rwbt",
+      "name": "Kàddug Yàlla",
+      "language": "wol",
+      "languageCode": "wol",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f31163c81bba4b74",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
+    },
+    {
+      "id": "wol_rwnt",
+      "name": "Téereb Injiil",
+      "language": "wol",
+      "languageCode": "wol",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/516e258b1544494d",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/)./"
     },
     {
       "id": "wos_wbt",
@@ -10803,6 +12945,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ydd"
     },
     {
+      "id": "ydd_oyt",
+      "name": "ארטאדאקסישע יידישע תּנ״ך",
+      "language": "ydd",
+      "languageCode": "ydd",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/bfdb25f511477276",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
+    },
+    {
+      "id": "ydd_oytl",
+      "name": "Vort far vort iberzetsung fun Orthodoksishe Yidishe Tanakh",
+      "language": "ydd",
+      "languageCode": "ydd",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/77bafd78af8cbae8",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc/4.0/"
+    },
+    {
       "id": "yer_lis",
       "name": "Tarok Bible",
       "language": "yer",
@@ -10819,6 +12979,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=yij",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=yij"
+    },
+    {
+      "id": "yin_mrk",
+      "name": "ပပ်ႉၵျၢမ်းမႃၵုပ်ႈ",
+      "language": "yin",
+      "languageCode": "yin",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b1ab701c663e47cc",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "yka_wbt",
@@ -10857,6 +13026,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ymp"
     },
     {
+      "id": "yno_ea",
+      "name": "พระวรสาร (มาร์ค)",
+      "language": "yno",
+      "languageCode": "yno",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cdd906738dc14f8f",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "yno_luk",
+      "name": "The Book of Luke in Yong Language",
+      "language": "yno",
+      "languageCode": "yno",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/b10dd335998547d5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "yns_tsc",
       "name": "Bible Iyansi",
       "language": "yns",
@@ -10891,6 +13078,24 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=yor",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=yor"
+    },
+    {
+      "id": "yoy_ea",
+      "name": "พระวรสาร",
+      "language": "yoy",
+      "languageCode": "yoy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/f50314ee89fb4f93",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-sa/4.0/"
+    },
+    {
+      "id": "yoy_luk",
+      "name": "The Book of Luke in Yoy Language",
+      "language": "yoy",
+      "languageCode": "yoy",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/854ccb6a86d24990",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
     },
     {
       "id": "yrb_tbl",
@@ -11154,6 +13359,24 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ziw"
     },
     {
+      "id": "zkd_mrk",
+      "name": "ရှာန်မာကုကျမ်းကျိန်း",
+      "language": "zkd",
+      "languageCode": "zkd",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/3601553456cd4196",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
+      "id": "zkn_mark",
+      "name": "ရှင်မာကုကျမ်းစာအုပ်",
+      "language": "zkn",
+      "languageCode": "zkn",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/cd06723a13a74b61",
+      "licenseUrl": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+    },
+    {
       "id": "zlm_ksz",
       "name": "Kitab Suci Zabur dan Injil",
       "language": "zlm",
@@ -11170,6 +13393,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=plj",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=plj"
+    },
+    {
+      "id": "zne_seed",
+      "name": "Pazande Bible",
+      "language": "zne",
+      "languageCode": "zne",
+      "countryCode": "",
+      "website": "https://app.library.bible/content/55ce30a24ca7e265",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/"
     },
     {
       "id": "zos_tbl",
