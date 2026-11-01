@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useApp } from '../store/AppContext';
+import { TEXT_SIZE_DEFAULTS } from '../store/persistence';
 import ExternalLink from './ExternalLink';
 import HelpPanel from './HelpPanel';
 import LogsTab from './LogsTab';
@@ -44,6 +45,33 @@ function Section({ title, children }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {children}
       </div>
+    </div>
+  );
+}
+
+const TEXT_SIZE_CONTROLS = [
+  { key: 'stageAnnouncementFontSize', label: 'Stage announcement', hint: 'Confidence monitor, bottom-right quadrant', min: 12, max: 96 },
+  { key: 'scriptureFontSize', label: 'Scripture', hint: 'Default for new scripture items', min: 18, max: 96 },
+];
+
+// Draft-then-save: the value only persists on release, so dragging doesn't write settings on every tick
+function SizeSlider({ label, hint, min, max, value, onSave }) {
+  const [draft, setDraft] = useState(value);
+  useEffect(() => { setDraft(value); }, [value]);
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font)' }}>{draft}px</span>
+      </div>
+      <input
+        type="range" min={min} max={max} value={draft}
+        onChange={e => setDraft(Number(e.target.value))}
+        onMouseUp={e => onSave(Number(e.target.value))}
+        onTouchEnd={e => onSave(Number(e.target.value))}
+        style={{ width: '100%', accentColor: 'var(--accent)' }}
+      />
+      <div style={{ fontSize: 10, color: 'var(--text-dim)', marginTop: 2 }}>{hint}</div>
     </div>
   );
 }
@@ -361,6 +389,21 @@ function DevicesTab({ settings, saveSettings }) {
             </div>
           )}
         </div>
+      </Section>
+
+      {/* ── Text Sizes ───────────────────────────────────────────────────── */}
+      <Section title="Text Sizes">
+        {TEXT_SIZE_CONTROLS.map(c => (
+          <SizeSlider
+            key={c.key}
+            label={c.label}
+            hint={c.hint}
+            min={c.min}
+            max={c.max}
+            value={settings?.[c.key] ?? TEXT_SIZE_DEFAULTS[c.key]}
+            onSave={(v) => saveSettings({ [c.key]: v })}
+          />
+        ))}
       </Section>
     </>
   );

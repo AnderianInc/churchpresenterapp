@@ -79,8 +79,11 @@ export function validateScheduleArray(raw) {
   return raw.filter(item => item && typeof item === 'object' && item.scheduleId && item.title);
 }
 
+// Text sizes (px) for the non-song text types. Per-item fontSize still overrides these where it exists.
+export const TEXT_SIZE_DEFAULTS = { stageAnnouncementFontSize: 30, scriptureFontSize: 38 };
+
 export function validateSettings(raw) {
-  const defaults = { theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' };
+  const defaults = { ...TEXT_SIZE_DEFAULTS, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' };
   if (!raw || typeof raw !== 'object') return defaults;
   return { ...defaults, ...raw };
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo, createContext, useContext } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { buildScriptureLowerThird } from '../utils/lowerThird';
-import { storage, migrateLegacyStorage, validateSongsArray, validateScheduleArray, validateSettings } from './persistence';
+import { storage, migrateLegacyStorage, validateSongsArray, validateScheduleArray, validateSettings, TEXT_SIZE_DEFAULTS } from './persistence';
 import defaultSongs from '../data/defaultSongs';
 import { writeLiveState } from './liveStateSync';
 
@@ -68,7 +68,7 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [songs, setSongs] = useState([]);
   const [schedule, setSchedule] = useState([]);
-  const [settings, setSettings] = useState({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' });
+  const [settings, setSettings] = useState({ ...TEXT_SIZE_DEFAULTS, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' });
   const [activeScheduleIdx, setActiveScheduleIdx] = useState(0);
   const [activeSlideIdx, setActiveSlideIdx] = useState(0);
   /** Audience / main projector output */
@@ -188,7 +188,7 @@ export function AppProvider({ children }) {
         migrateLegacyStorage();
         loadedSongs = storage.load('cp_songs', validateSongsArray, defaultSongs);
         loadedSchedule = storage.load('cp_schedule', validateScheduleArray, []);
-        loadedSettings = storage.load('cp_settings', validateSettings, { theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' });
+        loadedSettings = storage.load('cp_settings', validateSettings, { ...TEXT_SIZE_DEFAULTS, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia' });
       }
       setSongs(loadedSongs);
       setSchedule(loadedSchedule);

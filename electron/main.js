@@ -62,7 +62,7 @@ const VERSION_FILE = path.join(dataDir, '.last-version');
 const FILE_DEFAULTS = {
   songs: () => defaultSongs,
   schedules: () => [],
-  settings: () => ({ theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], bibleXmlDir: '', preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [], imageFavorites: [], savedServices: [] }),
+  settings: () => ({ stageAnnouncementFontSize: 30, scriptureFontSize: 38, theme: 'dark', defaultFontSize: 44, defaultFont: 'Georgia', displayLabels: {}, routingPresets: [], rtmpDestinations: [], pcoAppId: '', pcoSecret: '', anthropicApiKey: '', geniusApiKey: '', bibleFavoriteVersionIds: [], bibleXmlDir: '', preferredMicId: '', preferredCameraId: '', preferredDisplayIndex: null, videoFavorites: [], imageFavorites: [], savedServices: [] }),
 };
 
 function writeJsonFile(filePath, data) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { BROADCAST_CHANNEL } from '../store/AppContext';
+import { BROADCAST_CHANNEL, useApp } from '../store/AppContext';
 import {
   TIMER_TYPES,
   createTimer,
@@ -24,8 +24,8 @@ function broadcastTimers(timers) {
   window.electronAPI?.sendTimerState?.(timers);
 }
 
-function broadcastAnnouncement(text) {
-  const payload = { text, sentAt: Date.now() };
+function broadcastAnnouncement(text, fontSize) {
+  const payload = { text, fontSize, sentAt: Date.now() };
   if (typeof BroadcastChannel !== 'undefined') {
     const ch = new BroadcastChannel(BROADCAST_CHANNEL);
     ch.postMessage({ type: 'stage-announcement', payload });
@@ -93,18 +93,32 @@ export default function TimerPanel() {
 
   const removeTimer = useCallback((id) => setTimers(prev => prev.filter(t => t.id !== id)), []);
 
+  const { settings, saveSettings } = useApp();
+  const announcementSize = settings?.stageAnnouncementFontSize ?? 30;
+  const [sizeDraft, setSizeDraft] = useState(announcementSize);
+  useEffect(() => { setSizeDraft(announcementSize); }, [announcementSize]);
+
   const sendAnnouncement = useCallback(() => {
     const text = announcement.trim();
     if (!text) return;
-    broadcastAnnouncement(text);
+    broadcastAnnouncement(text, announcementSize);
     setLastSent(text);
     setAnnouncement('');
-  }, [announcement]);
+  }, [announcement, announcementSize]);
 
   const clearAnnouncement = useCallback(() => {
-    broadcastAnnouncement('');
+    broadcastAnnouncement('', announcementSize);
     setLastSent('');
-  }, []);
+  }, [announcementSize]);
+
+  // Persist the size and, if an announcement is already on screen, re-send it at the new size
+  const commitAnnouncementSize = useCallback(() => {
+    const size = Math.max(12, Math.min(96, Number(sizeDraft) || 30));
+    setSizeDraft(size);
+    if (size === announcementSize) return;
+    saveSettings({ stageAnnouncementFontSize: size });
+    if (lastSent) broadcastAnnouncement(lastSent, size);
+  }, [sizeDraft, announcementSize, saveSettings, lastSent]);
 
   const now = Date.now();
 
@@ -320,6 +334,18 @@ export default function TimerPanel() {
               )
               : <span />
             }
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>Size</span>
+              <input
+                type="number" min={12} max={96}
+                style={{ ...input, width: 56, padding: '3px 6px' }}
+                value={sizeDraft}
+                onChange={e => setSizeDraft(e.target.value)}
+                onBlur={commitAnnouncementSize}
+                onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+              />
+              <span style={{ fontSize: 10, color: 'var(--text-dim)' }}>px</span>
+            </div>
             <button onClick={sendAnnouncement} style={{ ...primaryBtn(), padding: '5px 16px' }}>
               Send to Stage
             </button>

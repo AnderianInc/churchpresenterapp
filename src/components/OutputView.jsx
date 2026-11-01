@@ -141,6 +141,8 @@ export default function OutputView() {
   // backgrounds now render through SlideRenderer like any other slide, so this
   // window no longer opens its own camera stream.
   const videoRef = useRef(null);
+  // true only when the operator explicitly paused the background — slide changes must not undo that
+  const userPausedRef = useRef(false);
 
   // ── YouTube control via embed postMessage (works in every output window) ──────
   // Only the program output receives audio — other outputs always stay muted so
@@ -192,10 +194,10 @@ export default function OutputView() {
     const video = videoRef.current;
     if (!video) return;
     switch (func) {
-      case 'play':   video.play(); break;
-      case 'pause':  video.pause(); break;
-      case 'stop':   video.pause(); try { video.currentTime = 0; } catch (_) {} break;
-      case 'restart': try { video.currentTime = 0; } catch (_) {} video.play(); break;
+      case 'play':   userPausedRef.current = false; video.play(); break;
+      case 'pause':  userPausedRef.current = true; video.pause(); break;
+      case 'stop':   userPausedRef.current = true; video.pause(); try { video.currentTime = 0; } catch (_) {} break;
+      case 'restart': userPausedRef.current = false; try { video.currentTime = 0; } catch (_) {} video.play(); break;
       case 'mute':   video.muted = true; break;
       case 'seek':   video.currentTime = Math.max(0, Math.min(video.duration || 0, args[0] ?? 0)); break;
       // Audio commands only reach the program output — all other roles stay muted
@@ -217,6 +219,8 @@ export default function OutputView() {
     const video = videoRef.current;
     const effectiveBgType = slide?.background?.type || slide?.item?.background?.type;
     if (!video || effectiveBgType !== 'video') return;
+    // Slide-to-slide: keep the same background playing. Only resume if it stopped on its own.
+    if (video.paused && !video.ended && !userPausedRef.current) video.play().catch(() => {});
     const relay = () => relayVideoState({
       isPlaying: !video.paused,
       isMuted: video.muted,

@@ -135,7 +135,7 @@ function AnnouncementQuadrant({ announcement }) {
       {hasMsg ? (
         <>
           <div style={{
-            fontSize: 'clamp(14px, 2.2vw, 30px)',
+            fontSize: announcement.fontSize ?? 'clamp(14px, 2.2vw, 30px)',
             color: '#ffffff',
             fontFamily: 'Georgia',
             lineHeight: 1.55,
