@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
 import { bgToCss } from './BackgroundPicker';
 import CameraBackground from './CameraBackground';
+import { videoFitStyle } from '../utils/videoFit';
 
 /**
  * Renders a single slide for preview thumbnails, live output, and stage views.
@@ -222,8 +223,7 @@ function SlideRenderer({
             src={videoSrc}
             onError={handleVideoError}
             style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%', objectFit: 'cover',
+              ...videoFitStyle(effectiveBg),
               filter: `brightness(${dimLevel})`,
               display: videoError ? 'none' : 'block',
             }}

@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-01T02:18:36.599Z",
-  "count": 1504,
+  "generatedAt": "2026-11-12T17:14:29.857Z",
+  "count": 1505,
   "translations": [
     {
       "id": "AAB",
@@ -5383,6 +5383,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=jnjl",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=jnjl"
+    },
+    {
+      "id": "jpn_bun",
+      "name": "文語訳",
+      "language": "jpn",
+      "languageCode": "jpn",
+      "countryCode": "",
+      "website": "https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml",
+      "licenseUrl": "https://github.com/KallynGowdy/open-bibles/blob/5a86195a040b18bb8ec6348984429b726af98774/jpn-bungo.osis.xml"
     },
     {
       "id": "jpn_kou",

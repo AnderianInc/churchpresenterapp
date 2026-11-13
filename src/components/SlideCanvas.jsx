@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import CameraBackground from './CameraBackground';
+import { videoFitStyle } from '../utils/videoFit';
 
 /**
  * Shared slide preview panel used by both StageView and ConfidenceMonitor.
@@ -77,8 +78,7 @@ export function SlideCanvas({ slide, isBlackout = false, label, accent, dimmed =
           preload="metadata"
           src={videoSrc}
           style={{
-            position: 'absolute', inset: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
+            ...videoFitStyle(effectiveBg),
             filter: `brightness(${dimmed ? 0.25 : 0.4})`,
             zIndex: 0,
           }}
