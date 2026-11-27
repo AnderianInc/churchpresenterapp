@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
 import { useApp } from '../store/AppContext';
+import { hasSlideDrag, readSlideDrag, copySlideForTarget, startScheduleItemDrag } from '../utils/slideDnd';
+
+// Slide dropped on empty service-order space becomes a new one-slide item.
+function newGroupFromSlideDrag({ slide, itemStyle }) {
+  return {
+    type: 'blank',
+    title: slide.label || 'New slides',
+    slides: [copySlideForTarget(slide)],
+    ...itemStyle,
+  };
+}
 
 const typeColors = {
   song: '#4f8ef7', scripture: '#22c55e', video: '#a855f7', announcement: '#f97316', blank: '#8b90a0'
@@ -16,11 +27,13 @@ export default function SchedulePanel({ onEditSong }) {
   const {
     schedule, settings, activeScheduleIdx, setActiveScheduleIdx,
     setActiveSlideIdx, removeFromSchedule, clearSchedule, reorderSchedule,
-    saveServiceOrder, loadServiceOrder, deleteSavedService,
+    saveServiceOrder, loadServiceOrder, deleteSavedService, updateScheduleItem, addToSchedule,
   } = useApp();
 
   const [dragIdx, setDragIdx] = useState(null);
   const [dragOverIdx, setDragOverIdx] = useState(null);
+  const [slideDropIdx, setSlideDropIdx] = useState(null); // item currently under a slide drag
+  const [newGroupDrop, setNewGroupDrop] = useState(false); // slide drag over empty panel space
 
   // Saved services panel state
   const [showSaved, setShowSaved] = useState(false);
@@ -31,10 +44,58 @@ export default function SchedulePanel({ onEditSong }) {
 
   const select = (i) => { setActiveScheduleIdx(i); setActiveSlideIdx(0); };
 
-  const handleDragStart = (e, i) => { setDragIdx(i); e.dataTransfer.effectAllowed = 'move'; };
-  const handleDragOver = (e, i) => { e.preventDefault(); setDragOverIdx(i); };
+  const handleDragStart = (e, i) => {
+    setDragIdx(i);
+    // Tagged so the slide strip can accept the whole item as a copy source.
+    startScheduleItemDrag(e, schedule[i].scheduleId);
+  };
+  const handleDragOver = (e, i) => {
+    e.preventDefault();
+    if (hasSlideDrag(e)) {
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'copy';
+      setSlideDropIdx(i);
+      return;
+    }
+    setDragOverIdx(i);
+  };
+  const handleDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setSlideDropIdx(null);
+  };
+
+  // Panel background (outside any item): a slide dropped here starts a new service item.
+  const handlePanelDragOver = (e) => {
+    if (!hasSlideDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setNewGroupDrop(true);
+  };
+  const handlePanelDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setNewGroupDrop(false);
+  };
+  const handlePanelDrop = (e) => {
+    if (!hasSlideDrag(e)) return;
+    e.preventDefault();
+    setNewGroupDrop(false);
+    const drag = readSlideDrag(e);
+    if (drag) addToSchedule(newGroupFromSlideDrag(drag));
+  };
   const handleDrop = (e, i) => {
     e.preventDefault();
+    // A slide dragged from the slide strip: copy it into this item.
+    if (hasSlideDrag(e)) {
+      e.stopPropagation();
+      setSlideDropIdx(null);
+      const drag = readSlideDrag(e);
+      const target = schedule[i];
+      if (drag && target) {
+        updateScheduleItem(target.scheduleId, {
+          slides: [...(target.slides || []), copySlideForTarget(drag.slide)],
+        });
+      }
+      return;
+    }
+    // Otherwise it's a schedule reorder.
     if (dragIdx === null || dragIdx === i) return;
     const newOrder = [...schedule];
     const [moved] = newOrder.splice(dragIdx, 1);
@@ -62,10 +123,17 @@ export default function SchedulePanel({ onEditSong }) {
   };
 
   return (
-    <div style={{
-      width: 230, background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column', flexShrink: 0,
-    }}>
+    <div
+      onDragOver={handlePanelDragOver}
+      onDragLeave={handlePanelDragLeave}
+      onDrop={handlePanelDrop}
+      style={{
+        width: 230, background: 'var(--bg-sidebar)', borderRight: '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column', flexShrink: 0,
+        boxShadow: newGroupDrop ? 'inset 0 0 0 2px var(--accent)' : 'none',
+        transition: 'box-shadow 0.12s',
+      }}
+    >
       {/* ── Header ── */}
       <div style={{
         padding: '8px 12px', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)',
@@ -205,15 +273,18 @@ export default function SchedulePanel({ onEditSong }) {
             draggable
             onDragStart={e => handleDragStart(e, i)}
             onDragOver={e => handleDragOver(e, i)}
+            onDragLeave={handleDragLeave}
             onDrop={e => handleDrop(e, i)}
-            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); }}
+            onDragEnd={() => { setDragIdx(null); setDragOverIdx(null); setSlideDropIdx(null); setNewGroupDrop(false); }}
             onClick={() => select(i)}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
               padding: '7px 8px', borderRadius: 'var(--radius)',
               cursor: 'pointer', marginBottom: 2,
-              background: i === activeScheduleIdx ? 'var(--bg-selected)' : dragOverIdx === i ? 'var(--bg-hover)' : 'transparent',
-              border: i === activeScheduleIdx ? '1px solid rgba(79,142,247,0.3)' : '1px solid transparent',
+              background: i === activeScheduleIdx ? 'var(--bg-selected)' : dragOverIdx === i || slideDropIdx === i ? 'var(--bg-hover)' : 'transparent',
+              border: slideDropIdx === i
+                ? '1px dashed var(--accent)'
+                : i === activeScheduleIdx ? '1px solid rgba(79,142,247,0.3)' : '1px solid transparent',
               transition: 'all 0.12s',
             }}
           >
@@ -253,7 +324,7 @@ export default function SchedulePanel({ onEditSong }) {
 
       {schedule.length > 0 && (
         <div style={{ padding: '6px 8px', borderTop: '1px solid var(--border)', fontSize: 11, color: 'var(--text-dim)', textAlign: 'center' }}>
-          {schedule.length} items · drag to reorder
+          {schedule.length} items · drag to reorder · drop slides to copy · drop a slide here for a new item
         </div>
       )}
     </div>

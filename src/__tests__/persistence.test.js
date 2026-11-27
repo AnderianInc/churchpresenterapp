@@ -213,6 +213,18 @@ describe('validateSong — song-level background', () => {
     expect(validateSong(song).data.background).toEqual(bg);
   });
 
+  it('preserves video aspect ratio settings', () => {
+    const bg = { type: 'video', value: 'file:///bg.mp4', name: '', fit: 'contain', scale: 0.8, aspect: '16:9' };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background).toEqual(bg);
+  });
+
+  it('drops unknown video aspect values', () => {
+    const bg = { type: 'video', value: 'file:///bg.mp4', aspect: '2.35:1' };
+    const song = { id: 'x', title: 'T', slides: [], background: bg };
+    expect(validateSong(song).data.background.aspect).toBeUndefined();
+  });
+
   it('clamps image scale to [0.1, 1]', () => {
     const tooBig = { type: 'image', value: 'data:image/png;base64,abc', scale: 2 };
     const tooSmall = { type: 'image', value: 'data:image/png;base64,abc', scale: -1 };

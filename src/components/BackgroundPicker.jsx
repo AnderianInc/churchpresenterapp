@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ImageCropModal from './ImageCropModal';
+import { VIDEO_ASPECT_OPTIONS } from '../utils/videoFit';
 
 // ── Preset palettes ───────────────────────────────────────────────────────────
 
@@ -69,6 +70,23 @@ export function bgToCss(bg) {
  */
 // Fit + Size for image and video backgrounds: Cover fills and crops; Contain
 // shows the whole picture, and Size shrinks it inside the slide.
+// Size slider: shrinks the picture (or the ratio frame) inside the slide.
+function SizeSlider({ value, onChange }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+      <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 64 }}>
+        Size: {Math.round((value.scale ?? 1) * 100)}%
+      </span>
+      <input
+        type="range" min={10} max={100} step={5}
+        value={Math.round((value.scale ?? 1) * 100)}
+        onChange={e => onChange({ ...value, scale: Number(e.target.value) / 100 })}
+        style={{ flex: 1, accentColor: 'var(--accent)' }}
+      />
+    </div>
+  );
+}
+
 function FitControls({ value, onChange }) {
   return (
     <>
@@ -94,19 +112,7 @@ function FitControls({ value, onChange }) {
           })}
         </div>
       </div>
-      {(value.fit || 'cover') === 'contain' && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 64 }}>
-            Size: {Math.round((value.scale ?? 1) * 100)}%
-          </span>
-          <input
-            type="range" min={10} max={100} step={5}
-            value={Math.round((value.scale ?? 1) * 100)}
-            onChange={e => onChange({ ...value, scale: Number(e.target.value) / 100 })}
-            style={{ flex: 1, accentColor: 'var(--accent)' }}
-          />
-        </div>
-      )}
+      {(value.fit || 'cover') === 'contain' && <SizeSlider value={value} onChange={onChange} />}
     </>
   );
 }
@@ -497,7 +503,22 @@ export default function BackgroundPicker({ value, onChange, compact = false }) {
                   style={{ accentColor: 'var(--accent)', cursor: 'pointer' }}
                 />
               </div>
-              <FitControls value={value} onChange={onChange} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 10, color: 'var(--text-dim)', whiteSpace: 'nowrap', minWidth: 64 }}>Aspect:</span>
+                <select
+                  value={value.aspect || 'slide'}
+                  onChange={e => onChange({ ...value, aspect: e.target.value })}
+                  style={{ flex: 1, background: '#13171f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, color: '#fff', padding: '3px 6px', fontSize: 11, fontFamily: 'var(--font)' }}
+                >
+                  {VIDEO_ASPECT_OPTIONS.map(opt => (
+                    <option key={opt.key} value={opt.key}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+              {(!value.aspect || value.aspect === 'slide') && <FitControls value={value} onChange={onChange} />}
+              {value.aspect && value.aspect !== 'slide' && value.aspect !== 'stretch' && (
+                <SizeSlider value={value} onChange={onChange} />
+              )}
 
               <button
                 onClick={() => videoInputRef.current?.click()}
