@@ -34,8 +34,8 @@ export default function LibraryPanel({ onEditSong, onNewSong }) {
   }, [songs, search, filterTag, sortBy]);
 
   // Dropping a slide onto a library song copies it into that song's slides.
-  const handleSlideDrop = (song, slide) => {
-    updateSong(song.id, { slides: [...(song.slides || []), copySlideForTarget(slide)] });
+  const handleSlideDrop = (song, drag) => {
+    updateSong(song.id, { slides: [...(song.slides || []), copySlideForTarget(drag.slide, drag.itemStyle)] });
   };
 
   const handleAdd = (song) => {
@@ -160,7 +160,7 @@ function SongItem({ song, onAdd, onEdit, onDelete, onSlideDrop }) {
         e.preventDefault();
         setDropActive(false);
         const drag = readSlideDrag(e);
-        if (drag) onSlideDrop(song, drag.slide);
+        if (drag) onSlideDrop(song, drag);
       }}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px',

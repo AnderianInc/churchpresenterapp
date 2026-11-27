@@ -72,3 +72,21 @@ describe('pickItemStyle', () => {
     expect(pickItemStyle(undefined)).toEqual({});
   });
 });
+
+describe('copySlideForTarget background handling', () => {
+  const slide = { id: 's1', label: 'Verse', lines: 'x' };
+  const videoItem = { background: { type: 'video', value: 'file:///bg.mp4', fit: 'contain', aspect: '16:9' } };
+
+  it('bakes the source item background into a slide that has none', () => {
+    expect(copySlideForTarget(slide, videoItem).background).toEqual(videoItem.background);
+  });
+
+  it('keeps a slide background it already has', () => {
+    const own = { type: 'color', value: '#123456' };
+    expect(copySlideForTarget({ ...slide, background: own }, videoItem).background).toEqual(own);
+  });
+
+  it('leaves background unset when neither slide nor source has one', () => {
+    expect(copySlideForTarget(slide).background).toBeUndefined();
+  });
+});

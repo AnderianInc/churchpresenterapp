@@ -168,7 +168,7 @@ export default function SlideEditor() {
     const incoming = source.slides || [];
     if (incoming.length === 0) return;
     updateScheduleItem(currentItem.scheduleId, {
-      slides: [...currentSlides, ...incoming.map(copySlideForTarget)],
+      slides: [...currentSlides, ...incoming.map(s => copySlideForTarget(s, source))],
     });
   };
 
