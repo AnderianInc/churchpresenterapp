@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-11-12T17:14:29.857Z",
-  "count": 1505,
+  "generatedAt": "2026-11-27T21:12:02.975Z",
+  "count": 1518,
   "translations": [
     {
       "id": "AAB",
@@ -476,8 +476,8 @@
       "language": "amh",
       "languageCode": "amh",
       "countryCode": "",
-      "website": "https://ebible.org/Scriptures/details.php?id=amh",
-      "licenseUrl": "https://ebible.org/Scriptures/details.php?id=amh"
+      "website": "https://www.wordproject.org/bibles/am/index.htm",
+      "licenseUrl": "https://ebible.org/amh/copyright.htm"
     },
     {
       "id": "amk_seed",
@@ -2127,6 +2127,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cebulb"
     },
     {
+      "id": "ceb_wp",
+      "name": "Bibliya",
+      "language": "ceb",
+      "languageCode": "ceb",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/ceb/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "cek_akb",
       "name": "Asang Khongca Bible (2019)",
       "language": "cek",
@@ -2413,6 +2422,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=cmnswcb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=cmnswcb"
+    },
+    {
+      "id": "cmn_wppy",
+      "name": "Shèng Jīng",
+      "language": "cmn",
+      "languageCode": "cmn",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/pn/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
     },
     {
       "id": "cni_wbt",
@@ -3819,6 +3837,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=fin"
     },
     {
+      "id": "fin_wp",
+      "name": "Raamattu",
+      "language": "fin",
+      "languageCode": "fin",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/fi/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "for_nyb",
       "name": "Fore New Testament",
       "language": "for",
@@ -4944,6 +4971,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=hun"
     },
     {
+      "id": "hun_wp",
+      "name": "Károli Biblia",
+      "language": "hun",
+      "languageCode": "hun",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/hu/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "hus_tbl",
       "name": "Nin tének káwintal an okˀóxláb",
       "language": "hus",
@@ -5032,6 +5068,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=ibo",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ibo"
+    },
+    {
+      "id": "ibo_wp",
+      "name": "Akwụkwọ Nsọ",
+      "language": "ibo",
+      "languageCode": "ibo",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/ig/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
     },
     {
       "id": "idc_sco",
@@ -8562,6 +8607,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=noblb"
     },
     {
+      "id": "nob_wp",
+      "name": "Bibelen 1930",
+      "language": "nob",
+      "languageCode": "nob",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/no/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "noi_wft",
       "name": "Noiri Bible",
       "language": "noi",
@@ -9327,6 +9381,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=polubg"
     },
     {
+      "id": "pol_wp",
+      "name": "Biblia Gdańska",
+      "language": "pol",
+      "languageCode": "pol",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/pl/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "pon_pja",
       "name": "Kadede Kap Pjam Akan",
       "language": "pon",
@@ -9975,6 +10038,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=ronludari"
     },
     {
+      "id": "ron_wp",
+      "name": "Biblia Cornilescu",
+      "language": "ron",
+      "languageCode": "ron",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/ro/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "roo_tbl",
       "name": "AIREPA VAE REO OVOI",
       "language": "roo",
@@ -10477,6 +10549,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=sim",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=sim"
+    },
+    {
+      "id": "sin_wp",
+      "name": "ශුද්ධ වූ බයිබලය",
+      "language": "sin",
+      "languageCode": "sin",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/si/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
     },
     {
       "id": "six_pbt",
@@ -11028,6 +11109,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=swe"
     },
     {
+      "id": "swe_wp",
+      "name": "Bibeln 1917",
+      "language": "swe",
+      "languageCode": "swe",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/se/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "swh_bib",
       "name": "Biblica® Toleo Wazi Neno: Bibilia Takatifu™",
       "language": "swh",
@@ -11325,6 +11415,15 @@
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=telotsa"
     },
     {
+      "id": "tel_wp",
+      "name": "పవిత్ర బైబిల్",
+      "language": "tel",
+      "languageCode": "tel",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/tel/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
+    },
+    {
       "id": "ter_tbl",
       "name": "Emo'u Itukó'oviti",
       "language": "ter",
@@ -11395,6 +11494,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=tglulb",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=tglulb"
+    },
+    {
+      "id": "tgl_wp",
+      "name": "Ang Dating Biblia",
+      "language": "tgl",
+      "languageCode": "tgl",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/tl/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
     },
     {
       "id": "tgo_wbt",
@@ -13087,6 +13195,15 @@
       "countryCode": "",
       "website": "https://ebible.org/Scriptures/details.php?id=yor",
       "licenseUrl": "https://ebible.org/Scriptures/details.php?id=yor"
+    },
+    {
+      "id": "yor_wp",
+      "name": "Bibeli Mimọ",
+      "language": "yor",
+      "languageCode": "yor",
+      "countryCode": "",
+      "website": "https://www.wordproject.org/bibles/new/yor/index.htm",
+      "licenseUrl": "https://www.wordproject.org/contact/new/copyrights.htm"
     },
     {
       "id": "yoy_ea",

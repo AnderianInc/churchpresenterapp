@@ -59,7 +59,20 @@ export function readSlideDrag(e) {
   }
 }
 
-/** Copy of a slide with a fresh id, so it doesn't collide with the source slide's key. */
-export function copySlideForTarget(slide) {
-  return { ...slide, id: uuidv4() };
+/**
+ * Copy of a slide with a fresh id, for placing into another slide group.
+ *
+ * Image and video backgrounds are usually set on the item, not the slide, so the
+ * source item's background is written onto the copy. Without this the copy would
+ * pick up the target item's background instead. Slides that have their own
+ * background keep it.
+ *
+ * @param slide      the slide being copied
+ * @param sourceItem the item the slide came from (or its pickItemStyle() payload)
+ */
+export function copySlideForTarget(slide, sourceItem) {
+  const background = slide.background || sourceItem?.background;
+  const copy = { ...slide, id: uuidv4() };
+  if (background) copy.background = background;
+  return copy;
 }

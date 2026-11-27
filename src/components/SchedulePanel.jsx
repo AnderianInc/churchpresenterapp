@@ -7,7 +7,7 @@ function newGroupFromSlideDrag({ slide, itemStyle }) {
   return {
     type: 'blank',
     title: slide.label || 'New slides',
-    slides: [copySlideForTarget(slide)],
+    slides: [copySlideForTarget(slide, itemStyle)],
     ...itemStyle,
   };
 }
@@ -90,7 +90,7 @@ export default function SchedulePanel({ onEditSong }) {
       const target = schedule[i];
       if (drag && target) {
         updateScheduleItem(target.scheduleId, {
-          slides: [...(target.slides || []), copySlideForTarget(drag.slide)],
+          slides: [...(target.slides || []), copySlideForTarget(drag.slide, drag.itemStyle)],
         });
       }
       return;
