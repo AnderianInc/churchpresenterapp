@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
+// Must match VIDEO_ASPECT_OPTIONS in src/utils/videoFit.js and electron/validators.js.
+const VIDEO_ASPECT_KEYS = ['slide', '16:9', '4:3', '1:1', '9:16', '21:9', 'stretch'];
+
 // Canonical schema validators — all return { valid, data, errors }
 
 export function validateSong(raw) {
@@ -51,6 +54,7 @@ function validateBackground(raw) {
     if (raw.fit === 'cover' || raw.fit === 'contain') out.fit = raw.fit;
     if (typeof raw.scale === 'number') out.scale = Math.max(0.1, Math.min(1, raw.scale));
     if (typeof raw.brightness === 'number') out.brightness = raw.brightness;
+    if (VIDEO_ASPECT_KEYS.includes(raw.aspect)) out.aspect = raw.aspect;
     return out;
   }
   return null;

@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../store/AppContext';
 import SongImportModal from './SongImportModal';
+import { hasSlideDrag, readSlideDrag, copySlideForTarget } from '../utils/slideDnd';
 
 const tagColors = { hymn: '#4f8ef7', contemporary: '#22c55e', worship: '#a855f7', classic: '#f97316' };
 
 export default function LibraryPanel({ onEditSong, onNewSong }) {
-  const { songs, addToSchedule, deleteSong } = useApp();
+  const { songs, addToSchedule, deleteSong, updateSong } = useApp();
   const [search, setSearch] = useState('');
   const [filterTag, setFilterTag] = useState('all');
   const [sortBy, setSortBy] = useState('title');
@@ -31,6 +32,11 @@ export default function LibraryPanel({ onEditSong, onNewSong }) {
     });
     return list;
   }, [songs, search, filterTag, sortBy]);
+
+  // Dropping a slide onto a library song copies it into that song's slides.
+  const handleSlideDrop = (song, slide) => {
+    updateSong(song.id, { slides: [...(song.slides || []), copySlideForTarget(slide)] });
+  };
 
   const handleAdd = (song) => {
     addToSchedule({
@@ -119,7 +125,7 @@ export default function LibraryPanel({ onEditSong, onNewSong }) {
           </div>
         )}
         {filtered.map(song => (
-          <SongItem key={song.id} song={song} onAdd={handleAdd} onEdit={onEditSong} onDelete={deleteSong} />
+          <SongItem key={song.id} song={song} onAdd={handleAdd} onEdit={onEditSong} onDelete={deleteSong} onSlideDrop={handleSlideDrop} />
         ))}
       </div>
 
@@ -132,17 +138,35 @@ export default function LibraryPanel({ onEditSong, onNewSong }) {
   );
 }
 
-function SongItem({ song, onAdd, onEdit, onDelete }) {
+function SongItem({ song, onAdd, onEdit, onDelete, onSlideDrop }) {
   const [hover, setHover] = useState(false);
+  const [dropActive, setDropActive] = useState(false);
 
   return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      onDragOver={e => {
+        if (!hasSlideDrag(e)) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        setDropActive(true);
+      }}
+      onDragLeave={e => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setDropActive(false);
+      }}
+      onDrop={e => {
+        if (!hasSlideDrag(e)) return;
+        e.preventDefault();
+        setDropActive(false);
+        const drag = readSlideDrag(e);
+        if (drag) onSlideDrop(song, drag.slide);
+      }}
       style={{
         display: 'flex', alignItems: 'center', gap: 8, padding: '7px 8px',
         borderRadius: 'var(--radius)', marginBottom: 1,
-        background: hover ? 'var(--bg-hover)' : 'transparent', cursor: 'default',
+        background: hover || dropActive ? 'var(--bg-hover)' : 'transparent', cursor: 'default',
+        border: dropActive ? '1px dashed var(--accent)' : '1px solid transparent',
       }}
     >
       <div style={{

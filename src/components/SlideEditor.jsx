@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../store/AppContext';
+import {
+  startSlideDrag, hasScheduleItemDrag, readScheduleItemDrag, copySlideForTarget, pickItemStyle,
+} from '../utils/slideDnd';
 
 const slideTypeColors = {
   verse: '#4f8ef7', chorus: '#22c55e', bridge: '#a855f7',
@@ -82,6 +85,9 @@ function SlideThumb({ slide, index, isActive, onClick, item, onRenameSlide }) {
   return (
     <div
       onClick={onClick}
+      draggable
+      onDragStart={e => startSlideDrag(e, slide, pickItemStyle(item))}
+      title="Drag onto a service item or song in the library to copy this slide there"
       style={{
         width: 120, height: 68, borderRadius: 6, flexShrink: 0,
         border: isActive ? '2px solid var(--accent)' : '2px solid transparent',
@@ -119,7 +125,8 @@ function SlideThumb({ slide, index, isActive, onClick, item, onRenameSlide }) {
 }
 
 export default function SlideEditor() {
-  const { currentItem, currentSlides, activeSlideIdx, setActiveSlideIdx, updateScheduleItem } = useApp();
+  const { currentItem, currentSlides, activeSlideIdx, setActiveSlideIdx, updateScheduleItem, schedule } = useApp();
+  const [stripDropActive, setStripDropActive] = useState(false);
 
   if (!currentItem) {
     return (
@@ -141,12 +148,43 @@ export default function SlideEditor() {
     updateScheduleItem(currentItem.scheduleId, { slides: nextSlides });
   };
 
+  // Dropping a service-order item here appends its slides to the current item (copy).
+  const handleStripDragOver = (e) => {
+    if (!hasScheduleItemDrag(e)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setStripDropActive(true);
+  };
+  const handleStripDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setStripDropActive(false);
+  };
+  const handleStripDrop = (e) => {
+    if (!hasScheduleItemDrag(e)) return;
+    e.preventDefault();
+    setStripDropActive(false);
+    const sourceId = readScheduleItemDrag(e);
+    const source = schedule.find(s => s.scheduleId === sourceId);
+    if (!source || source.scheduleId === currentItem.scheduleId) return;
+    const incoming = source.slides || [];
+    if (incoming.length === 0) return;
+    updateScheduleItem(currentItem.scheduleId, {
+      slides: [...currentSlides, ...incoming.map(copySlideForTarget)],
+    });
+  };
+
   return (
-    <div style={{
-      height: 92, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)',
-      display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px',
-      overflowX: 'auto', flexShrink: 0,
-    }}>
+    <div
+      onDragOver={handleStripDragOver}
+      onDragLeave={handleStripDragLeave}
+      onDrop={handleStripDrop}
+      style={{
+        height: 92, background: 'var(--bg-panel)', borderBottom: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: 8, padding: '0 10px',
+        overflowX: 'auto', flexShrink: 0,
+        boxShadow: stripDropActive ? 'inset 0 0 0 2px var(--accent)' : 'none',
+        transition: 'box-shadow 0.12s',
+      }}
+    >
       {currentSlides.map((slide, i) => (
         <SlideThumb
           key={slide.id || i}

@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, memo } from 'react';
 import { bgToCss } from './BackgroundPicker';
 import CameraBackground from './CameraBackground';
-import { videoFitStyle } from '../utils/videoFit';
+import { videoFitStyle, videoContainerStyle, imageBackgroundSize } from '../utils/videoFit';
 
 /**
  * Renders a single slide for preview thumbnails, live output, and stage views.
@@ -164,18 +164,24 @@ function SlideRenderer({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bgType, externalIframeRef]);
 
+  // Images are painted by their own layer below. Putting the image on the
+  // container too left a cover-cropped copy showing around a 'contain' image,
+  // so the container gets a plain base colour for image backgrounds.
+  const containerBg = bgType === 'image' ? '#0d1117' : bg;
   const containerStyle = fullscreen ? {
     width: '100vw', height: '100vh',
     display: 'flex', flexDirection: 'column',
     alignItems: hAlign, justifyContent: 'center',
-    background: bg, padding: '5%', textAlign,
+    background: containerBg, padding: '5%', textAlign,
     position: 'relative',
+    ...videoContainerStyle(bgType === 'video' ? effectiveBg : null),
   } : {
     width: '100%', height: '100%',
     display: 'flex', flexDirection: 'column',
     alignItems: hAlign, justifyContent: 'center',
-    background: bg, padding: '8%', textAlign,
+    background: containerBg, padding: '8%', textAlign,
     position: 'relative',
+    ...videoContainerStyle(bgType === 'video' ? effectiveBg : null),
   };
 
   // Per-background brightness (stored on video backgrounds via the picker) takes
@@ -190,27 +196,16 @@ function SlideRenderer({
             fit:   'cover' (default) fills + crops; 'contain' shows the whole image
             scale: 0..1, used with 'contain' to reduce the image below 100% of the slide.
                    Areas outside the image fall through to the slide's base background. */}
-      {bgType === 'image' && (() => {
-        const fit = effectiveBg.fit === 'contain' ? 'contain' : 'cover';
-        const scale = typeof effectiveBg.scale === 'number'
-          ? Math.max(0.1, Math.min(1, effectiveBg.scale))
-          : 1;
-        // Single-value backgroundSize sets width; height auto-scales preserving
-        // aspect ratio. So `${pct}%` gives a width=pct, aspect-preserved image.
-        const sizeValue = fit === 'cover'
-          ? 'cover'
-          : scale >= 0.999 ? 'contain' : `${Math.round(scale * 100)}%`;
-        return (
-          <div style={{
-            position: 'absolute', inset: 0,
-            backgroundImage: `url(${effectiveBg.value})`,
-            backgroundSize: sizeValue,
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            filter: `brightness(${effectiveBg.brightness || 0.6})`,
-          }} />
-        );
-      })()}
+      {bgType === 'image' && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          backgroundImage: `url(${effectiveBg.value})`,
+          backgroundSize: imageBackgroundSize(effectiveBg),
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: `brightness(${effectiveBg.brightness || 0.6})`,
+        }} />
+      )}
 
       {/* Video background */}
       {bgType === 'video' && (

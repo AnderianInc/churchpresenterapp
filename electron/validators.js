@@ -11,6 +11,9 @@
 
 const { randomUUID } = require('crypto');
 
+// Must match VIDEO_ASPECT_OPTIONS in src/utils/videoFit.js and src/store/persistence.js.
+const VIDEO_ASPECT_KEYS = ['slide', '16:9', '4:3', '1:1', '9:16', '21:9', 'stretch'];
+
 function validateBackground(raw) {
   if (!raw || typeof raw !== 'object') return null;
   const type = typeof raw.type === 'string' ? raw.type : null;
@@ -35,6 +38,7 @@ function validateBackground(raw) {
     if (typeof raw.brightness === 'number') out.brightness = raw.brightness;
     if (raw.fit === 'cover' || raw.fit === 'contain') out.fit = raw.fit;
     if (typeof raw.scale === 'number') out.scale = Math.max(0.1, Math.min(1, raw.scale));
+    if (VIDEO_ASPECT_KEYS.includes(raw.aspect)) out.aspect = raw.aspect;
     return out;
   }
   return null; // unknown type — let caller supply default
